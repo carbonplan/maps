@@ -1,0 +1,49 @@
+{
+  "name": "@carbonplan/maps",
+  "version": "9.2.0",
+  "description": "interactive data-driven web maps",
+  "main": "dst/index.js",
+  "module": "dst/index.esm.js",
+  "scripts": {
+    "build": "rimraf dst && microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "format": "prettier --write 'src/**/*.js'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonplan/maps.git"
+  },
+  "keywords": [
+    "carbonplan",
+    "webgl",
+    "mapbox",
+    "regl",
+    "mapping"
+  ],
+  "author": "freeman-lab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carbonplan/maps/issues"
+  },
+  "files": [
+    "dst"
+  ],
+  "homepage": "https://github.com/carbonplan/maps#readme",
+  "dependencies": {
+    "mapbox-gl": "^1.13.1",
+    "ndarray": "^1.0.19",
+    "pupa": "^3.0.0",
+    "regl": "^2.1.0",
+    "xhr-request": "^1.1.0",
+    "zarr-js": "^1.0.0"
+  },
+  "peerDependencies": {
+    "react": "^16.14.0 || ^17.0.2",
+    "react-dom": "^16.14.0 || ^17.0.2"
+  },
+  "devDependencies": {
+    "microbundle": "^0.13.0",
+    "prettier": "^2.2.1",
+    "rimraf": "3.0.2"
+  }
+}
