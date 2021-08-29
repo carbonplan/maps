@@ -26,7 +26,8 @@
     "url": "https://github.com/carbonplan/maps/issues"
   },
   "files": [
-    "dst"
+    "dst",
+    "mapbox.css"
   ],
   "homepage": "https://github.com/carbonplan/maps#readme",
   "dependencies": {
