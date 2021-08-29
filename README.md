@@ -33,7 +33,7 @@ The core library is a `react` wrapper that combines `mapbox-gl-js` and `regl`. W
 
 Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
 
-For traditional map layers, you can render vector tiles via `mapbox`. Rather than try to wrap `mapbox`, we simply expose a few key hooks that make it easy to build `mapbox` layers.
+For traditional map layers, you can render vector tiles via `mapbox`. Rather than try to wrap all of `mapbox`, we simply expose a few key hooks that make it easy to build `mapbox` layers yourself.
 
 For raster data layers, we assume data is stored in the [`zarr`](https://github.com/zarr-developers/zarr-python) format, an emerging standard for chunked, compressed, multi-dimensional binary data that's become popular in the scientific Python community.
 
