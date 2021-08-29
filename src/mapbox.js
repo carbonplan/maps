@@ -30,7 +30,7 @@ const Mapbox = ({
     if (node !== null) {
       map.current = new mapboxgl.Map({
         container: node,
-        style: style || {version: 8, sources: {}, layers: []},
+        style: style || { version: 8, sources: {}, layers: [] },
         minZoom: minZoom,
       })
       if (center) map.current.setCenter(center)

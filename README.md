@@ -79,7 +79,3 @@ For lower level control, you might also find these useful
 `Regl`
 
 `useRegl`
-
-
-
-

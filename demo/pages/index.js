@@ -17,12 +17,7 @@ const Index = () => {
     <>
       <Meta />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Canvas
-          style={style}
-          zoom={2}
-          center={[0, 0]}
-          debug={false}
-        >
+        <Canvas style={style} zoom={2} center={[0, 0]} debug={false}>
           <Basemap />
           <Raster
             maxZoom={5}
@@ -76,7 +71,9 @@ const Index = () => {
           defaultValue={'warm'}
           sx={{ width: '200px', position: 'absolute', top: 80, left: 20 }}
         >
-          {colormaps.map(d => <option key={d.name}>{d.name}</option>)}
+          {colormaps.map((d) => (
+            <option key={d.name}>{d.name}</option>
+          ))}
         </Select>
         <Dimmer
           sx={{
