@@ -22,7 +22,7 @@ const Regl = ({ style, containerStyle, extensions, children }) => {
     if (node !== null) {
       regl.current = _regl({
         container: node,
-        extensions: extensions,
+        extensions: ['OES_texture_float', 'OES_element_index_uint'],
       })
       setReady(true)
     }

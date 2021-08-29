@@ -30,11 +30,11 @@ const Mapbox = ({
     if (node !== null) {
       map.current = new mapboxgl.Map({
         container: node,
-        style: style,
-        center: center,
-        zoom: zoom,
+        style: style || {version: 8, sources: {}, layers: []},
         minZoom: minZoom,
       })
+      if (center) map.current.setCenter(center)
+      if (zoom) map.current.setZoom(zoom)
       if (debug) map.current.showTileBoundaries = true
       map.current.on('styledata', () => {
         setReady(true)

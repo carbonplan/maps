@@ -22,7 +22,6 @@ const Index = () => {
           zoom={2}
           center={[0, 0]}
           debug={false}
-          extensions={['OES_texture_float', 'OES_element_index_uint']}
         >
           <Basemap />
           <Raster

@@ -5,7 +5,7 @@ import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 
 const Raster = (props) => {
-  const { display, opacity, clim, colormap, uniforms = {} } = props
+  const { display = true, opacity = 1, clim, colormap, uniforms = {} } = props
   const { center, zoom } = useControls()
   const { regl } = useRegl()
   const { map } = useMapbox()
