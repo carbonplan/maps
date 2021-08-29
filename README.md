@@ -41,7 +41,7 @@ For raster data layers, we assume data is stored in the [`zarr`](https://github.
 
 Here's a simple map that renders a global temperature dataset. The underyling dataset is a version of the [`WorldClim`](https://www.worldclim.org/data/worldclim21.html) dataset stored as a `zarr` pyramid with 5 levels of increasing resolution.
 
-```
+```js
 import { Canvas, Raster } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
 
