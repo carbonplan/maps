@@ -1,3 +1,4 @@
 .DS_Store
-dst/
-node_modules/
+.next
+dst
+node_modules
