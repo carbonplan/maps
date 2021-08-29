@@ -21,7 +21,7 @@
 
 ## background
 
-There are many existing approaches to making web maps, and also many different data sources and use cases. 
+There are many existing approaches to making web maps, and also many different data sources and use cases.
 
 One need we encounter frequently at CarbonPlan is wanting to render gridded _raster_ data on a map, where the data come from some scientific or analytical workflow. Often these data are also multi-dimensional, for example, maps that vary in time, or that represent multiple variables. We want this rendering to be as performant as possible, while supporting a lot of flexibility in how data is rendered. We also want to work with the same file formats we use while doing analysis.
 
