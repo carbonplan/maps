@@ -21,13 +21,15 @@
 
 ## background
 
-There are many approaches to making web maps, and also many different data sources and use cases. One need we encounter frequently is wanting to render _raster_ data on a map, where the data come from some scientific or analytical workflow. Often these data are also multi-dimensional, for example, maps that vary in time, or that represent multiple variables. We want this rendering to be as performant as possible, while supporting a lot of flexibility in how data is rendered. We also want to work with the same file formats we use while.
+There are many existing approaches to making web maps, and also many different data sources and use cases. 
+
+One need we encounter frequently at CarbonPlan is wanting to render gridded _raster_ data on a map, where the data come from some scientific or analytical workflow. Often these data are also multi-dimensional, for example, maps that vary in time, or that represent multiple variables. We want this rendering to be as performant as possible, while supporting a lot of flexibility in how data is rendered. We also want to work with the same file formats we use while doing analysis.
 
 We're building `@carbonplan/maps` to address these needs! We'll be releasing early and often so we can test it ourselves, but it's very much in progress, so expect lots of major version bumps and breaking changes.
 
 ## design
 
-The core library is a `react` wrapper that combines `mapbox-gl-js` and `regl`. We use `mapbox-gl-js` for rendering traditional map layers and providing basic controls, whereas we use `regl` to performantly render data-driven layers. When it comes to rendering data, we provide some simple options out of the box, but also make it easy to plug in custom fragment shaders. For complex rendering needs, we find it easier to write shader code directly, rather than learn a new abstraction.
+The core library is a `react` wrapper that combines `mapbox-gl-js` and `regl`. We use `mapbox-gl-js` for rendering traditional map layers and providing basic controls, whereas we use `regl` to performantly render data-driven layers. When it comes to rendering data, we provide some simple options out of the box, but also make it easy to plug in custom fragment shaders. For complex rendering needs, we have found it easier to write shader code directly, rather than developing new abstractions.
 
 Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
 
@@ -79,3 +81,7 @@ For lower level control, you might also find these useful
 `Regl`
 
 `useRegl`
+
+## thanks
+
+We owe enormous credit to existing libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.
