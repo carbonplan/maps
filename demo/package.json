@@ -14,6 +14,7 @@
   "dependencies": {
     "@carbonplan/colormaps": "^1.0.0",
     "@carbonplan/components": "^10.0.0",
+    "@carbonplan/maps": "^1.0.0-alpha.0",
     "@carbonplan/theme": "^7.0.0",
     "next": "^11.1.0",
     "react": "^17.0.2",
