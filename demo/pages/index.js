@@ -21,7 +21,7 @@ const Index = () => {
           <Basemap />
           <Raster
             maxZoom={5}
-            size={512}
+            size={128}
             colormap={colormap}
             clim={clim}
             display={display}
@@ -29,7 +29,7 @@ const Index = () => {
             mode={'texture'}
             nan={-3.4e38}
             source={
-              'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/512/{z}'
+              'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/128/{z}'
             }
           />
         </Canvas>
