@@ -53,19 +53,14 @@ const Raster = (props) => {
   }, [viewport])
 
   useEffect(() => {
-    tiles.current.updateStyle({ display, opacity, clim })
+    tiles.current.updateUniforms({ display, opacity, clim, ...uniforms })
     tiles.current.redraw()
-  }, [display, opacity, clim])
+  }, [display, opacity, clim, uniforms])
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })
     tiles.current.redraw()
   }, [colormap])
-
-  useEffect(() => {
-    tiles.current.updateUniforms(uniforms)
-    tiles.current.redraw()
-  }, Object.values(uniforms))
 
   return null
 }

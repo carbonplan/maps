@@ -285,12 +285,6 @@ export const createTiles = (regl, opts) => {
       })
     }
 
-    this.updateStyle = (props) => {
-      Object.keys(props).forEach((k) => {
-        this[k] = props[k]
-      })
-    }
-
     this.updateUniforms = (props) => {
       Object.keys(props).forEach((k) => {
         this[k] = props[k]
