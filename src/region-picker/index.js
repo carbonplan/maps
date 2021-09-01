@@ -9,9 +9,13 @@ import { useMapbox } from '../mapbox'
 function getInitialRadius(map) {
   const bounds = map.getBounds().toArray()
   const dist = distance(bounds[0], bounds[1], { units: 'miles' })
-  return Math.min(Math.round(dist / 15), 300)
+  return Math.min(Math.round(dist / 15), 1000)
 }
 
+// TODO:
+// - accept mode (only accept mode="circle" to start)
+// - allow units to be specified
+// - min/max radius value
 function RegionPicker({
   backgroundColor,
   color,
