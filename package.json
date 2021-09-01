@@ -31,6 +31,8 @@
   ],
   "homepage": "https://github.com/carbonplan/maps#readme",
   "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "d3": "^7.0.1",
     "mapbox-gl": "^1.13.1",
     "ndarray": "^1.0.19",
     "pupa": "^2.1.1",
