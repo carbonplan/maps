@@ -330,10 +330,14 @@ export const createTiles = (regl, opts) => {
           for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
               const pointCoords = cameraToPoint(x + i / size, y + j / size, z)
-              const dPoint = distance([center.lng, center.lat], pointCoords, {
-                units: 'miles',
-              })
-              if (dPoint < radius) {
+              const distanceToCenter = distance(
+                [center.lng, center.lat],
+                pointCoords,
+                {
+                  units: 'miles',
+                }
+              )
+              if (distanceToCenter < radius) {
                 this.variables.map((v) => {
                   results[v].push(tile._data[v].get(0, i, j))
                 })
