@@ -39,6 +39,17 @@ export const pointToCamera = (lon, lat, z) => {
   return [x, y, z]
 }
 
+export const cameraToPoint = (x, y, z) => {
+  const z2 = Math.pow(2, z)
+
+  const lon = (360 * x) / z2 - 180
+
+  const y2 = 180 - (y / z2) * 360
+  const lat = (360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90
+
+  return [lon, lat]
+}
+
 export const zoomToLevel = (zoom, maxZoom) => {
   if (maxZoom) return Math.min(Math.max(0, Math.floor(zoom)), maxZoom)
   return Math.max(0, Math.floor(zoom))

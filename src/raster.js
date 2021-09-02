@@ -3,12 +3,21 @@ import { useRegl } from './regl'
 import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
+import { useRegion } from './region/context'
 
 const Raster = (props) => {
-  const { display = true, opacity = 1, clim, colormap, uniforms = {} } = props
+  const {
+    display = true,
+    opacity = 1,
+    clim,
+    colormap,
+    setRegionData,
+    uniforms = {},
+  } = props
   const { center, zoom } = useControls()
   const { regl } = useRegl()
   const { map } = useMapbox()
+  const { region } = useRegion()
   const tiles = useRef()
   const camera = useRef()
   const [viewport, setViewport] = useState({
@@ -61,6 +70,13 @@ const Raster = (props) => {
     tiles.current.updateColormap({ colormap })
     tiles.current.redraw()
   }, [colormap])
+
+  useEffect(() => {
+    if (setRegionData) {
+      const data = tiles.current.queryRegion(region)
+      setRegionData(data)
+    }
+  }, [setRegionData, region])
 
   return null
 }

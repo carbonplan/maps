@@ -2,6 +2,8 @@ import zarr from 'zarr-js'
 import pupa from 'pupa'
 import xhr from 'xhr-request'
 import ndarray from 'ndarray'
+import { distance } from '@turf/turf'
+
 import { vert, frag } from './shaders'
 import {
   zoomToLevel,
@@ -12,6 +14,8 @@ import {
   getKeysToRender,
   getAdjustedOffset,
   getOverlappingAncestor,
+  tileToKey,
+  cameraToPoint,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -120,14 +124,17 @@ export const createTiles = (regl, opts) => {
               .map((_, y) => {
                 const key = [x, y, z].join(',')
                 const buffers = {}
+                const _data = {}
                 this.variables.forEach((k) => {
                   buffers[k] = initialize()
+                  _data[k] = null
                 })
                 this.tiles[key] = {
                   cached: false,
                   loading: false,
                   ready: false,
                   ...buffers,
+                  _data,
                 }
               })
           })
@@ -213,7 +220,7 @@ export const createTiles = (regl, opts) => {
       return activeKeys.reduce((accum, key) => {
         if (!getOverlappingAncestor(key, activeKeys)) {
           const [, , level] = keyToTile(key)
-          const tile = this.tiles[key]
+          const { _data, ...tile } = this.tiles[key]
           const offsets = adjustedActive[key]
 
           offsets.forEach((offset) => {
@@ -274,6 +281,7 @@ export const createTiles = (regl, opts) => {
               this.loaders[level](chunk, (err, data) => {
                 this.variables.forEach((k, i) => {
                   tile[k](accessor(data, i))
+                  tile._data[k] = accessor(data, i)
                 })
                 tile.cached = true
                 tile.loading = false
@@ -283,6 +291,62 @@ export const createTiles = (regl, opts) => {
           }
         }
       })
+    }
+
+    this.queryRegion = (region) => {
+      if (!region) {
+        return
+      }
+      // radius in `units` (miles)
+      const { center, radius } = region.properties
+      const centralTile = pointToTile(center.lng, center.lat, this.level)
+
+      const tiles = new Set([tileToKey(centralTile)])
+
+      region.geometry.coordinates[0].forEach(([lng, lat]) => {
+        const edgeTile = pointToTile(lng, lat, this.level)
+        tiles.add(tileToKey(edgeTile))
+
+        if (
+          Math.abs(edgeTile[0] - centralTile[0]) > 1 ||
+          Math.abs(edgeTile[1] - centralTile[1]) > 1
+        ) {
+          // todo: also add intermediate tiles
+        }
+      })
+
+      const results = this.variables.reduce((accum, v) => {
+        accum[v] = []
+        return accum
+      }, {})
+
+      Array.from(tiles).map((tileKey) => {
+        const [x, y, z] = keyToTile(tileKey)
+        const tile = this.tiles[tileKey]
+
+        if (!tile || !tile._data) {
+          console.log('no data found')
+        } else {
+          for (let i = 0; i < this.size; i++) {
+            for (let j = 0; j < this.size; j++) {
+              const pointCoords = cameraToPoint(x + i / size, y + j / size, z)
+              const dPoint = distance([center.lng, center.lat], pointCoords, {
+                units: 'miles',
+              })
+              if (dPoint < radius) {
+                this.variables.map((v) => {
+                  results[v].push(tile._data[v].get(0, i, j))
+                })
+              }
+            }
+          }
+        }
+      })
+
+      console.log({ results })
+      console.log({ tiles, radius, region })
+
+      return results
     }
 
     this.updateUniforms = (props) => {
