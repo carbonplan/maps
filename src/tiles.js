@@ -2,7 +2,7 @@ import zarr from 'zarr-js'
 import pupa from 'pupa'
 import xhr from 'xhr-request'
 import ndarray from 'ndarray'
-import { distance, point, rhumbBearing, rhumbDestination } from '@turf/turf'
+import { distance } from '@turf/turf'
 
 import { vert, frag } from './shaders'
 import {
@@ -14,8 +14,8 @@ import {
   getKeysToRender,
   getAdjustedOffset,
   getOverlappingAncestor,
-  tileToKey,
   cameraToPoint,
+  getTilesOfRegion,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -296,54 +296,22 @@ export const createTiles = (regl, opts) => {
       if (!region) {
         return
       }
-      // radius in `units` (miles)
-      const { center, radius } = region.properties
-      const centralTile = pointToTile(center.lng, center.lat, this.level)
-
-      const tiles = new Set([tileToKey(centralTile)])
-
-      region.geometry.coordinates[0].forEach(([lng, lat]) => {
-        const edgeTile = pointToTile(lng, lat, this.level)
-        tiles.add(tileToKey(edgeTile))
-
-        const maxDiff = Math.max(
-          Math.abs(edgeTile[0] - centralTile[0]),
-          Math.abs(edgeTile[1] - centralTile[1])
-        )
-        if (maxDiff > 1) {
-          const centerPoint = point([center.lng, center.lat])
-          const bearing = rhumbBearing(centerPoint, point([lng, lat]))
-
-          for (let i = 1; i < maxDiff; i++) {
-            const intermediatePoint = rhumbDestination(
-              centerPoint,
-              (i * radius) / maxDiff,
-              bearing,
-              { units: 'miles' }
-            )
-            const intermediateTile = pointToTile(
-              intermediatePoint.geometry.coordinates[0],
-              intermediatePoint.geometry.coordinates[1],
-              this.level
-            )
-            tiles.add(tileToKey(intermediateTile))
-          }
-        }
-      })
-
+      const tiles = getTilesOfRegion(region, this.level)
       const results = this.variables.reduce((accum, v) => {
         accum[v] = []
         return accum
       }, {})
 
-      Array.from(tiles).map((tileKey) => {
+      tiles.map((tileKey) => {
         const [x, y, z] = keyToTile(tileKey)
         const tile = this.tiles[tileKey]
 
         if (!tile || !tile._data) {
-          // todo: handle tiles that still need to be requests
+          // todo: handle tiles that still need to be requested
           console.log('no data found')
         } else {
+          const { center, radius } = region.properties
+
           for (let i = 0; i < this.size; i++) {
             for (let j = 0; j < this.size; j++) {
               const pointCoords = cameraToPoint(x + i / size, y + j / size, z)
