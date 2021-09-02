@@ -142,7 +142,7 @@ export const createTiles = (regl, opts) => {
                   })
                   this._tilesData[key] = {
                     value,
-                    resolver,
+                    resolve: resolver,
                   }
                 })
             })
@@ -294,7 +294,7 @@ export const createTiles = (regl, opts) => {
                 this.variables.forEach((k, i) => {
                   tile[k](accessor(data, i))
                 })
-                tileData.resolver(data)
+                tileData.resolve(data)
                 tile.cached = true
                 tile.loading = false
                 this.redraw()
