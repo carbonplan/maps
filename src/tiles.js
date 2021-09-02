@@ -124,10 +124,9 @@ export const createTiles = (regl, opts) => {
               .map((_, y) => {
                 const key = [x, y, z].join(',')
                 const buffers = {}
-                const _data = {}
+                const _data = null
                 this.variables.forEach((k) => {
                   buffers[k] = initialize()
-                  _data[k] = null
                 })
                 this.tiles[key] = {
                   cached: false,
@@ -325,6 +324,7 @@ export const createTiles = (regl, opts) => {
         const tile = this.tiles[tileKey]
 
         if (!tile || !tile._data) {
+          // todo: handle tiles that still need to be requests
           console.log('no data found')
         } else {
           for (let i = 0; i < this.size; i++) {
