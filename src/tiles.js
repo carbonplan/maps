@@ -281,8 +281,8 @@ export const createTiles = (regl, opts) => {
               this.loaders[level](chunk, (err, data) => {
                 this.variables.forEach((k, i) => {
                   tile[k](accessor(data, i))
-                  tile._data[k] = accessor(data, i)
                 })
+                tile._data = data
                 tile.cached = true
                 tile.loading = false
                 this.redraw()
@@ -338,17 +338,14 @@ export const createTiles = (regl, opts) => {
                 }
               )
               if (distanceToCenter < radius) {
-                this.variables.map((v) => {
-                  results[v].push(tile._data[v].get(i, j))
+                this.variables.map((v, idx) => {
+                  results[v].push(tile._data.get(idx, j, i))
                 })
               }
             }
           }
         }
       })
-
-      console.log({ results })
-      console.log({ tiles, radius, region })
 
       return results
     }
