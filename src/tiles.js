@@ -339,7 +339,7 @@ export const createTiles = (regl, opts) => {
               )
               if (distanceToCenter < radius) {
                 this.variables.map((v) => {
-                  results[v].push(tile._data[v].get(0, i, j))
+                  results[v].push(tile._data[v].get(i, j))
                 })
               }
             }
