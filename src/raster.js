@@ -27,6 +27,12 @@ const Raster = (props) => {
 
   camera.current = { center: center, zoom: zoom, viewport }
 
+  const queryRegion = async (r) => {
+    setRegionData({ loading: true })
+    const data = await tiles.current.queryRegion(r)
+    setRegionData({ loading: false, value: data })
+  }
+
   useEffect(() => {
     tiles.current = createTiles(regl, props)
   }, [])
@@ -72,9 +78,8 @@ const Raster = (props) => {
   }, [colormap])
 
   useEffect(() => {
-    if (setRegionData) {
-      const data = tiles.current.queryRegion(region)
-      setRegionData(data)
+    if (region && setRegionData) {
+      queryRegion(region)
     }
   }, [setRegionData, region])
 

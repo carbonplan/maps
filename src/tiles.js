@@ -52,6 +52,7 @@ export const createTiles = (regl, opts) => {
       format: 'rgb',
       shape: [255, 1],
     })
+    this._tilesData = {}
 
     const validModes = ['grid', 'dotgrid', 'texture']
     if (!validModes.includes(mode)) {
@@ -114,31 +115,41 @@ export const createTiles = (regl, opts) => {
 
     const uris = levels.map((d) => pupa(source, { z: d }))
 
-    zarr(xhr).openList(uris, (err, loaders) => {
-      levels.map((z) => {
-        Array(Math.pow(2, z))
-          .fill(0)
-          .map((_, x) => {
-            Array(Math.pow(2, z))
-              .fill(0)
-              .map((_, y) => {
-                const key = [x, y, z].join(',')
-                const buffers = {}
-                const _data = null
-                this.variables.forEach((k) => {
-                  buffers[k] = initialize()
+    this._tilesData.initialized = new Promise((resolve) => {
+      zarr(xhr).openList(uris, (err, loaders) => {
+        levels.map((z) => {
+          Array(Math.pow(2, z))
+            .fill(0)
+            .map((_, x) => {
+              Array(Math.pow(2, z))
+                .fill(0)
+                .map((_, y) => {
+                  const key = [x, y, z].join(',')
+                  const buffers = {}
+                  this.variables.forEach((k) => {
+                    buffers[k] = initialize()
+                  })
+                  this.tiles[key] = {
+                    cached: false,
+                    loading: false,
+                    ready: false,
+                    ...buffers,
+                  }
+
+                  let resolver
+                  const value = new Promise((resolve) => {
+                    resolver = resolve
+                  })
+                  this._tilesData[key] = {
+                    value,
+                    resolver,
+                  }
                 })
-                this.tiles[key] = {
-                  cached: false,
-                  loading: false,
-                  ready: false,
-                  ...buffers,
-                  _data,
-                }
-              })
-          })
+            })
+        })
+        loaders.map((d, i) => (this.loaders[i] = d))
+        resolve(true)
       })
-      loaders.map((d, i) => (this.loaders[i] = d))
     })
 
     this.drawTiles = regl({
@@ -219,7 +230,7 @@ export const createTiles = (regl, opts) => {
       return activeKeys.reduce((accum, key) => {
         if (!getOverlappingAncestor(key, activeKeys)) {
           const [, , level] = keyToTile(key)
-          const { _data, ...tile } = this.tiles[key]
+          const tile = this.tiles[key]
           const offsets = adjustedActive[key]
 
           offsets.forEach((offset) => {
@@ -267,6 +278,8 @@ export const createTiles = (regl, opts) => {
         if (this.loaders[level]) {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
+          const tileData = this._tilesData[key]
+
           const accessor =
             this.ndim > 2 ? (d, i) => d.pick(i, null, null) : (d) => d
           const chunk =
@@ -281,7 +294,7 @@ export const createTiles = (regl, opts) => {
                 this.variables.forEach((k, i) => {
                   tile[k](accessor(data, i))
                 })
-                tile._data = data
+                tileData.resolver(data)
                 tile.cached = true
                 tile.loading = false
                 this.redraw()
@@ -292,41 +305,39 @@ export const createTiles = (regl, opts) => {
       })
     }
 
-    this.queryRegion = (region) => {
-      if (!region) {
-        return
-      }
+    this.queryRegion = async (region) => {
       const tiles = getTilesOfRegion(region, this.level)
       const results = this.variables.reduce((accum, v) => {
         accum[v] = []
         return accum
       }, {})
 
-      tiles.map((tileKey) => {
+      await this._tilesData.initialized
+
+      const tilesData = await Promise.all(
+        tiles.map((tileKey) => this._tilesData[tileKey].value)
+      )
+
+      tiles.map((tileKey, index) => {
         const [x, y, z] = keyToTile(tileKey)
-        const tile = this.tiles[tileKey]
+        const { center, radius } = region.properties
 
-        if (!tile || !tile._data) {
-          // todo: handle tiles that still need to be requested
-          console.log('no data found')
-        } else {
-          const { center, radius } = region.properties
-
-          for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-              const pointCoords = cameraToPoint(x + i / size, y + j / size, z)
-              const distanceToCenter = distance(
-                [center.lng, center.lat],
-                pointCoords,
-                {
-                  units: 'miles',
-                }
-              )
-              if (distanceToCenter < radius) {
-                this.variables.map((v, idx) => {
-                  results[v].push(tile._data.get(idx, j, i))
-                })
+        for (let i = 0; i < this.size; i++) {
+          for (let j = 0; j < this.size; j++) {
+            const pointCoords = cameraToPoint(x + i / size, y + j / size, z)
+            const distanceToCenter = distance(
+              [center.lng, center.lat],
+              pointCoords,
+              {
+                units: 'miles',
               }
+            )
+            if (distanceToCenter < radius) {
+              const data = tilesData[index]
+
+              this.variables.map((v, idx) => {
+                results[v].push(data.get(idx, j, i))
+              })
             }
           }
         }
