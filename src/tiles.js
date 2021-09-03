@@ -321,6 +321,10 @@ export const createTiles = (regl, opts) => {
       tiles.map((tileKey, index) => {
         const [x, y, z] = keyToTile(tileKey)
         const { center, radius, units } = region.properties
+        const accessor =
+          this.ndim > 2
+            ? (d, i, j, v) => d.get(v, j, i)
+            : (d, i, j) => d.get(j, i)
 
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
@@ -336,7 +340,7 @@ export const createTiles = (regl, opts) => {
               const data = tilesData[index]
 
               this.variables.map((v, idx) => {
-                results[v].push(data.get(idx, j, i))
+                results[v].push(accessor(data, i, j, idx))
               })
             }
           }
