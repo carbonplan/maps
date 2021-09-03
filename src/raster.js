@@ -70,7 +70,7 @@ const Raster = (props) => {
   useEffect(() => {
     tiles.current.updateUniforms({ display, opacity, clim, ...uniforms })
     tiles.current.redraw()
-  }, [display, opacity, clim, uniforms])
+  }, [display, opacity, clim, ...Object.values(uniforms)])
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })
