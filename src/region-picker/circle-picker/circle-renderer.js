@@ -22,6 +22,8 @@ export default function CircleRenderer({
   onDrag = (circle) => {},
   initialCenter = { lat: 0, lng: 0 },
   initialRadius = 0,
+  maxRadius,
+  minRadius,
   units,
 }) {
   let circle = null
@@ -50,11 +52,13 @@ export default function CircleRenderer({
 
   function addDragHandleListeners() {
     const onMouseMove = (e) => {
-      const r = distance(
+      let r = distance(
         map.unproject(e.point).toArray(),
         [center.lng, center.lat],
         { units }
       )
+      r = maxRadius ? Math.min(r, maxRadius) : r
+      r = minRadius ? Math.max(r, minRadius) : r
       setRadius(r)
       onDrag(circle)
 

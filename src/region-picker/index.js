@@ -6,25 +6,33 @@ import { distance } from '@turf/turf'
 import { useRegion } from '../region/context'
 import { useMapbox } from '../mapbox'
 
-function getInitialRadius(map, units) {
+function getInitialRadius(map, units, minRadius, maxRadius) {
   const bounds = map.getBounds().toArray()
   const dist = distance(bounds[0], bounds[1], { units })
-  return Math.min(Math.round(dist / 15), 1000)
+  let radius = Math.round(dist / 15)
+  radius = minRadius ? Math.max(minRadius, radius) : radius
+  radius = maxRadius ? Math.min(maxRadius, radius) : radius
+
+  return radius
 }
 
 // TODO:
 // - accept mode (only accept mode="circle" to start)
-// - min/max radius value
 function RegionPicker({
   backgroundColor,
   color,
   fontFamily,
   onChangeReset = () => {},
   units = 'kilometers',
+  initialRadius: initialRadiusProp,
+  minRadius,
+  maxRadius,
 }) {
   const { map } = useMapbox()
   const initialCenter = useRef(map.getCenter())
-  const initialRadius = useRef(getInitialRadius(map, units))
+  const initialRadius = useRef(
+    initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
+  )
   const { onChange } = useRegion()
 
   const [center, setCenter] = useState(initialCenter.current)
@@ -55,6 +63,8 @@ function RegionPicker({
       color={color}
       units={units}
       fontFamily={fontFamily}
+      maxRadius={maxRadius}
+      minRadius={minRadius}
     />
   )
 }
