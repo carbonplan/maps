@@ -1,4 +1,4 @@
-import * as d3 from 'd3'
+import { select } from 'd3-selection'
 import { FLOATING_HANDLE, SHOW_RADIUS_GUIDELINE } from '../constants'
 import { getPathMaker } from './utils'
 import {
@@ -30,15 +30,15 @@ export default function CircleRenderer({
   let center = initialCenter
   let radius = initialRadius
 
-  const svg = d3.select('#circle-picker').style('pointer-events', 'none')
-  const svgCircle = d3.select('#circle').style('pointer-events', 'all')
-  const svgCircleCenter = d3.select('#circle-center')
-  const svgCircleMask = d3.select('#circle-mask-cutout')
-  const svgHandle = d3.select('#handle').style('pointer-events', 'all')
-  const svgGuideline = d3.select('#radius-guideline')
-  const svgRadiusTextContainer = d3.select('#radius-text-container')
-  const svgRadiusText = d3.select('#radius-text').attr('fill-opacity', 0)
-  const svgCircleXY = d3.select('#circle-xy')
+  const svg = select('#circle-picker').style('pointer-events', 'none')
+  const svgCircle = select('#circle').style('pointer-events', 'all')
+  const svgCircleCenter = select('#circle-center')
+  const svgCircleMask = select('#circle-mask-cutout')
+  const svgHandle = select('#handle').style('pointer-events', 'all')
+  const svgGuideline = select('#radius-guideline')
+  const svgRadiusTextContainer = select('#radius-text-container')
+  const svgRadiusText = select('#radius-text').attr('fill-opacity', 0)
+  const svgCircleXY = select('#circle-xy')
 
   let guidelineAngle = 90
   if (!SHOW_RADIUS_GUIDELINE) {

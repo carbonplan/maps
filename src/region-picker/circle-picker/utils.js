@@ -1,11 +1,11 @@
-import * as d3 from 'd3'
+import { geoPath, geoTransform } from 'd3-geo'
 
 export function getPathMaker(map) {
-  const transform = d3.geoTransform({
+  const transform = geoTransform({
     point: function (lng, lat) {
       const point = map.project([lng, lat])
       this.stream.point(point.x, point.y)
     },
   })
-  return d3.geoPath().projection(transform)
+  return geoPath().projection(transform)
 }
