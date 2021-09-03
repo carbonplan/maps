@@ -205,7 +205,7 @@ export const getAdjustedOffset = (offset, renderedKey) => {
 }
 
 export const getTilesOfRegion = (region, level) => {
-  const { center, radius } = region.properties
+  const { center, radius, units } = region.properties
   const centralTile = pointToTile(center.lng, center.lat, level)
 
   const tiles = new Set([tileToKey(centralTile)])
@@ -229,7 +229,7 @@ export const getTilesOfRegion = (region, level) => {
           centerPoint,
           (i * radius) / maxDiff,
           bearing,
-          { units: 'miles' }
+          { units }
         )
         const intermediateTile = pointToTile(
           intermediatePoint.geometry.coordinates[0],

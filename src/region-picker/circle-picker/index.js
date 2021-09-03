@@ -10,6 +10,7 @@ const RegionPicker = ({
   radius,
   onIdle,
   onDrag,
+  units,
 }) => {
   const { map } = useMapbox()
   const [renderer, setRenderer] = useState(null)
@@ -21,6 +22,7 @@ const RegionPicker = ({
       onDrag,
       initialCenter: center,
       initialRadius: radius,
+      units,
     })
 
     setRenderer(renderer)

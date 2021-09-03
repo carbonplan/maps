@@ -320,7 +320,7 @@ export const createTiles = (regl, opts) => {
 
       tiles.map((tileKey, index) => {
         const [x, y, z] = keyToTile(tileKey)
-        const { center, radius } = region.properties
+        const { center, radius, units } = region.properties
 
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
@@ -329,7 +329,7 @@ export const createTiles = (regl, opts) => {
               [center.lng, center.lat],
               pointCoords,
               {
-                units: 'miles',
+                units,
               }
             )
             if (distanceToCenter < radius) {

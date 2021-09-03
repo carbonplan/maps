@@ -11,12 +11,18 @@ import {
 } from '@turf/turf'
 import CursorManager from './cursor-manager'
 
+const abbreviations = {
+  kilometers: 'km',
+  miles: 'mi',
+}
+
 export default function CircleRenderer({
   map,
   onIdle = (circle) => {},
   onDrag = (circle) => {},
   initialCenter = { lat: 0, lng: 0 },
   initialRadius = 0,
+  units,
 }) {
   let circle = null
   let center = initialCenter
@@ -47,7 +53,7 @@ export default function CircleRenderer({
       const r = distance(
         map.unproject(e.point).toArray(),
         [center.lng, center.lat],
-        { units: 'miles' }
+        { units }
       )
       setRadius(r)
       onDrag(circle)
@@ -147,11 +153,12 @@ export default function CircleRenderer({
 
   function geoCircle(center, radius) {
     const c = turfCircle([center.lng, center.lat], radius, {
-      units: 'miles',
+      units,
       steps: 64,
       properties: {
         center,
         radius,
+        units,
       },
     })
 
@@ -219,7 +226,7 @@ export default function CircleRenderer({
     const translateY = 4
 
     svgRadiusText
-      .text(radius.toFixed(0) + 'mi')
+      .text(radius.toFixed(0) + abbreviations[units])
       .attr(
         'transform',
         `rotate(${-1 * guidelineAngle + 90}) ` + `translate(0, ${translateY})`
