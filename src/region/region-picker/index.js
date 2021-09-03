@@ -3,8 +3,8 @@ import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
 
-import { useRegion } from '../region/context'
-import { useMapbox } from '../mapbox'
+import { useRegionContext } from '../context'
+import { useMapbox } from '../../mapbox'
 
 function getInitialRadius(map, units, minRadius, maxRadius) {
   const bounds = map.getBounds().toArray()
@@ -33,7 +33,7 @@ function RegionPicker({
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
   )
-  const { onChange } = useRegion()
+  const { onChange } = useRegionContext()
 
   const [center, setCenter] = useState(initialCenter.current)
 

@@ -7,8 +7,13 @@ const RegionContext = createContext({
   },
 })
 
-export const useRegion = () => {
+export const useRegionContext = () => {
   return useContext(RegionContext)
+}
+
+export const useRegion = () => {
+  const { region } = useContext(RegionContext)
+  return region
 }
 
 export const RegionProvider = ({ children }) => {

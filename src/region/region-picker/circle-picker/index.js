@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useMapbox } from '../../mapbox'
+import { useMapbox } from '../../../mapbox'
 import CircleRenderer from './circle-renderer'
 
 const RegionPicker = ({
