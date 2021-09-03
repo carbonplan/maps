@@ -20,6 +20,7 @@ const Raster = (props) => {
   const { region } = useRegion()
   const tiles = useRef()
   const camera = useRef()
+  const lastQueried = useRef()
   const [viewport, setViewport] = useState({
     viewportHeight: 0,
     viewportWidth: 0,
@@ -28,9 +29,17 @@ const Raster = (props) => {
   camera.current = { center: center, zoom: zoom, viewport }
 
   const queryRegion = async (r) => {
+    const queryStart = new Date().getTime()
+    lastQueried.current = queryStart
+
     setRegionData({ loading: true })
+
     const data = await tiles.current.queryRegion(r)
-    setRegionData({ loading: false, value: data })
+
+    // Invoke callback as long as a more recent query has not already been initiated
+    if (lastQueried.current === queryStart) {
+      setRegionData({ loading: false, value: data })
+    }
   }
 
   useEffect(() => {
