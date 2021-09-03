@@ -38,7 +38,7 @@ const Index = () => {
     <>
       <Meta />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Canvas style={style} zoom={2} center={[0, 0]} debug={true}>
+        <Canvas style={style} zoom={2} center={[0, 0]} debug={false}>
           <Basemap />
           {regionPicker && (
             <RegionPicker
