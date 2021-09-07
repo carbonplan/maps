@@ -33,12 +33,11 @@ export default function CircleRenderer({
   const svg = select('#circle-picker').style('pointer-events', 'none')
   const svgCircle = select('#circle').style('pointer-events', 'all')
   const svgCircleCenter = select('#circle-center')
-  const svgCircleMask = select('#circle-mask-cutout')
+  const svgCircleCutout = select('#circle-cutout')
   const svgHandle = select('#handle').style('pointer-events', 'all')
   const svgGuideline = select('#radius-guideline')
   const svgRadiusTextContainer = select('#radius-text-container')
   const svgRadiusText = select('#radius-text').attr('fill-opacity', 0)
-  const svgCircleXY = select('#circle-xy')
 
   let guidelineAngle = 90
   if (!SHOW_RADIUS_GUIDELINE) {
@@ -155,7 +154,7 @@ export default function CircleRenderer({
 
   //// CIRCLE ////
 
-  function geoCircle(center, radius) {
+  function geoCircle(center, radius, inverted = false) {
     const c = turfCircle([center.lng, center.lat], radius, {
       units,
       steps: 64,
@@ -165,6 +164,10 @@ export default function CircleRenderer({
         units,
       },
     })
+
+    if (inverted) {
+      return c
+    }
 
     // need to rewind or svg fill is inside-out
     return rewind(c, { reverse: true, mutate: true })
@@ -189,13 +192,18 @@ export default function CircleRenderer({
   }
 
   function setCircle() {
-    circle = geoCircle(center, radius)
-
-    // update svg circle and mask
     const makePath = getPathMaker(map)
+
+    // update svg circle
+    circle = geoCircle(center, radius)
     const path = makePath(circle)
     svgCircle.attr('d', path)
-    svgCircleMask.attr('d', path)
+
+    // update cutout
+    const cutoutCircle = geoCircle(center, radius, true)
+    const cutoutPath = makePath(cutoutCircle)
+    const { width, height } = svg.node().getBBox()
+    svgCircleCutout.attr('d', cutoutPath + ` M0,0H${width}V${height}H0V0z`)
 
     // update other svg elements
     const centerXY = map.project(center)

@@ -37,6 +37,7 @@ const RegionPicker = ({
     }
   }, [])
 
+  console.log('local version')
   return (
     <svg
       id='circle-picker'
@@ -48,6 +49,12 @@ const RegionPicker = ({
         height: '100%',
       }}
     >
+      <defs>
+        <clipPath id='circle-clip'>
+          <path id='circle-cutout' />
+        </clipPath>
+      </defs>
+
       <path
         id='circle'
         stroke={color}
@@ -55,16 +62,12 @@ const RegionPicker = ({
         fill='transparent'
         cursor='move'
       />
-      <mask id='circle-mask'>
-        <rect x='0' y='0' width='100%' height='100%' fill='#FFFFFF' />
-        <path id='circle-mask-cutout' fill='#000000' />
-      </mask>
       <rect
         x='0'
         y='0'
         width='100%'
         height='100%'
-        mask='url(#circle-mask)'
+        clipPath='url(#circle-clip)'
         fill={backgroundColor}
         fillOpacity={0.8}
       />
