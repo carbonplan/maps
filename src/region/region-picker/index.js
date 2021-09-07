@@ -1,4 +1,11 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from 'react'
 import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
@@ -18,16 +25,18 @@ function getInitialRadius(map, units, minRadius, maxRadius) {
 
 // TODO:
 // - accept mode (only accept mode="circle" to start)
-function RegionPicker({
-  backgroundColor,
-  color,
-  fontFamily,
-  onChangeReset = () => {},
-  units = 'kilometers',
-  initialRadius: initialRadiusProp,
-  minRadius,
-  maxRadius,
-}) {
+function RegionPicker(
+  {
+    backgroundColor,
+    color,
+    fontFamily,
+    units = 'kilometers',
+    initialRadius: initialRadiusProp,
+    minRadius,
+    maxRadius,
+  },
+  ref
+) {
   const { map } = useMapbox()
   const initialCenter = useRef(map.getCenter())
   const initialRadius = useRef(
@@ -37,9 +46,13 @@ function RegionPicker({
 
   const [center, setCenter] = useState(initialCenter.current)
 
-  useEffect(() => {
-    onChangeReset(() => map.easeTo({ center: center }))
-  }, [center])
+  useImperativeHandle(
+    ref,
+    () => ({
+      resetCenter: () => map.easeTo({ center }),
+    }),
+    [center]
+  )
 
   const handleCircle = useCallback((circle) => {
     if (!circle) return
@@ -69,4 +82,4 @@ function RegionPicker({
   )
 }
 
-export default RegionPicker
+export default forwardRef(RegionPicker)
