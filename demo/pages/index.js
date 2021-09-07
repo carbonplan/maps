@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box, IconButton, useThemeUI } from 'theme-ui'
 import { Slider, Dimmer, Toggle, Select, Meta } from '@carbonplan/components'
 import { Canvas, Raster, RegionPicker } from '@carbonplan/maps'
@@ -33,6 +33,7 @@ const Index = () => {
   const colormap = useColormap(colormapName)
   const [regionPicker, setRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
+  const regionPickerRef = useRef()
 
   return (
     <>
@@ -46,6 +47,7 @@ const Index = () => {
               backgroundColor={theme.colors.background}
               fontFamily={theme.fonts.monospace}
               maxRadius={2000}
+              ref={regionPickerRef}
             />
           )}
           <Raster
@@ -133,6 +135,25 @@ const Index = () => {
               <line x1='12' x2='17' y1='12' y2='17' />
             </svg>
           </IconButton>
+          {regionPicker && (
+            <IconButton
+              aria-label='Recenter map'
+              onClick={regionPickerRef.current?.resetCenter}
+              sx={{ stroke: 'primary' }}
+            >
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                viewBox='0 0 24 24'
+                width='24'
+                height='24'
+                strokeWidth='1.75'
+                fill='none'
+              >
+                <circle cx='12' cy='12' r='10' />
+                <circle cx='12' cy='12' r='2' />
+              </svg>
+            </IconButton>
+          )}
           {regionPicker && <AverageDisplay data={regionData} />}
         </Box>
         <Dimmer
