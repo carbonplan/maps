@@ -45,6 +45,7 @@ const Index = () => {
               color={theme.colors.primary}
               backgroundColor={theme.colors.background}
               fontFamily={theme.fonts.monospace}
+              maxRadius={2000}
             />
           )}
           <Raster
