@@ -13,14 +13,14 @@ export const useRegionContext = () => {
 
 export const useRegion = () => {
   const { region } = useContext(RegionContext)
-  return region
+  return { region }
 }
 
 export const RegionProvider = ({ children }) => {
   const [region, setRegion] = useState(null)
 
   return (
-    <RegionContext.Provider value={{ region, onChange: setRegion }}>
+    <RegionContext.Provider value={{ region, setRegion }}>
       {children}
     </RegionContext.Provider>
   )

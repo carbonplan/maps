@@ -42,7 +42,7 @@ function RegionPicker(
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
   )
-  const { onChange } = useRegionContext()
+  const { setRegion } = useRegionContext()
 
   const [center, setCenter] = useState(initialCenter.current)
 
@@ -56,7 +56,7 @@ function RegionPicker(
 
   const handleCircle = useCallback((circle) => {
     if (!circle) return
-    onChange(circle)
+    setRegion(circle)
     setCenter(circle.properties.center)
   }, [])
 

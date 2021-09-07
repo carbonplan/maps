@@ -17,7 +17,7 @@ const Raster = (props) => {
   const { center, zoom } = useControls()
   const { regl } = useRegl()
   const { map } = useMapbox()
-  const region = useRegion()
+  const { region } = useRegion()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
