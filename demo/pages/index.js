@@ -1,28 +1,11 @@
-import { useRef, useState } from 'react'
-import { Box, IconButton, useThemeUI } from 'theme-ui'
+import { useState } from 'react'
+import { Box, useThemeUI } from 'theme-ui'
 import { Slider, Dimmer, Toggle, Select, Meta } from '@carbonplan/components'
 import { Canvas, Raster, RegionPicker } from '@carbonplan/maps'
 import { useColormap, colormaps } from '@carbonplan/colormaps'
 import Basemap from '../components/basemap'
+import RegionControls from '../components/region-controls'
 import style from '../components/style'
-
-const AverageDisplay = ({ data: { loading, value } }) => {
-  if (loading) {
-    return 'loading...'
-  }
-  if (!Array.isArray(value.value)) {
-    throw new Error('Value not present')
-  }
-
-  const filteredData = value.value.filter((d) => d !== -3.3999999521443642e38)
-  if (filteredData.length === 0) {
-    return 'no data available'
-  } else {
-    const average =
-      filteredData.reduce((a, b) => a + b, 0) / filteredData.length
-    return `average value: ${average.toFixed(2)}°C`
-  }
-}
 
 const Index = () => {
   const { theme } = useThemeUI()
@@ -31,9 +14,8 @@ const Index = () => {
   const [clim, setClim] = useState([-20, 30])
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useColormap(colormapName)
-  const [regionPicker, setRegionPicker] = useState(false)
+  const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
-  const regionPickerRef = useRef()
 
   return (
     <>
@@ -41,13 +23,12 @@ const Index = () => {
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Canvas style={style} zoom={2} center={[0, 0]} debug={false}>
           <Basemap />
-          {regionPicker && (
+          {showRegionPicker && (
             <RegionPicker
               color={theme.colors.primary}
               backgroundColor={theme.colors.background}
               fontFamily={theme.fonts.monospace}
               maxRadius={2000}
-              ref={regionPickerRef}
             />
           )}
           <Raster
@@ -63,6 +44,11 @@ const Index = () => {
               'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/128/{z}'
             }
             setRegionData={setRegionData}
+          />
+          <RegionControls
+            regionData={regionData}
+            showRegionPicker={showRegionPicker}
+            setShowRegionPicker={setShowRegionPicker}
           />
         </Canvas>
         <Toggle
@@ -107,55 +93,6 @@ const Index = () => {
             <option key={d.name}>{d.name}</option>
           ))}
         </Select>
-        <Box
-          sx={{
-            display: ['none', 'none', 'flex', 'flex'],
-            alignItems: 'center',
-            position: 'absolute',
-            color: 'primary',
-            left: [13],
-            bottom: [17, 17, 15, 15],
-          }}
-        >
-          <IconButton
-            aria-label='Circle filter'
-            onClick={() => setRegionPicker(!regionPicker)}
-            sx={{ stroke: regionPicker ? 'primary' : 'secondary' }}
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              width='24'
-              height='24'
-              strokeWidth='1.75'
-              fill='none'
-            >
-              <circle cx='12' cy='12' r='10' />
-              <circle cx='10' cy='10' r='3' />
-              <line x1='12' x2='17' y1='12' y2='17' />
-            </svg>
-          </IconButton>
-          {regionPicker && (
-            <IconButton
-              aria-label='Recenter map'
-              onClick={regionPickerRef.current?.resetCenter}
-              sx={{ stroke: 'primary' }}
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                width='24'
-                height='24'
-                strokeWidth='1.75'
-                fill='none'
-              >
-                <circle cx='12' cy='12' r='10' />
-                <circle cx='12' cy='12' r='2' />
-              </svg>
-            </IconButton>
-          )}
-          {regionPicker && <AverageDisplay data={regionData} />}
-        </Box>
         <Dimmer
           sx={{
             display: ['none', 'none', 'initial', 'initial'],
