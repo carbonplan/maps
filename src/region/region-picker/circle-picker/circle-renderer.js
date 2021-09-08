@@ -8,9 +8,11 @@ import {
   lineString,
   lineIntersect,
   circle as turfCircle,
+  point,
 } from '@turf/turf'
 import CursorManager from './cursor-manager'
 
+const POLES = [point([0, -90]), point([0, 90])]
 const abbreviations = {
   kilometers: 'km',
   miles: 'mi',
@@ -180,16 +182,28 @@ export default function CircleRenderer({
 
   function setCenter(_center) {
     if (_center && _center !== center) {
-      center = _center
+      if (nearPoles(_center, radius)) {
+        center = { lng: _center.lng, lat: center.lat }
+      } else {
+        center = _center
+      }
       setCircle()
     }
   }
 
   function setRadius(_radius) {
     if (_radius && _radius !== radius) {
-      radius = _radius
-      setCircle()
+      if (!nearPoles(center, _radius)) {
+        radius = _radius
+        setCircle()
+      }
     }
+  }
+
+  function nearPoles(center, radius) {
+    const centerPoint = point([center.lng, center.lat])
+
+    return POLES.some((pole) => distance(centerPoint, pole, { units }) < radius)
   }
 
   function setCircle() {
