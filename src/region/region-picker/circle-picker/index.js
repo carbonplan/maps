@@ -37,7 +37,6 @@ const RegionPicker = ({
     }
   }, [])
 
-  console.log('local version')
   return (
     <svg
       id='circle-picker'

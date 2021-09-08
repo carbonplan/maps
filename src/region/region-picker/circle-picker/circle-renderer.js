@@ -68,6 +68,7 @@ export default function CircleRenderer({
         const run = mouseXY.x - centerXY.x
         let angle = (Math.atan(rise / run) * 180) / Math.PI
         guidelineAngle = angle + 90 + (run < 0 ? 180 : 0)
+        setCircle()
       }
     }
 
@@ -221,8 +222,9 @@ export default function CircleRenderer({
       ])
 
       const inter = lineIntersect(line, circle)
-
-      return map.project(inter.features[0].geometry.coordinates)
+      if (inter) {
+        return map.project(inter.features[0].geometry.coordinates)
+      }
     })()
 
     svgCircleCenter.attr('cx', centerXY.x).attr('cy', centerXY.y)
