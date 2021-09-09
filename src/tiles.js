@@ -137,11 +137,11 @@ export const createTiles = (regl, opts) => {
                   }
 
                   let resolver
-                  const value = new Promise((resolve) => {
+                  const values = new Promise((resolve) => {
                     resolver = resolve
                   })
                   this._tilesData[key] = {
-                    value,
+                    values,
                     resolve: resolver,
                   }
                 })
@@ -315,7 +315,7 @@ export const createTiles = (regl, opts) => {
       await this._tilesData.initialized
 
       const tilesData = await Promise.all(
-        tiles.map((tileKey) => this._tilesData[tileKey].value)
+        tiles.map((tileKey) => this._tilesData[tileKey].values)
       )
 
       tiles.map((tileKey, index) => {
