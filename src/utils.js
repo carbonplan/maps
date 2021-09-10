@@ -1,3 +1,5 @@
+import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
+
 const d2r = Math.PI / 180
 
 const clip = (v, max) => {
@@ -22,9 +24,11 @@ export const tileToKey = (tile) => {
 }
 
 export const pointToTile = (lon, lat, z) => {
+  const z2 = Math.pow(2, z)
   let tile = pointToCamera(lon, lat, z)
   tile[0] = Math.floor(tile[0])
-  tile[1] = Math.floor(tile[1])
+  tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
+
   return tile
 }
 
@@ -35,8 +39,20 @@ export const pointToCamera = (lon, lat, z) => {
     y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
 
   x = x % z2
+  y = Math.max(Math.min(y, z2), 0)
   if (x < 0) x = x + z2
   return [x, y, z]
+}
+
+export const cameraToPoint = (x, y, z) => {
+  const z2 = Math.pow(2, z)
+
+  const lon = 360 * (x / z2) - 180
+
+  const y2 = 180 - (y / z2) * 360
+  const lat = (360 / Math.PI) * Math.atan(Math.exp((y2 * Math.PI) / 180)) - 90
+
+  return [lon, lat]
 }
 
 export const zoomToLevel = (zoom, maxZoom) => {
@@ -189,4 +205,44 @@ export const getAdjustedOffset = (offset, renderedKey) => {
     Math.floor(offsetX / factor) + (renderedX % descendantFactor),
     Math.floor(offsetY / factor) + (renderedY % descendantFactor),
   ]
+}
+
+export const getTilesOfRegion = (region, level) => {
+  const { center, radius, units } = region.properties
+  const centralTile = pointToTile(center.lng, center.lat, level)
+
+  const tiles = new Set([tileToKey(centralTile)])
+
+  region.geometry.coordinates[0].forEach(([lng, lat]) => {
+    // Add tile along edge of region
+    const edgeTile = pointToTile(lng, lat, level)
+    tiles.add(tileToKey(edgeTile))
+
+    // Add any intermediate tiles if edge is > 1 tile away from center
+    const maxDiff = Math.max(
+      Math.abs(edgeTile[0] - centralTile[0]),
+      Math.abs(edgeTile[1] - centralTile[1])
+    )
+    if (maxDiff > 1) {
+      const centerPoint = point([center.lng, center.lat])
+      const bearing = rhumbBearing(centerPoint, point([lng, lat]))
+
+      for (let i = 1; i < maxDiff; i++) {
+        const intermediatePoint = rhumbDestination(
+          centerPoint,
+          (i * radius) / maxDiff,
+          bearing,
+          { units }
+        )
+        const intermediateTile = pointToTile(
+          intermediatePoint.geometry.coordinates[0],
+          intermediatePoint.geometry.coordinates[1],
+          level
+        )
+        tiles.add(tileToKey(intermediateTile))
+      }
+    }
+  })
+
+  return Array.from(tiles)
 }

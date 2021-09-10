@@ -1,6 +1,7 @@
 import React from 'react'
 import Mapbox from './mapbox'
 import Regl from './regl'
+import { RegionProvider } from './region/context'
 
 const Canvas = ({
   id,
@@ -46,7 +47,7 @@ const Canvas = ({
             zIndex: -1,
           }}
         >
-          {children}
+          <RegionProvider>{children}</RegionProvider>
         </Regl>
       </Mapbox>
     </div>

@@ -3,20 +3,44 @@ import { useRegl } from './regl'
 import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
+import { useRegion } from './region/context'
 
 const Raster = (props) => {
-  const { display = true, opacity = 1, clim, colormap, uniforms = {} } = props
+  const {
+    display = true,
+    opacity = 1,
+    clim,
+    colormap,
+    setRegionData,
+    uniforms = {},
+  } = props
   const { center, zoom } = useControls()
   const { regl } = useRegl()
   const { map } = useMapbox()
+  const { region } = useRegion()
   const tiles = useRef()
   const camera = useRef()
+  const lastQueried = useRef()
   const [viewport, setViewport] = useState({
     viewportHeight: 0,
     viewportWidth: 0,
   })
 
   camera.current = { center: center, zoom: zoom, viewport }
+
+  const queryRegion = async (r) => {
+    const queryStart = new Date().getTime()
+    lastQueried.current = queryStart
+
+    setRegionData({ loading: true })
+
+    const data = await tiles.current.queryRegion(r)
+
+    // Invoke callback as long as a more recent query has not already been initiated
+    if (lastQueried.current === queryStart) {
+      setRegionData({ loading: false, value: data })
+    }
+  }
 
   useEffect(() => {
     tiles.current = createTiles(regl, props)
@@ -61,6 +85,12 @@ const Raster = (props) => {
     tiles.current.updateColormap({ colormap })
     tiles.current.redraw()
   }, [colormap])
+
+  useEffect(() => {
+    if (region && setRegionData) {
+      queryRegion(region)
+    }
+  }, [setRegionData, region])
 
   return null
 }
