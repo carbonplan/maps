@@ -1,17 +1,21 @@
 import { useState } from 'react'
-import { Box } from 'theme-ui'
+import { Box, useThemeUI } from 'theme-ui'
 import { Slider, Dimmer, Toggle, Select, Meta } from '@carbonplan/components'
-import { Canvas, Raster } from '@carbonplan/maps'
+import { Canvas, Raster, RegionPicker } from '@carbonplan/maps'
 import { useColormap, colormaps } from '@carbonplan/colormaps'
 import Basemap from '../components/basemap'
+import RegionControls from '../components/region-controls'
 import style from '../components/style'
 
 const Index = () => {
+  const { theme } = useThemeUI()
   const [display, setDisplay] = useState(true)
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useColormap(colormapName)
+  const [showRegionPicker, setShowRegionPicker] = useState(false)
+  const [regionData, setRegionData] = useState({ loading: true })
 
   return (
     <>
@@ -19,6 +23,14 @@ const Index = () => {
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Canvas style={style} zoom={2} center={[0, 0]} debug={false}>
           <Basemap />
+          {showRegionPicker && (
+            <RegionPicker
+              color={theme.colors.primary}
+              backgroundColor={theme.colors.background}
+              fontFamily={theme.fonts.monospace}
+              maxRadius={2000}
+            />
+          )}
           <Raster
             maxZoom={5}
             size={128}
@@ -31,6 +43,12 @@ const Index = () => {
             source={
               'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/128/{z}'
             }
+            setRegionData={setRegionData}
+          />
+          <RegionControls
+            regionData={regionData}
+            showRegionPicker={showRegionPicker}
+            setShowRegionPicker={setShowRegionPicker}
           />
         </Canvas>
         <Toggle
