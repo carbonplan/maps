@@ -12,6 +12,7 @@ const Raster = (props) => {
     clim,
     colormap,
     setRegionData,
+    activeIndex = [],
     uniforms = {},
   } = props
   const { center, zoom } = useControls()
@@ -26,7 +27,7 @@ const Raster = (props) => {
     viewportWidth: 0,
   })
 
-  camera.current = { center: center, zoom: zoom, viewport }
+  camera.current = { center, zoom, viewport, activeIndex }
 
   const queryRegion = async (r) => {
     const queryStart = new Date().getTime()
@@ -80,6 +81,13 @@ const Raster = (props) => {
     tiles.current.updateUniforms({ display, opacity, clim, ...uniforms })
     tiles.current.redraw()
   }, [display, opacity, clim, ...Object.values(uniforms)])
+
+  useEffect(() => {
+    if (map.loaded()) {
+      tiles.current.updateCamera(camera.current)
+      tiles.current.redraw()
+    }
+  }, activeIndex)
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })

@@ -16,6 +16,7 @@ import {
   getOverlappingAncestor,
   cameraToPoint,
   getTilesOfRegion,
+  getCacheKeyForIndex,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -35,6 +36,7 @@ export const createTiles = (regl, opts) => {
     nan = -9999,
     mode = 'texture',
     variables = ['value'],
+    activeIndex = [],
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -45,6 +47,7 @@ export const createTiles = (regl, opts) => {
     this.clim = clim
     this.opacity = opacity
     this.variables = variables
+    this.activeIndex = activeIndex
     this.ndim = ndim
     this.nan = nan
     this.colormap = regl.texture({
@@ -130,7 +133,7 @@ export const createTiles = (regl, opts) => {
                     buffers[k] = initialize()
                   })
                   this.tiles[key] = {
-                    cached: false,
+                    cacheIndex: null,
                     loading: false,
                     ready: false,
                     ...buffers,
@@ -258,14 +261,16 @@ export const createTiles = (regl, opts) => {
       }
     }
 
-    this.updateCamera = ({ center, zoom, viewport }) => {
+    this.updateCamera = ({ activeIndex, center, zoom, viewport }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
       const camera = pointToCamera(center.lng, center.lat, level)
 
       this.level = level
+      this.activeIndex = activeIndex
       this.zoom = zoom
       this.camera = [camera[0], camera[1]]
+      // const ndim = 2 + this.activeIndex.length + (this.variables.length > 1 ? 1 : 0)
 
       this.active = getSiblings(tile, {
         viewport,
@@ -273,6 +278,7 @@ export const createTiles = (regl, opts) => {
         camera: this.camera,
         size: this.size,
       })
+      const activeCacheKey = getCacheKeyForIndex(this.activeIndex)
 
       Object.keys(this.active).map((key) => {
         if (this.loaders[level]) {
@@ -280,22 +286,33 @@ export const createTiles = (regl, opts) => {
           const tile = this.tiles[key]
           const tileData = this._tilesData[key]
 
-          const accessor =
-            this.ndim > 2 ? (d, i) => d.pick(i, null, null) : (d) => d
-          const chunk =
-            this.ndim > 2
-              ? [0, tileIndex[1], tileIndex[0]]
-              : [tileIndex[1], tileIndex[0]]
+          // console.log({ cache: tile.cacheIndex, active: activeCacheKey })
           tile.ready = true
-          if (!tile.cached) {
-            if (!tile.loading) {
+          if (tile.cacheIndex !== activeCacheKey) {
+            if (tile.cacheIndex) {
+              // Load data to buffer from _tilesData
+              tileData.values.then((data) => {
+                const variableData = this.getVariableData(data)
+                for (const variable in variableData) {
+                  tile[variable](variableData[variable])
+                }
+              })
+            } else if (!tile.loading) {
+              const chunk =
+                this.ndim > 2
+                  ? [0, tileIndex[1], tileIndex[0]]
+                  : [tileIndex[1], tileIndex[0]]
+
               tile.loading = true
+              // Load data
               this.loaders[level](chunk, (err, data) => {
-                this.variables.forEach((k, i) => {
-                  tile[k](accessor(data, i))
-                })
+                const variableData = this.getVariableData(data)
+                for (const variable in variableData) {
+                  tile[variable](variableData[variable])
+                }
+
                 tileData.resolve(data)
-                tile.cached = true
+                tile.cacheIndex = activeCacheKey
                 tile.loading = false
                 this.redraw()
               })
@@ -321,10 +338,6 @@ export const createTiles = (regl, opts) => {
       tiles.map((tileKey, index) => {
         const [x, y, z] = keyToTile(tileKey)
         const { center, radius, units } = region.properties
-        const accessor =
-          this.ndim > 2
-            ? (d, i, j, v) => d.get(v, j, i)
-            : (d, i, j) => d.get(j, i)
 
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
@@ -337,17 +350,40 @@ export const createTiles = (regl, opts) => {
               }
             )
             if (distanceToCenter < radius) {
-              const data = tilesData[index]
-
-              this.variables.map((v, idx) => {
-                results[v].push(accessor(data, i, j, idx))
-              })
+              const variableData = this.getVariableData(tilesData[index])
+              for (const variable in variableData) {
+                results[variable].push(variableData[variable].get(j, i))
+              }
             }
           }
         }
       })
 
       return results
+    }
+
+    this.getVariableData = (data) => {
+      const accessor =
+        this.ndim > 2
+          ? (d, ...position) => d.pick(...position, null, null)
+          : (d) => d
+
+      let indexes = [...this.activeIndex]
+      if (this.variables.length > 1) {
+        indexes.push(i)
+      }
+
+      const result = {}
+      this.variables.forEach((k, i) => {
+        let indexes = [...this.activeIndex]
+        // console.log(indexes)
+        if (this.variables.length > 1) {
+          indexes.push(i)
+        }
+        result[k] = accessor(data, ...indexes)
+      })
+
+      return result
     }
 
     this.updateUniforms = (props) => {

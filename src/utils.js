@@ -246,3 +246,11 @@ export const getTilesOfRegion = (region, level) => {
 
   return Array.from(tiles)
 }
+
+export const getCacheKeyForIndex = (index) => {
+  if (index.length === 0) {
+    return 1
+  } else {
+    return index.join(',')
+  }
+}
