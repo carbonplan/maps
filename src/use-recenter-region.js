@@ -1,20 +1,20 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useRegion } from './region/context'
 import { useMapbox } from './mapbox'
 
 export const useRecenterRegion = () => {
-  const recenter = useRef(() => {})
+  const [value, setValue] = useState({ recenterRegion: () => {} })
   const { map } = useMapbox()
-
   const { region } = useRegion()
+
   const center = region?.properties?.center
 
   useEffect(() => {
-    recenter.current = () => map.easeTo({ center })
+    setValue({ recenterRegion: () => map.easeTo({ center }) })
   }, [center])
 
-  return { recenterRegion: recenter.current }
+  return value
 }
 
 export default useRecenterRegion
