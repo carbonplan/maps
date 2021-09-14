@@ -32,6 +32,7 @@ const Mapbox = ({
         container: node,
         style: style || { version: 8, sources: {}, layers: [] },
         minZoom: minZoom,
+        dragRotate: false,
       })
       if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)
