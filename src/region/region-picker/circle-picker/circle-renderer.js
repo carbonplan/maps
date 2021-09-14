@@ -1,6 +1,6 @@
 import { select } from 'd3-selection'
 import { FLOATING_HANDLE, SHOW_RADIUS_GUIDELINE } from '../constants'
-import { getPathMaker } from './utils'
+import { getPathMaker, project } from './utils'
 import {
   distance,
   rewind,
@@ -64,7 +64,7 @@ export default function CircleRenderer({
       onDrag(circle)
 
       if (FLOATING_HANDLE) {
-        const centerXY = map.project(center)
+        const centerXY = project(map, center)
         const mouseXY = e.point
         const rise = mouseXY.y - centerXY.y
         const run = mouseXY.x - centerXY.x
@@ -221,7 +221,7 @@ export default function CircleRenderer({
     svgCircleCutout.attr('d', cutoutPath + ` M0,0H${width}V${height}H0V0z`)
 
     // update other svg elements
-    const centerXY = map.project(center)
+    const centerXY = project(map, center)
 
     const handleXY = (() => {
       const lineEnd = rhumbDestination(
@@ -237,7 +237,7 @@ export default function CircleRenderer({
 
       const inter = lineIntersect(line, circle)
       if (inter) {
-        return map.project(inter.features[0].geometry.coordinates)
+        return project(map, inter.features[0].geometry.coordinates)
       }
     })()
 
