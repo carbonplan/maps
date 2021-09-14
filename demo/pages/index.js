@@ -42,7 +42,7 @@ const Index = () => {
               'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
             }
             variable={'temperature'}
-            dimensions={['y','x']}
+            dimensions={['y', 'x']}
             setRegionData={setRegionData}
           />
           <RegionControls

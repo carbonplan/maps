@@ -14,7 +14,7 @@ import {
   getOverlappingAncestor,
   cameraToPoint,
   getTilesOfRegion,
-  getPyramidMetadata
+  getPyramidMetadata,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -115,7 +115,7 @@ export const createTiles = (regl, opts) => {
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
-        levels.map(z => {
+        levels.map((z) => {
           Array(Math.pow(2, z))
             .fill(0)
             .map((_, x) => {
@@ -145,7 +145,7 @@ export const createTiles = (regl, opts) => {
                 })
             })
         })
-        levels.forEach(z => {
+        levels.forEach((z) => {
           this.loaders[z] = loaders[z + '/' + variable]
         })
         resolve(true)
