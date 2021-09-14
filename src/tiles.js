@@ -1,6 +1,4 @@
 import zarr from 'zarr-js'
-import pupa from 'pupa'
-import xhr from 'xhr-request'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
 
@@ -16,6 +14,7 @@ import {
   getOverlappingAncestor,
   cameraToPoint,
   getTilesOfRegion,
+  getPyramidMetadata
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -24,28 +23,26 @@ export const createTiles = (regl, opts) => {
   function Tiles({
     size,
     source,
-    maxZoom,
     colormap,
     clim,
     opacity,
     display,
+    variable,
+    dimensions,
+    select,
     uniforms: customUniforms = {},
     frag: customFrag,
-    ndim = 2,
     nan = -9999,
     mode = 'texture',
-    variables = ['value'],
   }) {
     this.tiles = {}
     this.loaders = {}
     this.active = {}
     this.size = size
     this.display = display
-    this.maxZoom = maxZoom
     this.clim = clim
     this.opacity = opacity
-    this.variables = variables
-    this.ndim = ndim
+    this.select = select
     this.nan = nan
     this.colormap = regl.texture({
       data: colormap,
@@ -60,6 +57,11 @@ export const createTiles = (regl, opts) => {
         `mode '${mode}' invalid, must be one of ${validModes.join(', ')}`
       )
     }
+
+    // figure out variables based on dimensions and select
+    const variables = ['value']
+    this.variables = variables
+    this.ndim = 2
 
     customUniforms = Object.keys(customUniforms)
 
@@ -109,15 +111,11 @@ export const createTiles = (regl, opts) => {
 
     this.position = regl.buffer(position)
 
-    const levels = Array(maxZoom + 1)
-      .fill()
-      .map((_, i) => i)
-
-    const uris = levels.map((d) => pupa(source, { z: d }))
-
     this._tilesData.initialized = new Promise((resolve) => {
-      zarr(xhr).openList(uris, (err, loaders) => {
-        levels.map((z) => {
+      zarr().openGroup(source, (err, loaders, metadata) => {
+        const { levels, maxZoom } = getPyramidMetadata(metadata)
+        this.maxZoom = maxZoom
+        levels.map(z => {
           Array(Math.pow(2, z))
             .fill(0)
             .map((_, x) => {
@@ -147,7 +145,9 @@ export const createTiles = (regl, opts) => {
                 })
             })
         })
-        loaders.map((d, i) => (this.loaders[i] = d))
+        levels.forEach(z => {
+          this.loaders[z] = loaders[z + '/' + variable]
+        })
         resolve(true)
       })
     })

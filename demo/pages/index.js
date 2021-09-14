@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, useThemeUI } from 'theme-ui'
 import { Slider, Dimmer, Toggle, Select, Meta } from '@carbonplan/components'
-import { Canvas, Raster, RegionPicker } from '@carbonplan/maps'
+import { Map, Raster, RegionPicker } from '@carbonplan/maps'
 import { useColormap, colormaps } from '@carbonplan/colormaps'
 import Basemap from '../components/basemap'
 import RegionControls from '../components/region-controls'
@@ -21,7 +21,7 @@ const Index = () => {
     <>
       <Meta />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Canvas style={style} zoom={2} center={[0, 0]} debug={false}>
+        <Map style={style} zoom={2} center={[0, 0]} debug={false}>
           <Basemap />
           {showRegionPicker && (
             <RegionPicker
@@ -32,17 +32,17 @@ const Index = () => {
             />
           )}
           <Raster
-            maxZoom={5}
             size={128}
             colormap={colormap}
             clim={clim}
             display={display}
             opacity={opacity}
             mode={'texture'}
-            nan={-3.4e38}
             source={
-              'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/128/{z}'
+              'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
             }
+            variable={'temperature'}
+            dimensions={['y','x']}
             setRegionData={setRegionData}
           />
           <RegionControls
@@ -50,7 +50,7 @@ const Index = () => {
             showRegionPicker={showRegionPicker}
             setShowRegionPicker={setShowRegionPicker}
           />
-        </Canvas>
+        </Map>
         <Toggle
           sx={{ position: 'absolute', top: 20, right: 20 }}
           value={display}

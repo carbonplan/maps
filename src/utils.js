@@ -246,3 +246,13 @@ export const getTilesOfRegion = (region, level) => {
 
   return Array.from(tiles)
 }
+
+export const getPyramidMetadata = (metadata) => {
+  const kwargs = metadata.metadata['.zattrs'].multiscales[0].metadata.kwargs
+  const maxZoom = kwargs.levels - 1
+  const levels = Array(maxZoom + 1)
+    .fill()
+    .map((_, i) => i)
+  const tileSize = kwargs.pixels_per_tile
+  return { levels, maxZoom, tileSize }
+}
