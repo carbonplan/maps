@@ -5,11 +5,12 @@ const AverageDisplay = ({ data: { loading, value } }) => {
   if (loading) {
     return 'loading...'
   }
-  if (!Array.isArray(value.emissions)) {
+
+  if (!Array.isArray(value.temperature)) {
     throw new Error('Value not present')
   }
 
-  const filteredData = value.emissions.filter(
+  const filteredData = value.temperature.filter(
     (d) => d !== -3.3999999521443642e38
   )
   if (filteredData.length === 0) {
@@ -17,7 +18,7 @@ const AverageDisplay = ({ data: { loading, value } }) => {
   } else {
     const average =
       filteredData.reduce((a, b) => a + b, 0) / filteredData.length
-    return `average value: ${average.toFixed(2)}°C`
+    return `average value: ${average.toFixed(2)}ºC`
   }
 }
 

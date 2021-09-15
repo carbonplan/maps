@@ -11,7 +11,7 @@ const Index = () => {
   const { theme } = useThemeUI()
   const [display, setDisplay] = useState(true)
   const [opacity, setOpacity] = useState(1)
-  const [clim, setClim] = useState([0, 5000])
+  const [clim, setClim] = useState([-20, 30])
   const [month, setMonth] = useState(1)
   const [year, setYear] = useState(2011)
   const [colormapName, setColormapName] = useState('fire')
@@ -38,13 +38,12 @@ const Index = () => {
             clim={clim}
             display={display}
             opacity={opacity}
-            mode={'dotgrid'}
+            mode={'texture'}
             source={
-              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/v0.4/map/emissions_pyramid2.zarr'
+              'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
             }
-            variable={'emissions'}
-            dimensions={['year', 'y', 'x']}
-            selector={{ year: year }}
+            variable={'temperature'}
+            dimensions={['y', 'x']}
             setRegionData={setRegionData}
           />
           <RegionControls

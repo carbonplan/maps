@@ -45,6 +45,7 @@ export const createTiles = (regl, opts) => {
     this.clim = clim
     this.opacity = opacity
     this.selector = selector
+    this.variable = variable
     this.fillValue = fillValue
     this.colormap = regl.texture({
       data: colormap,
@@ -101,18 +102,6 @@ export const createTiles = (regl, opts) => {
         if (mode === 'texture') {
           this.count = 6
         }
-        console.log(this.count)
-
-        if (Object.keys(selector).length > 0) {
-          const key = Object.keys(selector)[0]
-          loaders['0/' + key]([0], (err, chunk) => {
-            const coordinates = Array.from(chunk.data)
-            this.coordinates = coordinates
-            this.accessors = getAccessors(this.bands, selector, coordinates)
-          })
-        } else {
-          this.accessors = getAccessors(this.bands, selector)
-        }
 
         levels.map((z) => {
           Array(Math.pow(2, z))
@@ -141,10 +130,24 @@ export const createTiles = (regl, opts) => {
                 })
             })
         })
+
         levels.forEach((z) => {
           this.loaders[z] = loaders[z + '/' + variable]
         })
-        resolve(true)
+
+        if (Object.keys(selector).length > 0) {
+          const key = Object.keys(selector)[0]
+          loaders['0/' + key]([0], (err, chunk) => {
+            const coordinates = Array.from(chunk.data)
+            this.coordinates = {}
+            this.coordinates[key] = coordinates
+            this.accessors = getAccessors(this.bands, selector, coordinates)
+            resolve(true)
+          })
+        } else {
+          this.accessors = getAccessors(this.bands, selector)
+          resolve(true)
+        }
       })
     })
 
@@ -309,23 +312,26 @@ export const createTiles = (regl, opts) => {
 
     this.queryRegion = async (region) => {
       const tiles = getTilesOfRegion(region, this.level)
-      const results = this.bands.reduce((accum, v) => {
-        accum[v] = []
-        return accum
-      }, {})
 
       await this.initialized
-
       await Promise.all(tiles.map((key) => this.tiles[key].ready))
+
+      let results = {},
+        coordinateKey,
+        coordinateValues
+      if (this.ndim > 2) {
+        coordinateKey = Object.keys(this.coordinates)[0]
+        coordinateValues = Object.values(this.coordinates)[0]
+        coordinateValues.forEach((v) => {
+          results[v] = []
+        })
+      } else {
+        results = []
+      }
 
       tiles.map((key) => {
         const [x, y, z] = keyToTile(key)
         const { center, radius, units } = region.properties
-        const accessor =
-          this.ndim > 2
-            ? (d, i, j, v) => d.get(v, j, i)
-            : (d, i, j) => d.get(j, i)
-
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
             const pointCoords = cameraToPoint(
@@ -342,16 +348,26 @@ export const createTiles = (regl, opts) => {
             )
             if (distanceToCenter < radius) {
               const data = this.tiles[key].data
-              console.log(data)
-              this.bands.map((v, idx) => {
-                results[v].push(accessor(data, i, j, idx))
-              })
+              if (this.ndim > 2) {
+                coordinateValues.forEach((v, k) => {
+                  results[v].push(data.get(k, j, i))
+                })
+              } else {
+                results.push(data.get(j, i))
+              }
             }
           }
         }
       })
 
-      return results
+      const out = { [this.variable]: results }
+
+      if (this.ndim > 2) {
+        out.dimensions = [coordinateKey]
+        out.coordinates = { [coordinateKey]: coordinateValues }
+      }
+
+      return out
     }
 
     this.updateUniforms = (props) => {
