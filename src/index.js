@@ -1,4 +1,4 @@
-export { default as Canvas } from './canvas'
+export { default as Map } from './map'
 export { default as Mapbox } from './mapbox'
 export { useMapbox } from './mapbox'
 export { default as RegionPicker } from './region/region-picker'

@@ -7,6 +7,7 @@ const RegionPicker = ({
   center,
   color,
   fontFamily,
+  fontSize,
   radius,
   onIdle,
   onDrag,
@@ -83,6 +84,7 @@ const RegionPicker = ({
           id='radius-text'
           textAnchor='middle'
           fontFamily={fontFamily}
+          fontSize={fontSize}
           fill={color}
         />
       </g>

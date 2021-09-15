@@ -21,7 +21,7 @@ const Basemap = ({ inverted }) => {
           'line-blur': 0.4,
           'line-color': primary,
           'line-opacity': 1,
-          'line-width': 1.5,
+          'line-width': 0.5,
         },
       })
     }

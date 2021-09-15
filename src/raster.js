@@ -12,6 +12,7 @@ const Raster = (props) => {
     clim,
     colormap,
     setRegionData,
+    selector = {},
     uniforms = {},
   } = props
   const { center, zoom } = useControls()
@@ -26,7 +27,7 @@ const Raster = (props) => {
     viewportWidth: 0,
   })
 
-  camera.current = { center: center, zoom: zoom, viewport }
+  camera.current = { center: center, zoom: zoom, viewport, selector }
 
   const queryRegion = async (r) => {
     const queryStart = new Date().getTime()
@@ -52,6 +53,13 @@ const Raster = (props) => {
       tiles.current.draw()
     })
   }, [])
+
+  useEffect(() => {
+    if (map.loaded()) {
+      tiles.current.updateCamera(camera.current)
+      tiles.current.draw()
+    }
+  }, Object.values(selector))
 
   // Listen for changes to the viewport dimensions in regl context
   useEffect(() => {

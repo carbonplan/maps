@@ -3,7 +3,7 @@ import Mapbox from './mapbox'
 import Regl from './regl'
 import { RegionProvider } from './region/context'
 
-const Canvas = ({
+const Map = ({
   id,
   tabIndex,
   className,
@@ -54,4 +54,4 @@ const Canvas = ({
   )
 }
 
-export default Canvas
+export default Map

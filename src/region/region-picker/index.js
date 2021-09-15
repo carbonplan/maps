@@ -22,6 +22,7 @@ function RegionPicker({
   backgroundColor,
   color,
   fontFamily,
+  fontSize,
   units = 'kilometers',
   initialRadius: initialRadiusProp,
   minRadius,
@@ -58,6 +59,7 @@ function RegionPicker({
       color={color}
       units={units}
       fontFamily={fontFamily}
+      fontSize={fontSize}
       maxRadius={maxRadius}
       minRadius={minRadius}
     />

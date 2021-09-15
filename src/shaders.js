@@ -56,7 +56,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float opacity;
   uniform sampler2D colormap;
   uniform vec2 clim;
-  uniform float nan;
+  uniform float fillValue;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
@@ -77,7 +77,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       `,
         ['dotgrid']
       )}
-      if (${vars[0]} == nan) {
+      if (${vars[0]} == fillValue) {
         discard;
       }
       float rescaled = (${vars[0]} - clim.x)/(clim.y - clim.x);
