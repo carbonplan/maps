@@ -29,7 +29,8 @@ const Index = () => {
             <RegionPicker
               color={theme.colors.primary}
               backgroundColor={theme.colors.background}
-              fontFamily={theme.fonts.monospace}
+              fontFamily={theme.fonts.mono}
+              fontSize={'14px'}
               maxRadius={2000}
             />
           )}
