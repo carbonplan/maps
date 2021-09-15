@@ -286,12 +286,8 @@ export const getAccessors = (bands, selector = {}, coordinates) => {
     let value = Object.values(selector)[0]
     if (Array.isArray(value)) {
       value.forEach((v, i) => {
-        accessors[bands[i]] = (d) =>
-          d.pick(
-            coordinates.findIndex((d) => d === v),
-            null,
-            null
-          )
+        const coordinate = coordinates.findIndex((d) => d === v)
+        accessors[bands[i]] = (d) => d.pick(coordinate, null, null)
       })
     } else {
       accessors[bands[0]] = (d, s) => {

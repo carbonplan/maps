@@ -113,7 +113,7 @@ export const createTiles = (regl, opts) => {
                   const key = [x, y, z].join(',')
                   const buffers = {}
                   const data = {}
-                  let resolver
+                  let setReady
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
                   })
@@ -121,9 +121,9 @@ export const createTiles = (regl, opts) => {
                     cache: { data: false, buffer: false, selector: null },
                     loading: false,
                     ready: new Promise((resolve) => {
-                      resolver = resolve
+                      setReady = resolve
                     }),
-                    resolver: resolver,
+                    setReady: setReady,
                     data: null,
                     buffers: buffers,
                   }
@@ -290,7 +290,7 @@ export const createTiles = (regl, opts) => {
                   tile.buffers[k](this.accessors[k](data, selector))
                 })
                 tile.data = data
-                tile.resolver(true)
+                tile.setReady(true)
                 tile.cache.data = true
                 tile.cache.buffer = true
                 tile.cache.selector = selectorHash
