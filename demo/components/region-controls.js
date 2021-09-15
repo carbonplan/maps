@@ -7,13 +7,17 @@ const AverageDisplay = ({ data: { loading, value } }) => {
     return 'loading...'
   }
 
-  if (!Array.isArray(value.temperature[1])) {
+  if (!value.temperature) {
     throw new Error('Value not present')
   }
 
-  const filteredData = value.temperature[1].filter(
-    (d) => d !== -3.3999999521443642e38
-  )
+  let concatenated = []
+  value.coordinates.month.forEach((k) => {
+    concatenated.push(value.temperature[k])
+  })
+  concatenated = concatenated.flat()
+
+  const filteredData = concatenated.filter((d) => d !== -3.3999999521443642e38)
   if (filteredData.length === 0) {
     return 'no data available'
   } else {
