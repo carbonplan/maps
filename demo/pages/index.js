@@ -48,7 +48,7 @@ const Index = () => {
             }
             variable={'temperature'}
             dimensions={['month', 'y', 'x']}
-            selector={{month: month}}
+            selector={{ month: month }}
             setRegionData={setRegionData}
           />
           <RegionControls
