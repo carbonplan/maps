@@ -11,9 +11,10 @@ const Index = () => {
   const { theme } = useThemeUI()
   const [display, setDisplay] = useState(true)
   const [opacity, setOpacity] = useState(1)
-  const [clim, setClim] = useState([-20, 30])
+  const [clim, setClim] = useState([0, 5000])
   const [month, setMonth] = useState(1)
-  const [colormapName, setColormapName] = useState('warm')
+  const [year, setYear] = useState(2011)
+  const [colormapName, setColormapName] = useState('fire')
   const colormap = useColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
@@ -37,12 +38,13 @@ const Index = () => {
             clim={clim}
             display={display}
             opacity={opacity}
-            mode={'texture'}
+            mode={'dotgrid'}
             source={
-              'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
+              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/v0.4/map/emissions_pyramid2.zarr'
             }
-            variable={'temperature'}
-            dimensions={['y', 'x']}
+            variable={'emissions'}
+            dimensions={['year', 'y', 'x']}
+            selector={{ year: year }}
             setRegionData={setRegionData}
           />
           <RegionControls
@@ -90,14 +92,20 @@ const Index = () => {
           step={1}
           sx={{ width: '200px', position: 'absolute', top: 80, left: 20 }}
           value={month}
-          onChange={(e) =>
-            setMonth(parseFloat(e.target.value))
-          }
+          onChange={(e) => setMonth(parseFloat(e.target.value))}
+        />
+        <Slider
+          min={2001}
+          max={2020}
+          step={1}
+          sx={{ width: '200px', position: 'absolute', top: 100, left: 20 }}
+          value={year}
+          onChange={(e) => setYear(parseFloat(e.target.value))}
         />
         <Select
           onChange={(e) => setColormapName(e.target.value)}
           defaultValue={'warm'}
-          sx={{ width: '200px', position: 'absolute', top: 100, left: 20 }}
+          sx={{ width: '200px', position: 'absolute', top: 120, left: 20 }}
         >
           {colormaps.map((d) => (
             <option key={d.name}>{d.name}</option>

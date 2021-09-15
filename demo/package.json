@@ -1,5 +1,5 @@
 {
-  "name": "colormaps-demo",
+  "name": "maps-demo",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@carbonplan/colormaps": "^1.0.0",
+    "@carbonplan/colormaps": "^2.0.0",
     "@carbonplan/components": "^10.0.0",
     "@carbonplan/maps": "1.0.0-alpha.4",
     "@carbonplan/theme": "^7.0.0",

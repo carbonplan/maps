@@ -64,15 +64,13 @@ export const createTiles = (regl, opts) => {
 
     customUniforms = Object.keys(customUniforms)
 
-    let count,
-      primitive,
+    let primitive,
       initialize,
       attributes = {},
       uniforms = {}
 
     if (mode === 'grid' || mode === 'dotgrid') {
       primitive = 'points'
-      count = position.length
       initialize = () => regl.buffer()
       this.bands.forEach((k) => (attributes[k] = regl.prop(k)))
       uniforms = {}
@@ -80,11 +78,10 @@ export const createTiles = (regl, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      count = 6
-      const emptyTexture = ndarray(
-        new Float32Array(Array(1).fill(fillValue)),
-        [1, 1]
-      )
+      const emptyTexture = ndarray(new Float32Array(Array(1).fill(fillValue)), [
+        1,
+        1,
+      ])
       initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
@@ -95,13 +92,22 @@ export const createTiles = (regl, opts) => {
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
-        this.position = regl.buffer(getPositions(tileSize, mode))
+        const position = getPositions(tileSize, mode)
+        this.position = regl.buffer(position)
         this.size = tileSize
+        if (mode === 'grid' || mode === 'dotgrid') {
+          this.count = position.length
+        }
+        if (mode === 'texture') {
+          this.count = 6
+        }
+        console.log(this.count)
 
         if (Object.keys(selector).length > 0) {
           const key = Object.keys(selector)[0]
           loaders['0/' + key]([0], (err, chunk) => {
             const coordinates = Array.from(chunk.data)
+            this.coordinates = coordinates
             this.accessors = getAccessors(this.bands, selector, coordinates)
           })
         } else {
@@ -181,7 +187,7 @@ export const createTiles = (regl, opts) => {
 
       depth: { enable: false },
 
-      count: count,
+      count: regl.this('count'),
 
       primitive: primitive,
     })
@@ -278,7 +284,6 @@ export const createTiles = (regl, opts) => {
               tile.loading = true
               this.loaders[level](chunk, (err, data) => {
                 this.bands.forEach((k) => {
-                  console.log(this.accessors[k](data, selector))
                   tile.buffers[k](this.accessors[k](data, selector))
                 })
                 tile.data = data
@@ -337,6 +342,7 @@ export const createTiles = (regl, opts) => {
             )
             if (distanceToCenter < radius) {
               const data = this.tiles[key].data
+              console.log(data)
               this.bands.map((v, idx) => {
                 results[v].push(accessor(data, i, j, idx))
               })
