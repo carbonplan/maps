@@ -12,6 +12,7 @@ const Index = () => {
   const [display, setDisplay] = useState(true)
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
+  const [month, setMonth] = useState(1)
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
@@ -32,7 +33,6 @@ const Index = () => {
             />
           )}
           <Raster
-            size={128}
             colormap={colormap}
             clim={clim}
             display={display}
@@ -84,10 +84,20 @@ const Index = () => {
             setClim((prev) => [prev[0], parseFloat(e.target.value)])
           }
         />
+        <Slider
+          min={1}
+          max={12}
+          step={1}
+          sx={{ width: '200px', position: 'absolute', top: 80, left: 20 }}
+          value={month}
+          onChange={(e) =>
+            setMonth(parseFloat(e.target.value))
+          }
+        />
         <Select
           onChange={(e) => setColormapName(e.target.value)}
           defaultValue={'warm'}
-          sx={{ width: '200px', position: 'absolute', top: 80, left: 20 }}
+          sx={{ width: '200px', position: 'absolute', top: 100, left: 20 }}
         >
           {colormaps.map((d) => (
             <option key={d.name}>{d.name}</option>

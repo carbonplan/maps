@@ -5,11 +5,11 @@ const AverageDisplay = ({ data: { loading, value } }) => {
   if (loading) {
     return 'loading...'
   }
-  if (!Array.isArray(value.value)) {
+  if (!Array.isArray(value.temperature)) {
     throw new Error('Value not present')
   }
 
-  const filteredData = value.value.filter((d) => d !== -3.3999999521443642e38)
+  const filteredData = value.temperature.filter((d) => d !== -3.3999999521443642e38)
   if (filteredData.length === 0) {
     return 'no data available'
   } else {

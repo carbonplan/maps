@@ -129,7 +129,7 @@ export const getAncestorToRender = (targetKey, tiles) => {
   let [x, y, z] = keyToTile(targetKey)
   while (z >= 0) {
     const key = tileToKey([x, y, z])
-    if (tiles[key].cached) {
+    if (tiles[key].cache.buffer) {
       return key
     }
     z--
@@ -152,7 +152,7 @@ export const getDescendantsToRender = (targetKey, tiles, maxZoom) => {
       }
     }
 
-    const coveringKeys = keys.filter((key) => tiles[key].cached)
+    const coveringKeys = keys.filter((key) => tiles[key].cache.buffer)
     const currentCoverage = coveringKeys.length / keys.length
 
     if (coverage === 1) {
@@ -255,4 +255,85 @@ export const getPyramidMetadata = (metadata) => {
     .map((_, i) => i)
   const tileSize = kwargs.pixels_per_tile
   return { levels, maxZoom, tileSize }
+}
+
+export const getBands = (variable, selector = {}) => {
+  let bands
+  if (Object.keys(selector).length == 0) {
+    bands = [variable]
+  } else {
+    const key = Object.keys(selector)[0]
+    const value = Object.values(selector)[0]
+    if (Array.isArray(value)) {
+      if (typeof value[0] === 'string') {
+        bands = value
+      } else {
+        bands = value.map((d) => key + '_' + d)
+      }
+    } else {
+      bands = [variable]
+    }
+  }
+  return bands
+}
+
+export const getAccessors = (bands, selector = {}, coordinates) => {
+  let accessors = {}
+  if (Object.keys(selector).length == 0) {
+    accessors[bands[0]] = (d) => d
+  } else {
+    let key = Object.keys(selector)[0]
+    let value = Object.values(selector)[0]
+    if (Array.isArray(value)) {
+      value.forEach((v, i) => {
+        accessors[bands[i]] = (d) =>
+          d.pick(
+            coordinates.findIndex((d) => d === v),
+            null,
+            null
+          )
+      })
+    } else {
+      accessors[bands[0]] = (d, s) => {
+        return d.pick(
+          coordinates.findIndex((d) => d === s[key]),
+          null,
+          null
+        )
+      }
+    }
+  }
+  return accessors
+}
+
+export const getSelectorHash = (selector) => {
+  return JSON.stringify(selector)
+}
+
+export const getPositions = (size, mode) => {
+  let position = []
+  if (mode === 'grid' || mode === 'dotgrid') {
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        position.push([j + 0.5, i + 0.5])
+      }
+    }
+  }
+  if (mode === 'texture') {
+    position = [
+      0.0,
+      0.0,
+      0.0,
+      size,
+      size,
+      0.0,
+      size,
+      0.0,
+      0.0,
+      size,
+      size,
+      size,
+    ]
+  }
+  return position
 }
