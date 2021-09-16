@@ -31,7 +31,7 @@ Check out the demo ([site](https://maps.demo.carbonplan.org), [code](https://git
 
 ## design
 
-The core library wraps lower-level WebGL technologies to expose simple map-building components. For tiled maps, we combine `mapbox-gl-js` and `regl`. We use `mapbox-gl-js` for rendering vector layers and providing basic controls, and we use `regl` to performantly render data-driven layers. Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
+The core library wraps lower-level WebGL technologies to expose simple map-building components. For tiled maps, we combine [`mapbox-gl-js`](https://github.com/mapbox/mapbox-gl-js) and [`regl`](https://github.com/regl-project/regl). We use `mapbox-gl-js` for rendering vector layers and providing basic controls, and we use `regl` to performantly render data-driven layers. Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
 
 We assume raster data is stored in the [`zarr`](https://github.com/zarr-developers/zarr-python) format, an emerging standard for chunked, compressed, multi-dimensional binary data that's become popular in the scientific Python community. For tiled maps, we also leverage the [`ndpyramid`](https://github.com/carbonplan/ndpyramid) tool for building multi-scale pyramids. Our `Raster` component makes it easy to render these data.
 
