@@ -1,4 +1,5 @@
 import { select } from 'd3-selection'
+import debounce from 'lodash.debounce'
 import { FLOATING_HANDLE, SHOW_RADIUS_GUIDELINE } from '../constants'
 import { getPathMaker, project } from './utils'
 import {
@@ -32,11 +33,12 @@ export default function CircleRenderer({
 }) {
   let circle = null
   let center = initialCenter
+  let centerXY = project(map, center)
+  let debouncedResetCenterXY = null
   let radius = initialRadius
 
   const svg = select('#circle-picker').style('pointer-events', 'none')
   const svgCircle = select('#circle').style('pointer-events', 'all')
-  const svgCircleCenter = select('#circle-center')
   const svgCircleCutout = select('#circle-cutout')
   const svgHandle = select('#handle').style('pointer-events', 'all')
   const svgGuideline = select('#radius-guideline')
@@ -66,7 +68,6 @@ export default function CircleRenderer({
       onDrag(circle)
 
       if (FLOATING_HANDLE) {
-        const centerXY = project(map, center)
         const mouseXY = e.point
         const rise = mouseXY.y - centerXY.y
         const run = mouseXY.x - centerXY.x
@@ -106,10 +107,16 @@ export default function CircleRenderer({
     const mapCanvas = map.getCanvas()
 
     const onMouseMove = (e) => {
-      setCenter({
-        lng: e.lngLat.lng - offset.lng,
-        lat: e.lngLat.lat - offset.lat,
-      })
+      setCenter(
+        {
+          lng: e.lngLat.lng - offset.lng,
+          lat: e.lngLat.lat - offset.lat,
+        },
+        {
+          x: e.point.x,
+          y: e.point.y,
+        }
+      )
       onDrag(circle)
     }
 
@@ -149,7 +156,12 @@ export default function CircleRenderer({
   }
 
   function addMapMoveListeners() {
-    const onMove = setCircle
+    debouncedResetCenterXY = debounce(resetCenterXY, 100)
+
+    const onMove = () => {
+      debouncedResetCenterXY()
+      setCircle()
+    }
 
     map.on('move', onMove)
     removers.push(function removeMapMoveListeners() {
@@ -185,15 +197,27 @@ export default function CircleRenderer({
 
   const setCursor = CursorManager(map)
 
-  function setCenter(_center) {
+  function setCenter(_center, _point) {
+    // Cancel any trailing centerXY recalculations from debounced map `move` listener
+    if (debouncedResetCenterXY?.cancel) {
+      debouncedResetCenterXY.cancel()
+    }
+
     if (_center && _center !== center) {
       if (nearPoles(_center, radius)) {
         center = { lng: _center.lng, lat: center.lat }
+        centerXY = { x: _point.x, y: centerXY.y }
       } else {
         center = _center
+        centerXY = _point
       }
+
       setCircle()
     }
+  }
+
+  function resetCenterXY() {
+    centerXY = project(map, center, { referencePoint: centerXY })
   }
 
   function setRadius(_radius) {
@@ -206,13 +230,15 @@ export default function CircleRenderer({
   }
 
   function nearPoles(center, radius) {
-    const centerPoint = point([center.lng, center.lat])
+    const turfPoint = point([center.lng, center.lat])
 
-    return POLES.some((pole) => distance(centerPoint, pole, { units }) < radius)
+    return POLES.some((pole) => distance(turfPoint, pole, { units }) < radius)
   }
 
   function setCircle() {
-    const makePath = getPathMaker(map)
+    const makePath = getPathMaker(map, {
+      referencePoint: centerXY,
+    })
 
     // update svg circle
     circle = geoCircle(center, radius)
@@ -226,8 +252,6 @@ export default function CircleRenderer({
     svgCircleCutout.attr('d', cutoutPath + ` M0,0H${width}V${height}H0V0z`)
 
     // update other svg elements
-    const centerXY = project(map, center)
-
     const handleXY = (() => {
       // by default just render handle based on radius and guideline angle
       let coordinates = rhumbDestination(
@@ -251,10 +275,10 @@ export default function CircleRenderer({
         coordinates = inter.features[0].geometry.coordinates
       }
 
-      return project(map, coordinates)
+      return project(map, coordinates, {
+        referencePoint: centerXY,
+      })
     })()
-
-    svgCircleCenter.attr('cx', centerXY.x).attr('cy', centerXY.y)
 
     svgHandle.attr('cx', handleXY.x).attr('cy', handleXY.y)
 
