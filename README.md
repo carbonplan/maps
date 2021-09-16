@@ -99,6 +99,8 @@ Finally, if we want to render multiple arrays at once (and do math on them), we 
 </Map>
 ```
 
+More docs are coming soon!
+
 ## thanks
 
 We owe enormous credit to existing open source libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.
