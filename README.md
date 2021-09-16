@@ -107,7 +107,7 @@ We owe enormous credit to existing open source libraries in the ecosystem, in pa
 
 ## license
 
-All the original code in this repository is [MIT](https://choosealicense.com/licenses/mit/) licensed. The library contains code from mapbox-gl-js version 1.13 (3-Clause BSD licensed). We request that you please provide attribution if reusing any of our digital content (graphics, logo, copy, etc.).
+All the original code in this repository is [MIT](https://choosealicense.com/licenses/mit/) licensed. The library contains code from [mapbox-gl-js version 1.13](https://github.com/mapbox/mapbox-gl-js/tree/v1.13.1) ([3-Clause BSD licensed](https://choosealicense.com/licenses/bsd-3-clause/)). We request that you please provide attribution if reusing any of our digital content (graphics, logo, copy, etc.).
 
 ## about us
 
