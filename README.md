@@ -75,7 +75,7 @@ With the same component we can render an annual dataset with a different tempera
 </Map>
 ```
 
-Finally, if we want to render multiple arrays at once (and do math on them), we can specify a list for our `selector`. This loads all the listed selections onto the GPU at once and lets us write custom fragment shaders that combine them (in this case, just averaging two months). While this requires writing shader code, it's a powerful and flexible way to do fast raster math for multi-dimensional maps.
+Finally, if we want to render multiple arrays at once (and do math on them), we can specify a list for our `selector`. This loads all the selected arrays onto the GPU at once and lets us write custom fragment shaders that combine them (in this case, just averaging two months). While this requires writing shader code, it's a powerful and flexible way to do fast raster math for multi-dimensional maps.
 
 ```jsx
 <Map>
