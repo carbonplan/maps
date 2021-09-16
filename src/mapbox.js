@@ -38,11 +38,12 @@ const Mapbox = ({
         maxBounds: maxBounds,
         dragRotate: false,
         pitchWithRotate: false,
-        touchZoomRotate: false,
+        touchZoomRotate: true,
       })
       if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)
       if (debug) map.current.showTileBoundaries = true
+      map.current.touchZoomRotate.disableRotation()
       map.current.on('styledata', () => {
         setReady(true)
       })
