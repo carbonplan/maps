@@ -17,23 +17,25 @@ const AverageDisplay = ({ data: { loading, value } }) => {
   })
   concatenated = concatenated.flat()
 
+  let result
   const filteredData = concatenated.filter((d) => d !== -3.3999999521443642e38)
   if (filteredData.length === 0) {
-    return 'no data available'
+    result = 'no data in region'
   } else {
     const average =
       filteredData.reduce((a, b) => a + b, 0) / filteredData.length
-    return (
-      <Box
+    result = `Average: ${average.toFixed(2)}ºC`
+  }
+
+  return <Box
         sx={{
           ml: [2],
+          mt: ['-1px'],
           fontFamily: 'mono',
           letterSpacing: 'mono',
           textTransform: 'uppercase',
         }}
-      >{`Average: ${average.toFixed(2)}ºC`}</Box>
-    )
-  }
+      >{result}</Box>
 }
 
 const RegionControls = ({

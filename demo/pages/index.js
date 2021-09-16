@@ -60,7 +60,7 @@ const Index = () => {
         <ParameterControls getters={getters} setters={setters} />
         <Dimmer
           sx={{
-            display: ['none', 'none', 'initial', 'initial'],
+            display: ['initial', 'initial', 'initial', 'initial'],
             position: 'absolute',
             color: 'primary',
             right: [13],
