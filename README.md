@@ -5,7 +5,7 @@
 
 # carbonplan / maps
 
-**interactive data-driven webmaps**
+**interactive data-driven webmaps — [demo](https://maps.demo.carbonplan.org)**
 
 [![GitHub][github-badge]][github]
 [![Build Status]][actions]
@@ -21,67 +21,84 @@
 
 ## background
 
-There are many existing approaches to making web maps, and also many different data sources and use cases.
+There are many approaches to making web maps, and many different data sources and use cases.
 
-One need we encounter frequently at CarbonPlan is wanting to render gridded _raster_ data on a map, where the data come from some scientific or analytical workflow. Often these data are also multi-dimensional, for example, maps that vary in time, or that represent multiple variables. We want this rendering to be as performant as possible, while supporting a lot of flexibility in how data is rendered. We also want to work with the same file formats we use while doing analysis.
+One case we encounter frequently at CarbonPlan is rendering gridded _raster_ data on a map, where the data come from some scientific or analytical workflow. Often these data are multi-dimensional, for example, maps that vary in time, or that represent multiple variables. We want this rendering to be as performant as possible, while supporting a lot of flexibility in how data is rendered. We also want to work with the same file formats we use while doing analysis.
 
-We're building `@carbonplan/maps` to address these needs! We'll be releasing early and often so we can test it ourselves, but it's very much in progress, so expect lots of major version bumps and breaking changes.
+We're building `@carbonplan/maps` to address these needs! We'll be releasing early and often so we can use it ourselves, but it's very much in progress, so expect lots of major version bumps and breaking changes.
+
+Check out the demo ([site](https://maps.demo.carbonplan.org), [code](https://github.com/carbonplan/maps/tree/main/demo)) which renders annual temperature data, or read on for more info on the library.
 
 ## design
 
-The core library is a `react` wrapper that combines `mapbox-gl-js` and `regl`. We use `mapbox-gl-js` for rendering traditional map layers and providing basic controls, whereas we use `regl` to performantly render data-driven layers. When it comes to rendering data, we provide some simple options out of the box, but also make it easy to plug in custom fragment shaders. For complex rendering needs, we have found it easier to write shader code directly, rather than developing new abstractions.
+The core library wraps lower-level WebGL technologies to expose simple map-building components. For tiled maps, we combine `mapbox-gl-js` and `regl`. We use `mapbox-gl-js` for rendering vector layers and providing basic controls, and we use `regl` to performantly render data-driven layers. Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
 
-Behind the scenes, the library does some synchronization and simple state management to keep everything smooth and reactive.
+We assume raster data is stored in the [`zarr`](https://github.com/zarr-developers/zarr-python) format, an emerging standard for chunked, compressed, multi-dimensional binary data that's become popular in the scientific Python community. For tiled maps, we also leverage the [`ndpyramid`](https://github.com/carbonplan/ndpyramid) tool for building multi-scale pyramids. Our `Raster` component makes it easy to render these data.
 
-For traditional map layers, you can render vector tiles via `mapbox`. Rather than try to wrap all of `mapbox`, we simply expose a few key hooks that make it easy to build `mapbox` layers yourself.
+## examples
 
-For raster data layers, we assume data is stored in the [`zarr`](https://github.com/zarr-developers/zarr-python) format, an emerging standard for chunked, compressed, multi-dimensional binary data that's become popular in the scientific Python community. Our `Raster` component makes it easy to render these data.
-
-## example
-
-Here's a simple map that renders a global temperature dataset. The underyling dataset is a version of [`WorldClim`](https://www.worldclim.org/data/worldclim21.html) stored as a `zarr` pyramid with 5 levels of increasing resolution.
+First, here's a simple map that renders a global temperature dataset at one month. The underyling dataset is a version of [`WorldClim`](https://www.worldclim.org/data/worldclim21.html) stored as a `zarr` pyramid with 6 levels of increasing resolution. We specify the `variable` we want to show and the dataset's `dimensions`, and all other metadata is inferred the dataset.
 
 ```jsx
-import { Canvas, Raster } from '@carbonplan/maps'
+import { Map, Raster } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
 
 const colormap = useColormap('warm')
 
-<Canvas>
+<Map>
   <Raster
-    maxZoom={5}
-    size={128}
     colormap={colormap}
     clim={[-20,30]}
-    nan={-3.4e38}
     source={
-      'https://carbonplan.blob.core.windows.net/carbonplan-scratch/zarr-mapbox-webgl/128/{z}'
+      'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
     }
+    variable={'temperature'}
+    dimensions={['y', 'x']}
   />
-</Canvas>
-
+</Map>
 ```
 
-## usage
+With the same component we can render an annual dataset with a different temperature for each month, showing one month at a time via a `selector`. In this example, the selected month `4` can be static, or it can come from `react` state and the map will dynamically update!
 
-The library offers several components and hooks to faclitate map building.
+```jsx
+<Map>
+  <Raster
+    colormap={colormap}
+    clim={[-20, 30]}
+    source={
+      'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp-month'
+    }
+    variable={'temperature'}
+    dimensions={['month', 'y', 'x']}
+    selector={{ month: 4 }}
+  />
+</Map>
+```
 
-`Canvas`
+Finally, if we want to render multiple arrays at once (and do math on them), we can specify a list for our `selector`. This loads all the listed selections onto the GPU at once and lets us write custom fragment shaders that combine them (in this case, just averaging two months). While this requires writing shader code, it's a powerful and flexible way to do fast raster math for multi-dimensional maps.
 
-`Raster`
-
-For lower level control, you might also find these useful
-
-`Mapbox`
-
-`useMapbox`
-
-`useControls`
-
-`Regl`
-
-`useRegl`
+```jsx
+<Map>
+  <Raster
+    colormap={colormap}
+    clim={[-20, 30]}
+    fillValue={-3.4e38}
+    source={
+      'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp-month'
+    }
+    variable={'temperature'}
+    dimensions={['month', 'y', 'x']}
+    selector={{ month: [1, 2] }}
+    frag={`
+      float rescaled = ((month_1 + month_2) / 2.0 - clim.x)/(clim.y - clim.x);
+      vec4 c = texture2D(colormap, vec2(rescaled, 1.0));
+      gl_FragColor = vec4(c.x, c.y, c.z, opacity);
+      gl_FragColor.rgb *= gl_FragColor.a;
+    `}
+  />
+</Map>
+```
 
 ## thanks
 
-We owe enormous credit to existing libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.
+We owe enormous credit to existing open source libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.

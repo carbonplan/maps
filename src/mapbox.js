@@ -44,6 +44,8 @@ const Mapbox = ({
       if (zoom) map.current.setZoom(zoom)
       if (debug) map.current.showTileBoundaries = true
       map.current.touchZoomRotate.disableRotation()
+      map.current.touchPitch.disable()
+      console.log(map.current)
       map.current.on('styledata', () => {
         setReady(true)
       })
