@@ -11,6 +11,7 @@ const Map = ({
   zoom,
   minZoom,
   maxZoom,
+  maxBounds,
   center,
   debug,
   extensions,
@@ -35,6 +36,7 @@ const Map = ({
         zoom={zoom}
         minZoom={minZoom}
         maxZoom={maxZoom}
+        maxBounds={maxBounds}
         center={center}
         debug={debug}
         containerStyle={{ position: 'absolute' }}

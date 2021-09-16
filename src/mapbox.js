@@ -20,6 +20,8 @@ const Mapbox = ({
   center,
   zoom,
   minZoom,
+  maxZoom,
+  maxBounds,
   debug,
   children,
 }) => {
@@ -32,7 +34,11 @@ const Mapbox = ({
         container: node,
         style: style || { version: 8, sources: {}, layers: [] },
         minZoom: minZoom,
+        maxZoom: maxZoom,
+        maxBounds: maxBounds,
         dragRotate: false,
+        pitchWithRotate: false,
+        touchZoomRotate: false
       })
       if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)
