@@ -104,3 +104,12 @@ More docs are coming soon!
 ## thanks
 
 We owe enormous credit to existing open source libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.
+
+## license
+
+All the original code in this repository is [MIT](https://choosealicense.com/licenses/mit/) licensed. The library contains code from mapbox-gl-js version 1.13 (3-Clause BSD licensed). We request that you please provide attribution if reusing any of our digital content (graphics, logo, copy, etc.).
+
+## about us
+
+CarbonPlan is a non-profit organization that uses data and science for climate action. We aim to improve the transparency and scientific integrity of carbon removal and climate solutions through open data and tools. Find out more at [carbonplan.org](https://carbonplan.org/) or get in touch by [opening an issue](https://github.com/carbonplan/maps/issues/new) or [sending us an email](mailto:hello@carbonplan.org).
+
