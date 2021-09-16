@@ -34,7 +34,6 @@
     "@turf/turf": "^6.5.0",
     "d3-geo": "^2.0.2",
     "d3-selection": "^2.0.0",
-    "lodash.debounce": "^4.0.8",
     "mapbox-gl": "^1.13.1",
     "ndarray": "^1.0.19",
     "regl": "^2.1.0",

@@ -1,5 +1,4 @@
 import { select } from 'd3-selection'
-import debounce from 'lodash.debounce'
 import { FLOATING_HANDLE, SHOW_RADIUS_GUIDELINE } from '../constants'
 import { getPathMaker, project } from './utils'
 import {
@@ -34,7 +33,6 @@ export default function CircleRenderer({
   let circle = null
   let center = initialCenter
   let centerXY = project(map, center)
-  let debouncedResetCenterXY = null
   let radius = initialRadius
 
   const svg = select('#circle-picker').style('pointer-events', 'none')
@@ -156,12 +154,7 @@ export default function CircleRenderer({
   }
 
   function addMapMoveListeners() {
-    debouncedResetCenterXY = debounce(resetCenterXY, 100)
-
-    const onMove = () => {
-      debouncedResetCenterXY()
-      setCircle()
-    }
+    const onMove = setCircle
 
     map.on('move', onMove)
     removers.push(function removeMapMoveListeners() {
@@ -198,11 +191,6 @@ export default function CircleRenderer({
   const setCursor = CursorManager(map)
 
   function setCenter(_center, _point) {
-    // Cancel any trailing centerXY recalculations from debounced map `move` listener
-    if (debouncedResetCenterXY?.cancel) {
-      debouncedResetCenterXY.cancel()
-    }
-
     if (_center && _center !== center) {
       if (nearPoles(_center, radius)) {
         center = { lng: _center.lng, lat: center.lat }
@@ -217,6 +205,7 @@ export default function CircleRenderer({
   }
 
   function resetCenterXY() {
+    // reset centerXY value based on latest `map` value
     centerXY = project(map, center, { referencePoint: centerXY })
   }
 
@@ -236,6 +225,9 @@ export default function CircleRenderer({
   }
 
   function setCircle() {
+    // ensure that centerXY is up-to-date with map
+    resetCenterXY()
+
     const makePath = getPathMaker(map, {
       referencePoint: centerXY,
     })
