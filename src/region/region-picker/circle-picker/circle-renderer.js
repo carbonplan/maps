@@ -171,6 +171,7 @@ export default function CircleRenderer({
     })
 
     c.properties.area = convertArea(area(c), 'meters', units)
+    c.properties.zoom = map.getZoom()
 
     if (inverted) {
       return c
