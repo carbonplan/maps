@@ -224,21 +224,29 @@ export default function CircleRenderer({
     const centerXY = project(map, center)
 
     const handleXY = (() => {
+      // by default just render handle based on radius and guideline angle
+      let coordinates = rhumbDestination(
+        [center.lng, center.lat],
+        radius,
+        guidelineAngle
+      ).geometry.coordinates
+
       const lineEnd = rhumbDestination(
         [center.lng, center.lat],
         radius * 2,
         guidelineAngle
       )
-
       const line = lineString([
         [center.lng, center.lat],
         lineEnd.geometry.coordinates,
       ])
-
       const inter = lineIntersect(line, circle)
-      if (inter) {
-        return project(map, inter.features[0].geometry.coordinates)
+      // but prefer rendering using intersection with circle to handle distortions near poles
+      if (inter.features.length > 0) {
+        coordinates = inter.features[0].geometry.coordinates
       }
+
+      return project(map, coordinates)
     })()
 
     svgCircleCenter.attr('cx', centerXY.x).attr('cy', centerXY.y)
