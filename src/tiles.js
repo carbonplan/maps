@@ -79,10 +79,10 @@ export const createTiles = (regl, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      const emptyTexture = ndarray(new Float32Array(Array(1).fill(fillValue)), [
-        1,
-        1,
-      ])
+      const emptyTexture = ndarray(
+        new Float32Array(Array(1).fill(fillValue)),
+        [1, 1]
+      )
       initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
@@ -318,7 +318,9 @@ export const createTiles = (regl, opts) => {
 
       let results = {},
         coordinateKey,
-        coordinateValues
+        coordinateValues,
+        lat = [],
+        lon = []
       if (this.ndim > 2) {
         coordinateKey = Object.keys(this.coordinates)[0]
         coordinateValues = Object.values(this.coordinates)[0]
@@ -348,6 +350,10 @@ export const createTiles = (regl, opts) => {
             )
             if (distanceToCenter < radius) {
               const data = this.tiles[key].data
+
+              lon.push(pointCoords[0])
+              lat.push(pointCoords[1])
+
               if (this.ndim > 2) {
                 coordinateValues.forEach((v, k) => {
                   results[v].push(data.get(k, j, i))
@@ -363,8 +369,11 @@ export const createTiles = (regl, opts) => {
       const out = { [this.variable]: results }
 
       if (this.ndim > 2) {
-        out.dimensions = [coordinateKey]
-        out.coordinates = { [coordinateKey]: coordinateValues }
+        out.dimensions = [coordinateKey, 'lat', 'lon']
+        out.coordinates = { [coordinateKey]: coordinateValues, lat, lon }
+      } else {
+        out.dimensions = ['lat', 'lon']
+        out.coordinates = { lat, lon }
       }
 
       return out
