@@ -38,7 +38,7 @@ const Mapbox = ({
         maxBounds: maxBounds,
         dragRotate: false,
         pitchWithRotate: false,
-        touchZoomRotate: false
+        touchZoomRotate: false,
       })
       if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)

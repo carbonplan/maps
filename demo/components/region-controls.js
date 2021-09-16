@@ -27,15 +27,19 @@ const AverageDisplay = ({ data: { loading, value } }) => {
     result = `Average: ${average.toFixed(2)}ºC`
   }
 
-  return <Box
-        sx={{
-          ml: [2],
-          mt: ['-1px'],
-          fontFamily: 'mono',
-          letterSpacing: 'mono',
-          textTransform: 'uppercase',
-        }}
-      >{result}</Box>
+  return (
+    <Box
+      sx={{
+        ml: [2],
+        mt: ['-1px'],
+        fontFamily: 'mono',
+        letterSpacing: 'mono',
+        textTransform: 'uppercase',
+      }}
+    >
+      {result}
+    </Box>
+  )
 }
 
 const RegionControls = ({
