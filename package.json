@@ -36,7 +36,6 @@
     "d3-selection": "^2.0.0",
     "mapbox-gl": "^1.13.1",
     "ndarray": "^1.0.19",
-    "pupa": "^2.1.1",
     "regl": "^2.1.0",
     "xhr-request": "^1.1.0",
     "zarr-js": "^1.1.0"
