@@ -2,6 +2,8 @@ import { select } from 'd3-selection'
 import { FLOATING_HANDLE, SHOW_RADIUS_GUIDELINE } from '../constants'
 import { getPathMaker, project } from './utils'
 import {
+  area,
+  convertArea,
   distance,
   rewind,
   rhumbDestination,
@@ -167,6 +169,8 @@ export default function CircleRenderer({
         units,
       },
     })
+
+    c.properties.area = convertArea(area(c), 'meters', units)
 
     if (inverted) {
       return c
