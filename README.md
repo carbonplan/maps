@@ -23,7 +23,7 @@
 
 There are many approaches to making web maps, and many different data sources and use cases.
 
-One common case at CarbonPlan is rendering gridded _raster_ data on a map, where the data come from a scientific or analytical workflow. Often these data are multi-dimensional, for example, representing multiple time points or variables. We want high performance and flexibility in rendering. We also want to use the same file formats from our analysis.
+One common case for us at CarbonPlan is rendering gridded _raster_ data on a map. These data are multi-dimensional, for example, representing multiple time points or variables. We want high performance and flexibility in rendering. We also want to use the same file formats from our analysis.
 
 We're building `@carbonplan/maps` to address these needs! We'll be releasing early and often so we can use it ourselves, but it's very much in progress, so expect lots of major version bumps and breaking changes.
 
