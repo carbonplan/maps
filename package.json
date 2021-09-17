@@ -1,6 +1,6 @@
 {
   "name": "@carbonplan/maps",
-  "version": "1.0.0-alpha.16",
+  "version": "1.0.0-alpha.17",
   "description": "interactive data-driven web maps",
   "main": "dst/index.js",
   "module": "dst/index.esm.js",
@@ -38,7 +38,7 @@
     "ndarray": "^1.0.19",
     "regl": "^2.1.0",
     "xhr-request": "^1.1.0",
-    "zarr-js": "^2.0.0"
+    "zarr-js": "^2.0.1"
   },
   "peerDependencies": {
     "react": "^16.14.0 || ^17.0.2",
