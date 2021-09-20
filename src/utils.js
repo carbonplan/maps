@@ -257,29 +257,49 @@ export const getPyramidMetadata = (metadata) => {
   return { levels, maxZoom, tileSize }
 }
 
+// {{month: 0, bands: [‘temperature’, ‘precipitation’]}}
+// => temperature, precipitation
+// {{month: [0, 1], bands: [‘temperature’, ‘precipitation’]}}
+// => temperature_0, precipitation_0, temperature_1, precipitation_1
+// {{month: [0, 1]}}
+// => month_0, month_1
+
 export const getBands = (variable, selector = {}) => {
-  let bands
-  if (Object.keys(selector).length == 0) {
-    bands = [variable]
-  } else {
-    const key = Object.keys(selector)[0]
-    const value = Object.values(selector)[0]
-    if (Array.isArray(value)) {
+  const combinedBands = Object.keys(selector)
+    .filter((key) => Array.isArray(selector[key]))
+    .reduce((bands, key) => {
+      const value = selector[key]
+      let keyBands
       if (typeof value[0] === 'string') {
-        bands = value
+        keyBands = value
       } else {
-        bands = value.map((d) => key + '_' + d)
+        keyBands = value.map((d) => key + '_' + d)
       }
-    } else {
-      bands = [variable]
-    }
+
+      if (bands.length > 0) {
+        const updatedBands = []
+        keyBands.forEach((keyBand) => {
+          bands.forEach((band) => {
+            updatedBands.push(`${band}_${keyBand}`)
+          })
+        })
+
+        return updatedBands
+      } else {
+        return keyBands
+      }
+    }, [])
+
+  if (combinedBands.length > 0) {
+    return combinedBands
+  } else {
+    return [variable]
   }
-  return bands
 }
 
 export const getAccessors = (bands, selector = {}, coordinates) => {
   let accessors = {}
-  if (Object.keys(selector).length == 0) {
+  if (Object.keys(selector).length === 0) {
     accessors[bands[0]] = (d) => d
   } else {
     let key = Object.keys(selector)[0]
