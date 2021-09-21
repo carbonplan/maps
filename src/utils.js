@@ -1,4 +1,4 @@
-import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
+import { combine, point, rhumbBearing, rhumbDestination } from '@turf/turf'
 
 const d2r = Math.PI / 180
 
@@ -264,62 +264,88 @@ export const getPyramidMetadata = (metadata) => {
 // {{month: [0, 1]}}
 // => month_0, month_1
 
-export const getBands = (variable, selector = {}) => {
+const getBandInformation = (selector) => {
   const combinedBands = Object.keys(selector)
     .filter((key) => Array.isArray(selector[key]))
-    .reduce((bands, key) => {
+    .reduce((bandMapping, key) => {
       const value = selector[key]
-      let keyBands
+      let currentBands
       if (typeof value[0] === 'string') {
-        keyBands = value
+        currentBands = value
       } else {
-        keyBands = value.map((d) => key + '_' + d)
+        currentBands = value.map((d) => key + '_' + d)
       }
 
-      if (bands.length > 0) {
-        const updatedBands = []
-        keyBands.forEach((keyBand) => {
+      const bands = Object.keys(bandMapping)
+      const updatedBands = {}
+      currentBands.forEach((currentKey, i) => {
+        if (bands.length > 0) {
           bands.forEach((band) => {
-            updatedBands.push(`${band}_${keyBand}`)
+            const bandKey = `${band}_${currentKey}`
+            updatedBands[bandKey] = { ...bands[band], [currentKey]: value[i] }
           })
-        })
+        } else {
+          updatedBands[currentKey] = { [currentKey]: value[i] }
+        }
+      })
 
-        return updatedBands
-      } else {
-        return keyBands
-      }
-    }, [])
+      return updatedBands
+    }, {})
 
-  if (combinedBands.length > 0) {
-    return combinedBands
+  return combinedBands
+}
+
+export const getBands = (variable, selector = {}) => {
+  const bandInfo = getBandInformation(selector)
+  const bandNames = Object.keys(bandInfo)
+  console.log('using new getBands', bandInfo, bandNames, selector, variable)
+
+  if (Object.keys(bandNames).length > 0) {
+    return bandNames
   } else {
     return [variable]
   }
 }
 
-export const getAccessors = (bands, selector = {}, coordinates) => {
-  let accessors = {}
-  if (Object.keys(selector).length === 0) {
-    accessors[bands[0]] = (d) => d
-  } else {
-    let key = Object.keys(selector)[0]
-    let value = Object.values(selector)[0]
-    if (Array.isArray(value)) {
-      value.forEach((v, i) => {
-        const coordinate = coordinates.findIndex((d) => d === v)
-        accessors[bands[i]] = (d) => d.pick(coordinate, null, null)
+const getPicker = (dimensions, selector, bandInfo, coordinates) => {
+  return (data, s) => {
+    const indexes = dimensions
+      .map((d) => (['x', 'y'].includes(d) ? null : d))
+      .map((d) => {
+        if (selector[d] === undefined) {
+          return null
+        } else {
+          let value
+          if (Array.isArray(selector[d])) {
+            value = bandInfo[d]
+          } else {
+            value = s[d]
+          }
+          return coordinates[d].findIndex((coordinate) => coordinate === value)
+        }
       })
-    } else {
-      accessors[bands[0]] = (d, s) => {
-        return d.pick(
-          coordinates.findIndex((d) => d === s[key]),
-          null,
-          null
-        )
-      }
-    }
+
+    return data.pick(...indexes)
   }
-  return accessors
+}
+
+export const getAccessors = (
+  dimensions,
+  bands,
+  selector = {},
+  coordinates = {}
+) => {
+  if (Object.keys(selector).length === 0) {
+    return { [bands[0]]: (d) => d }
+  } else {
+    const bandInformation = getBandInformation(selector)
+    const result = bands.reduce((accessors, band) => {
+      const info = bandInformation[band]
+      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      return accessors
+    }, {})
+    return result
+  }
 }
 
 export const getSelectorHash = (selector) => {

@@ -60,6 +60,7 @@ export const createTiles = (regl, opts) => {
       )
     }
 
+    this.dimensions = dimensions
     this.ndim = dimensions.length
     this.bands = getBands(variable, selector)
 
@@ -79,10 +80,10 @@ export const createTiles = (regl, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      const emptyTexture = ndarray(new Float32Array(Array(1).fill(fillValue)), [
-        1,
-        1,
-      ])
+      const emptyTexture = ndarray(
+        new Float32Array(Array(1).fill(fillValue)),
+        [1, 1]
+      )
       initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
@@ -141,11 +142,16 @@ export const createTiles = (regl, opts) => {
             const coordinates = Array.from(chunk.data)
             this.coordinates = {}
             this.coordinates[key] = coordinates
-            this.accessors = getAccessors(this.bands, selector, coordinates)
+            this.accessors = getAccessors(
+              this.dimensions,
+              this.bands,
+              selector,
+              this.coordinates
+            )
             resolve(true)
           })
         } else {
-          this.accessors = getAccessors(this.bands, selector)
+          this.accessors = getAccessors(this.dimensions, this.bands, selector)
           resolve(true)
         }
       })
