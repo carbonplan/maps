@@ -19,6 +19,7 @@ import {
   getBands,
   getAccessors,
   getSelectorHash,
+  updateResultForPosition,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -291,10 +292,9 @@ export const createTiles = (regl, opts) => {
         if (this.loaders[level] && this.accessors) {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
-          const chunk =
-            this.ndim > 2
-              ? [0, tileIndex[1], tileIndex[0]]
-              : [tileIndex[1], tileIndex[0]]
+          const chunk = Array(this.ndim - 2)
+            .fill(0)
+            .concat([tileIndex[1], tileIndex[0]])
           tile.ready = true
           if (!tile.cache.data) {
             if (!tile.loading) {
@@ -330,17 +330,11 @@ export const createTiles = (regl, opts) => {
       await this.initialized
       await Promise.all(tiles.map((key) => this.tiles[key].ready))
 
-      let results = {},
-        coordinateKey,
-        coordinateValues,
+      let results,
         lat = [],
         lon = []
       if (this.ndim > 2) {
-        coordinateKey = Object.keys(this.coordinates)[0]
-        coordinateValues = Object.values(this.coordinates)[0]
-        coordinateValues.forEach((v) => {
-          results[v] = []
-        })
+        results = {}
       } else {
         results = []
       }
@@ -369,9 +363,13 @@ export const createTiles = (regl, opts) => {
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
-                coordinateValues.forEach((v, k) => {
-                  results[v].push(data.get(k, j, i))
-                })
+                updateResultForPosition(
+                  results,
+                  data,
+                  this.dimensions,
+                  this.coordinates,
+                  { x: i, y: j }
+                )
               } else {
                 results.push(data.get(j, i))
               }
@@ -383,8 +381,8 @@ export const createTiles = (regl, opts) => {
       const out = { [this.variable]: results }
 
       if (this.ndim > 2) {
-        out.dimensions = [coordinateKey, 'lat', 'lon']
-        out.coordinates = { [coordinateKey]: coordinateValues, lat, lon }
+        out.dimensions = [...Object.keys(this.coordinates), 'lat', 'lon']
+        out.coordinates = { ...this.coordinates, lat, lon }
       } else {
         out.dimensions = ['lat', 'lon']
         out.coordinates = { lat, lon }
