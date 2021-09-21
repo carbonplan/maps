@@ -348,7 +348,7 @@ export const updateResultForPosition = (
   }
 }
 
-const getPicker = (dimensions, selector, bandInfo, coordinates) => {
+const getPicker = (dimensions, selector, band, coordinates) => {
   return (data, s) => {
     const indexes = dimensions
       .map((d) => (['x', 'y'].includes(d) ? null : d))
@@ -358,7 +358,7 @@ const getPicker = (dimensions, selector, bandInfo, coordinates) => {
         } else {
           let value
           if (Array.isArray(selector[d])) {
-            value = bandInfo[d]
+            value = band
           } else {
             value = s[d]
           }
@@ -379,10 +379,8 @@ export const getAccessors = (
   if (Object.keys(selector).length === 0) {
     return { [bands[0]]: (d) => d }
   } else {
-    const bandInformation = getBandInformation(selector)
     const result = bands.reduce((accessors, band) => {
-      const info = bandInformation[band]
-      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      accessors[band] = getPicker(dimensions, selector, band, coordinates)
       return accessors
     }, {})
     return result
