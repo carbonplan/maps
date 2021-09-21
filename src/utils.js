@@ -257,13 +257,6 @@ export const getPyramidMetadata = (metadata) => {
   return { levels, maxZoom, tileSize }
 }
 
-// {{month: 0, bands: [‘temperature’, ‘precipitation’]}}
-// => temperature, precipitation
-// {{month: [0, 1], bands: [‘temperature’, ‘precipitation’]}}
-// => temperature_0, precipitation_0, temperature_1, precipitation_1
-// {{month: [0, 1]}}
-// => month_0, month_1
-
 const getBandInformation = (selector) => {
   const combinedBands = Object.keys(selector)
     .filter((key) => Array.isArray(selector[key]))
