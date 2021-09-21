@@ -14,13 +14,21 @@ const Index = () => {
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
   const [month, setMonth] = useState(1)
+  const [band, setBand] = useState('tavg')
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
 
-  const getters = { display, opacity, clim, month, colormapName }
-  const setters = { setDisplay, setOpacity, setClim, setMonth, setColormapName }
+  const getters = { display, opacity, clim, month, band, colormapName }
+  const setters = {
+    setDisplay,
+    setOpacity,
+    setClim,
+    setMonth,
+    setBand,
+    setColormapName,
+  }
 
   return (
     <>
@@ -44,14 +52,16 @@ const Index = () => {
             opacity={opacity}
             mode={'texture'}
             source={
-              'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp-month'
+              'https://storage.googleapis.com/carbonplan-share/testing/maps/4d/tavg-prec-month'
             }
-            variable={'temperature'}
-            dimensions={['month', 'y', 'x']}
-            selector={{ month: month }}
+            variable={'climate'}
+            dimensions={['band', 'month', 'y', 'x']}
+            selector={{ month, band }}
             setRegionData={setRegionData}
           />
           <RegionControls
+            band={band}
+            month={month}
             regionData={regionData}
             showRegionPicker={showRegionPicker}
             setShowRegionPicker={setShowRegionPicker}

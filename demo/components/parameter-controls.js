@@ -1,5 +1,5 @@
 import { Box } from 'theme-ui'
-import { Slider, Badge, Toggle, Select } from '@carbonplan/components'
+import { Slider, Badge, Toggle, Select, Filter } from '@carbonplan/components'
 import { colormaps } from '@carbonplan/colormaps'
 
 const sx = {
@@ -13,8 +13,15 @@ const sx = {
 }
 
 const ParameterControls = ({ getters, setters }) => {
-  const { display, opacity, clim, month, colormapName } = getters
-  const { setDisplay, setOpacity, setClim, setMonth, setColormapName } = setters
+  const { display, opacity, clim, month, band, colormapName } = getters
+  const {
+    setDisplay,
+    setOpacity,
+    setClim,
+    setMonth,
+    setBand,
+    setColormapName,
+  } = setters
 
   return (
     <>
@@ -52,8 +59,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Minimum</Box>
         <Slider
-          min={-20}
-          max={30}
+          min={-100}
+          max={200}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[0]}
@@ -75,8 +82,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Maximum</Box>
         <Slider
-          min={-20}
-          max={30}
+          min={-100}
+          max={200}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[1]}
@@ -117,6 +124,15 @@ const ParameterControls = ({ getters, setters }) => {
         >
           {month.toFixed(0)}
         </Badge>
+
+        <Box sx={sx.label}>Band</Box>
+        <Filter
+          values={{ tavg: band === 'tavg', prec: band === 'prec' }}
+          setValues={(filter) =>
+            setBand(Object.keys(filter).find((key) => filter[key]))
+          }
+        />
+
         <Box sx={{ ...sx.label, mt: [4] }}>Colormap</Box>
         <Select
           size='xs'
