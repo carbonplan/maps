@@ -298,7 +298,6 @@ const getBandInformation = (selector) => {
 export const getBands = (variable, selector = {}) => {
   const bandInfo = getBandInformation(selector)
   const bandNames = Object.keys(bandInfo)
-  console.log('using new getBands', bandInfo, bandNames, selector, variable)
 
   if (Object.keys(bandNames).length > 0) {
     return bandNames

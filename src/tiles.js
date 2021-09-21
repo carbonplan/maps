@@ -137,11 +137,19 @@ export const createTiles = (regl, opts) => {
         })
 
         if (Object.keys(selector).length > 0) {
-          const key = Object.keys(selector)[0]
-          loaders['0/' + key]([0], (err, chunk) => {
-            const coordinates = Array.from(chunk.data)
-            this.coordinates = {}
-            this.coordinates[key] = coordinates
+          this.coordinates = {}
+          Promise.all(
+            Object.keys(selector).map(
+              (key) =>
+                new Promise((innerResolve) => {
+                  loaders['0/' + key]([0], (err, chunk) => {
+                    const coordinates = Array.from(chunk.data)
+                    this.coordinates[key] = coordinates
+                    innerResolve()
+                  })
+                })
+            )
+          ).then(() => {
             this.accessors = getAccessors(
               this.dimensions,
               this.bands,
