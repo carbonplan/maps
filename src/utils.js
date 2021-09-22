@@ -1,4 +1,4 @@
-import { combine, point, rhumbBearing, rhumbDestination } from '@turf/turf'
+import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
 
 const d2r = Math.PI / 180
 
