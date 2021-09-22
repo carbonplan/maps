@@ -289,6 +289,13 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
+/**
+ * Mutates a given object by adding `value` to array at nested location specified by `keys`
+ * @param {obj} Object of any structure
+ * @param {Array<string>} keys describing nested location where value should be set
+ * @param {any} value to be added to array at location specified by keys
+ * @returns reference to updated obj
+ */
 export const setObjectValues = (obj, keys, value) => {
   let ref = obj
   keys.forEach((key, i) => {
@@ -308,6 +315,15 @@ export const setObjectValues = (obj, keys, value) => {
   return obj
 }
 
+/**
+ * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
+ * @param {data} ndarray
+ * @param {x} number x coordinate at which to lookup values
+ * @param {y} number y coordinate at which to lookup values
+ * @param {Array<string>} dimensions to iterate over
+ * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
+ * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
+ */
 export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
   let keys = [[]]
   let indexes = [[]]
