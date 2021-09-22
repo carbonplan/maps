@@ -257,44 +257,34 @@ export const getPyramidMetadata = (metadata) => {
   return { levels, maxZoom, tileSize }
 }
 
-const getBandInformation = (selector) => {
-  const combinedBands = Object.keys(selector)
+export const getBands = (variable, selector = {}) => {
+  const selectorBands = Object.keys(selector)
+    // Only create bands for keys with multiple values
     .filter((key) => Array.isArray(selector[key]))
-    .reduce((bandMapping, key) => {
-      const value = selector[key]
-      let currentBands
-      if (typeof value[0] === 'string') {
-        currentBands = value
-      } else {
-        currentBands = value.map((d) => key + '_' + d)
+    .reduce((bands, key) => {
+      let selectorValues = selector[key]
+      // Identify integer values by corresponding selector key
+      if (typeof selectorValues[0] === 'number') {
+        selectorValues = selectorValues.map((d) => key + '_' + d)
       }
 
-      const bands = Object.keys(bandMapping)
-      const updatedBands = {}
-      currentBands.forEach((currentKey, i) => {
+      const updatedBands = []
+      selectorValues.forEach((value, i) => {
         if (bands.length > 0) {
-          bands.forEach((band) => {
-            const bandKey = `${band}_${currentKey}`
-            updatedBands[bandKey] = { ...bands[band], [currentKey]: value[i] }
-          })
+          bands.forEach((band) => updatedBands.push(`${band}_${value}`))
         } else {
-          updatedBands[currentKey] = { [currentKey]: value[i] }
+          updatedBands.push(value)
         }
       })
 
       return updatedBands
-    }, {})
+    }, [])
 
-  return combinedBands
-}
-
-export const getBands = (variable, selector = {}) => {
-  const bandInfo = getBandInformation(selector)
-  const bandNames = Object.keys(bandInfo)
-
-  if (Object.keys(bandNames).length > 0) {
-    return bandNames
+  if (Object.keys(selectorBands).length > 0) {
+    // Use specific bands for selector when applicable
+    return selectorBands
   } else {
+    // Otherwise, just use variable as single band name
     return [variable]
   }
 }
