@@ -289,7 +289,7 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
-const setter = (obj, keys, value) => {
+export const setObjectValues = (obj, keys, value) => {
   let ref = obj
   keys.forEach((key, i) => {
     if (i === keys.length - 1) {
@@ -308,34 +308,38 @@ const setter = (obj, keys, value) => {
   return obj
 }
 
-export const updateResultForPosition = (
-  result,
-  data,
-  dimensions,
-  coordinates,
-  fixed = {}
-) => {
-  const indexes = dimensions.map((dimension, i) => {
-    const values = coordinates[dimension]
-    const index = fixed[dimension]
-    if (typeof index === 'number') {
-      return { index, key: values && values[index] }
+export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
+  let keys = [[]]
+  let indexes = [[]]
+  dimensions.forEach((dimension) => {
+    if (dimension === 'x') {
+      // only update update indexes used for getting values
+      indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
+    } else if (dimension === 'y') {
+      // only update update indexes used for getting values
+      indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
     } else {
-      values.forEach((v, j) => {
-        updateResultForPosition(result, data, dimensions, coordinates, {
-          ...fixed,
-          [dimension]: j,
+      const values = coordinates[dimension]
+      const updatedKeys = []
+      const updatedIndexes = []
+      values.forEach((value, i) => {
+        keys.forEach((prevKeys, j) => {
+          updatedKeys.push([...prevKeys, value])
+
+          const prevIndexes = indexes[j]
+          updatedIndexes.push([...prevIndexes, i])
         })
       })
+
+      keys = updatedKeys
+      indexes = updatedIndexes
     }
   })
 
-  // set value in result
-  if (indexes.every(Boolean)) {
-    const keys = indexes.map(({ key }) => key).filter(Boolean)
-    const value = data.get(...indexes.map(({ index }) => index))
-    setter(result, keys, value)
-  }
+  return keys.map((key, i) => ({
+    keys: key,
+    value: data.get(...indexes[i]),
+  }))
 }
 
 const getPicker = (dimensions, selector, band, coordinates) => {

@@ -19,7 +19,8 @@ import {
   getBands,
   getAccessors,
   getSelectorHash,
-  updateResultForPosition,
+  getValuesToSet,
+  setObjectValues,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -363,13 +364,17 @@ export const createTiles = (regl, opts) => {
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
-                updateResultForPosition(
-                  results,
+                const valuesToSet = getValuesToSet(
                   data,
+                  i,
+                  j,
                   this.dimensions,
-                  this.coordinates,
-                  { x: i, y: j }
+                  this.coordinates
                 )
+
+                valuesToSet.forEach(({ keys, value }) => {
+                  setObjectValues(results, keys, value)
+                })
               } else {
                 results.push(data.get(j, i))
               }
