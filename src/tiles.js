@@ -19,6 +19,8 @@ import {
   getBands,
   getAccessors,
   getSelectorHash,
+  getValuesToSet,
+  setObjectValues,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -60,6 +62,7 @@ export const createTiles = (regl, opts) => {
       )
     }
 
+    this.dimensions = dimensions
     this.ndim = dimensions.length
     this.bands = getBands(variable, selector)
 
@@ -136,16 +139,29 @@ export const createTiles = (regl, opts) => {
         })
 
         if (Object.keys(selector).length > 0) {
-          const key = Object.keys(selector)[0]
-          loaders['0/' + key]([0], (err, chunk) => {
-            const coordinates = Array.from(chunk.data)
-            this.coordinates = {}
-            this.coordinates[key] = coordinates
-            this.accessors = getAccessors(this.bands, selector, coordinates)
+          this.coordinates = {}
+          Promise.all(
+            Object.keys(selector).map(
+              (key) =>
+                new Promise((innerResolve) => {
+                  loaders['0/' + key]([0], (err, chunk) => {
+                    const coordinates = Array.from(chunk.data)
+                    this.coordinates[key] = coordinates
+                    innerResolve()
+                  })
+                })
+            )
+          ).then(() => {
+            this.accessors = getAccessors(
+              this.dimensions,
+              this.bands,
+              selector,
+              this.coordinates
+            )
             resolve(true)
           })
         } else {
-          this.accessors = getAccessors(this.bands, selector)
+          this.accessors = getAccessors(this.dimensions, this.bands, selector)
           resolve(true)
         }
       })
@@ -277,10 +293,9 @@ export const createTiles = (regl, opts) => {
         if (this.loaders[level] && this.accessors) {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
-          const chunk =
-            this.ndim > 2
-              ? [0, tileIndex[1], tileIndex[0]]
-              : [tileIndex[1], tileIndex[0]]
+          const chunk = Array(this.ndim - 2)
+            .fill(0)
+            .concat([tileIndex[1], tileIndex[0]])
           tile.ready = true
           if (!tile.cache.data) {
             if (!tile.loading) {
@@ -316,17 +331,11 @@ export const createTiles = (regl, opts) => {
       await this.initialized
       await Promise.all(tiles.map((key) => this.tiles[key].ready))
 
-      let results = {},
-        coordinateKey,
-        coordinateValues,
+      let results,
         lat = [],
         lon = []
       if (this.ndim > 2) {
-        coordinateKey = Object.keys(this.coordinates)[0]
-        coordinateValues = Object.values(this.coordinates)[0]
-        coordinateValues.forEach((v) => {
-          results[v] = []
-        })
+        results = {}
       } else {
         results = []
       }
@@ -355,8 +364,16 @@ export const createTiles = (regl, opts) => {
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
-                coordinateValues.forEach((v, k) => {
-                  results[v].push(data.get(k, j, i))
+                const valuesToSet = getValuesToSet(
+                  data,
+                  i,
+                  j,
+                  this.dimensions,
+                  this.coordinates
+                )
+
+                valuesToSet.forEach(({ keys, value }) => {
+                  setObjectValues(results, keys, value)
                 })
               } else {
                 results.push(data.get(j, i))
@@ -369,8 +386,8 @@ export const createTiles = (regl, opts) => {
       const out = { [this.variable]: results }
 
       if (this.ndim > 2) {
-        out.dimensions = [coordinateKey, 'lat', 'lon']
-        out.coordinates = { [coordinateKey]: coordinateValues, lat, lon }
+        out.dimensions = [...Object.keys(this.coordinates), 'lat', 'lon']
+        out.coordinates = { ...this.coordinates, lat, lon }
       } else {
         out.dimensions = ['lat', 'lon']
         out.coordinates = { lat, lon }

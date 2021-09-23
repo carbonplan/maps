@@ -257,49 +257,167 @@ export const getPyramidMetadata = (metadata) => {
   return { levels, maxZoom, tileSize }
 }
 
-export const getBands = (variable, selector = {}) => {
-  let bands
-  if (Object.keys(selector).length == 0) {
-    bands = [variable]
-  } else {
-    const key = Object.keys(selector)[0]
-    const value = Object.values(selector)[0]
-    if (Array.isArray(value)) {
-      if (typeof value[0] === 'string') {
-        bands = value
+/**
+ * Given a selector, generates an Object mapping each bandName to an Object
+ * representing which values of each dimension that bandName represents.
+ * @param {selector} Object of {[dimension]: dimensionValue|Array<dimensionValue>} pairs
+ * @returns Object containing bandName, {[dimension]: dimensionValue} pairs
+ */
+const getBandInformation = (selector) => {
+  const combinedBands = Object.keys(selector)
+    .filter((key) => Array.isArray(selector[key]))
+    .reduce((bandMapping, selectorKey) => {
+      const values = selector[selectorKey]
+      let keys
+      if (typeof values[0] === 'string') {
+        keys = values
       } else {
-        bands = value.map((d) => key + '_' + d)
+        keys = values.map((d) => selectorKey + '_' + d)
       }
-    } else {
-      bands = [variable]
-    }
-  }
-  return bands
+
+      const bands = Object.keys(bandMapping)
+      const updatedBands = {}
+      keys.forEach((key, i) => {
+        if (bands.length > 0) {
+          bands.forEach((band) => {
+            const bandKey = `${band}_${key}`
+            updatedBands[bandKey] = {
+              ...bandMapping[band],
+              [selectorKey]: values[i],
+            }
+          })
+        } else {
+          updatedBands[key] = { [selectorKey]: values[i] }
+        }
+      })
+
+      return updatedBands
+    }, {})
+
+  return combinedBands
 }
 
-export const getAccessors = (bands, selector = {}, coordinates) => {
-  let accessors = {}
-  if (Object.keys(selector).length == 0) {
-    accessors[bands[0]] = (d) => d
+export const getBands = (variable, selector = {}) => {
+  const bandInfo = getBandInformation(selector)
+  const bandNames = Object.keys(bandInfo)
+
+  if (bandNames.length > 0) {
+    return bandNames
   } else {
-    let key = Object.keys(selector)[0]
-    let value = Object.values(selector)[0]
-    if (Array.isArray(value)) {
-      value.forEach((v, i) => {
-        const coordinate = coordinates.findIndex((d) => d === v)
-        accessors[bands[i]] = (d) => d.pick(coordinate, null, null)
+    return [variable]
+  }
+}
+
+const getPicker = (dimensions, selector, bandInfo, coordinates) => {
+  return (data, s) => {
+    const indexes = dimensions
+      .map((d) => (['x', 'y'].includes(d) ? null : d))
+      .map((d) => {
+        if (selector[d] === undefined) {
+          return null
+        } else {
+          let value
+          if (Array.isArray(selector[d])) {
+            // If the selector value is a fixed array, grab value from the band information
+            value = bandInfo[d]
+          } else {
+            // Otherwise index into the active selector, s
+            value = s[d]
+          }
+          return coordinates[d].findIndex((coordinate) => coordinate === value)
+        }
       })
+
+    return data.pick(...indexes)
+  }
+}
+
+export const getAccessors = (
+  dimensions,
+  bands,
+  selector = {},
+  coordinates = {}
+) => {
+  if (Object.keys(selector).length === 0) {
+    return { [bands[0]]: (d) => d }
+  } else {
+    const bandInformation = getBandInformation(selector)
+    const result = bands.reduce((accessors, band) => {
+      const info = bandInformation[band]
+      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      return accessors
+    }, {})
+    return result
+  }
+}
+
+/**
+ * Mutates a given object by adding `value` to array at nested location specified by `keys`
+ * @param {obj} Object of any structure
+ * @param {Array<string>} keys describing nested location where value should be set
+ * @param {any} value to be added to array at location specified by keys
+ * @returns reference to updated obj
+ */
+export const setObjectValues = (obj, keys, value) => {
+  let ref = obj
+  keys.forEach((key, i) => {
+    if (i === keys.length - 1) {
+      if (!ref[key]) {
+        ref[key] = []
+      }
     } else {
-      accessors[bands[0]] = (d, s) => {
-        return d.pick(
-          coordinates.findIndex((d) => d === s[key]),
-          null,
-          null
-        )
+      if (!ref[key]) {
+        ref[key] = {}
       }
     }
-  }
-  return accessors
+    ref = ref[key]
+  })
+
+  ref.push(value)
+  return obj
+}
+
+/**
+ * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
+ * @param {data} ndarray
+ * @param {x} number x coordinate at which to lookup values
+ * @param {y} number y coordinate at which to lookup values
+ * @param {Array<string>} dimensions to iterate over
+ * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
+ * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
+ */
+export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
+  let keys = [[]]
+  let indexes = [[]]
+  dimensions.forEach((dimension) => {
+    if (dimension === 'x') {
+      // only update update indexes used for getting values
+      indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
+    } else if (dimension === 'y') {
+      // only update update indexes used for getting values
+      indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
+    } else {
+      const values = coordinates[dimension]
+      const updatedKeys = []
+      const updatedIndexes = []
+      values.forEach((value, i) => {
+        keys.forEach((prevKeys, j) => {
+          updatedKeys.push([...prevKeys, value])
+
+          const prevIndexes = indexes[j]
+          updatedIndexes.push([...prevIndexes, i])
+        })
+      })
+
+      keys = updatedKeys
+      indexes = updatedIndexes
+    }
+  })
+
+  return keys.map((key, i) => ({
+    keys: key,
+    value: data.get(...indexes[i]),
+  }))
 }
 
 export const getSelectorHash = (selector) => {
