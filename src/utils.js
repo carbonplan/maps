@@ -257,35 +257,97 @@ export const getPyramidMetadata = (metadata) => {
   return { levels, maxZoom, tileSize }
 }
 
-export const getBands = (variable, selector = {}) => {
-  const selectorBands = Object.keys(selector)
-    // Only create bands for keys with multiple values
+/**
+ * Given a selector, generates an Object mapping each bandName to an Object
+ * representing which values of each dimension that bandName represents.
+ * @param {selector} Object of {[dimension]: dimensionValue|Array<dimensionValue>} pairs
+ * @returns Object containing bandName, {[dimension]: dimensionValue} pairs
+ */
+const getBandInformation = (selector) => {
+  const combinedBands = Object.keys(selector)
     .filter((key) => Array.isArray(selector[key]))
-    .reduce((bands, key) => {
-      let selectorValues = selector[key]
-      // Identify integer values by corresponding selector key
-      if (typeof selectorValues[0] === 'number') {
-        selectorValues = selectorValues.map((d) => key + '_' + d)
+    .reduce((bandMapping, selectorKey) => {
+      const values = selector[selectorKey]
+      let keys
+      if (typeof values[0] === 'string') {
+        keys = values
+      } else {
+        keys = values.map((d) => selectorKey + '_' + d)
       }
 
-      const updatedBands = []
-      selectorValues.forEach((value, i) => {
+      const bands = Object.keys(bandMapping)
+      const updatedBands = {}
+      keys.forEach((key, i) => {
         if (bands.length > 0) {
-          bands.forEach((band) => updatedBands.push(`${band}_${value}`))
+          bands.forEach((band) => {
+            const bandKey = `${band}_${key}`
+            updatedBands[bandKey] = {
+              ...bandMapping[band],
+              [selectorKey]: values[i],
+            }
+          })
         } else {
-          updatedBands.push(value)
+          updatedBands[key] = { [selectorKey]: values[i] }
         }
       })
 
       return updatedBands
-    }, [])
+    }, {})
 
-  if (Object.keys(selectorBands).length > 0) {
-    // Use specific bands for selector when applicable
-    return selectorBands
+  return combinedBands
+}
+
+export const getBands = (variable, selector = {}) => {
+  const bandInfo = getBandInformation(selector)
+  const bandNames = Object.keys(bandInfo)
+
+  if (bandNames.length > 0) {
+    return bandNames
   } else {
-    // Otherwise, just use variable as single band name
     return [variable]
+  }
+}
+
+const getPicker = (dimensions, selector, bandInfo, coordinates) => {
+  return (data, s) => {
+    const indexes = dimensions
+      .map((d) => (['x', 'y'].includes(d) ? null : d))
+      .map((d) => {
+        if (selector[d] === undefined) {
+          return null
+        } else {
+          let value
+          if (Array.isArray(selector[d])) {
+            // If the selector value is a fixed array, grab value from the band information
+            value = bandInfo[d]
+          } else {
+            // Otherwise index into the active selector, s
+            value = s[d]
+          }
+          return coordinates[d].findIndex((coordinate) => coordinate === value)
+        }
+      })
+
+    return data.pick(...indexes)
+  }
+}
+
+export const getAccessors = (
+  dimensions,
+  bands,
+  selector = {},
+  coordinates = {}
+) => {
+  if (Object.keys(selector).length === 0) {
+    return { [bands[0]]: (d) => d }
+  } else {
+    const bandInformation = getBandInformation(selector)
+    const result = bands.reduce((accessors, band) => {
+      const info = bandInformation[band]
+      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      return accessors
+    }, {})
+    return result
   }
 }
 
@@ -356,45 +418,6 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
     keys: key,
     value: data.get(...indexes[i]),
   }))
-}
-
-const getPicker = (dimensions, selector, band, coordinates) => {
-  return (data, s) => {
-    const indexes = dimensions
-      .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d) => {
-        if (selector[d] === undefined) {
-          return null
-        } else {
-          let value
-          if (Array.isArray(selector[d])) {
-            value = band
-          } else {
-            value = s[d]
-          }
-          return coordinates[d].findIndex((coordinate) => coordinate === value)
-        }
-      })
-
-    return data.pick(...indexes)
-  }
-}
-
-export const getAccessors = (
-  dimensions,
-  bands,
-  selector = {},
-  coordinates = {}
-) => {
-  if (Object.keys(selector).length === 0) {
-    return { [bands[0]]: (d) => d }
-  } else {
-    const result = bands.reduce((accessors, band) => {
-      accessors[band] = getPicker(dimensions, selector, band, coordinates)
-      return accessors
-    }, {})
-    return result
-  }
 }
 
 export const getSelectorHash = (selector) => {
