@@ -12,9 +12,21 @@ const sx = {
   },
 }
 
+const CLIM_RANGES = {
+  tavg: { max: 30, min: -20 },
+  prec: { max: 200, min: -100 },
+}
+
 const ParameterControls = ({ getters, setters }) => {
-  const { display, opacity, clim, month, colormapName } = getters
-  const { setDisplay, setOpacity, setClim, setMonth, setColormapName } = setters
+  const { display, opacity, clim, month, band, colormapName } = getters
+  const {
+    setDisplay,
+    setOpacity,
+    setClim,
+    setMonth,
+    setBand,
+    setColormapName,
+  } = setters
 
   return (
     <>
@@ -52,8 +64,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Minimum</Box>
         <Slider
-          min={-20}
-          max={30}
+          min={CLIM_RANGES[band].min}
+          max={CLIM_RANGES[band].max}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[0]}
@@ -75,8 +87,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Maximum</Box>
         <Slider
-          min={-20}
-          max={30}
+          min={CLIM_RANGES[band].min}
+          max={CLIM_RANGES[band].max}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[1]}
@@ -117,12 +129,24 @@ const ParameterControls = ({ getters, setters }) => {
         >
           {month.toFixed(0)}
         </Badge>
+
+        <Box sx={{ ...sx.label, mt: [4] }}>Band</Box>
+        <Select
+          size='xs'
+          onChange={(e) => setBand(e.target.value)}
+          sx={{ mt: [1] }}
+          value={band}
+        >
+          <option value='tavg'>Temperature</option>
+          <option value='prec'>Precipitation</option>
+        </Select>
+
         <Box sx={{ ...sx.label, mt: [4] }}>Colormap</Box>
         <Select
           size='xs'
           onChange={(e) => setColormapName(e.target.value)}
           sx={{ mt: [1] }}
-          defaultValue={'warm'}
+          value={colormapName}
         >
           {colormaps.map((d) => (
             <option key={d.name}>{d.name}</option>

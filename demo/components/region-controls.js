@@ -2,29 +2,29 @@ import { Box, IconButton } from 'theme-ui'
 import { useRecenterRegion } from '@carbonplan/maps'
 import { XCircle } from '@carbonplan/icons'
 
-const AverageDisplay = ({ data: { loading, value } }) => {
+const AverageDisplay = ({ band, month, data: { loading, value } }) => {
   if (loading) {
     return 'loading...'
   }
 
-  if (!value.temperature) {
+  if (!value.climate[band] || !value.climate[band][month]) {
     throw new Error('Value not present')
   }
 
-  let concatenated = []
-  value.coordinates.month.forEach((k) => {
-    concatenated.push(value.temperature[k])
-  })
-  concatenated = concatenated.flat()
+  const activeData = value.climate[band][month]
 
   let result
-  const filteredData = concatenated.filter((d) => d !== -3.3999999521443642e38)
+  const filteredData = activeData.filter((d) => d !== -3.3999999521443642e38)
   if (filteredData.length === 0) {
     result = 'no data in region'
   } else {
     const average =
       filteredData.reduce((a, b) => a + b, 0) / filteredData.length
-    result = `Average: ${average.toFixed(2)}ºC`
+    if (band === 'prec') {
+      result = `Average: ${average.toFixed(2)}`
+    } else {
+      result = `Average: ${average.toFixed(2)}ºC`
+    }
   }
 
   return (
@@ -43,6 +43,8 @@ const AverageDisplay = ({ data: { loading, value } }) => {
 }
 
 const RegionControls = ({
+  band,
+  month,
   regionData,
   showRegionPicker,
   setShowRegionPicker,
@@ -102,7 +104,9 @@ const RegionControls = ({
           </svg>
         </IconButton>
       )}
-      {showRegionPicker && <AverageDisplay data={regionData} />}
+      {showRegionPicker && (
+        <AverageDisplay data={regionData} band={band} month={month} />
+      )}
     </Box>
   )
 }
