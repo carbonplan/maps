@@ -1,4 +1,5 @@
 import { Box } from 'theme-ui'
+import { useCallback } from 'react'
 import { Slider, Badge, Toggle, Select } from '@carbonplan/components'
 import { colormaps } from '@carbonplan/colormaps'
 
@@ -17,6 +18,11 @@ const CLIM_RANGES = {
   prec: { max: 200, min: -100 },
 }
 
+const DEFAULT_COLORMAPS = {
+  tavg: 'warm',
+  prec: 'cool',
+}
+
 const ParameterControls = ({ getters, setters }) => {
   const { display, opacity, clim, month, band, colormapName } = getters
   const {
@@ -27,6 +33,13 @@ const ParameterControls = ({ getters, setters }) => {
     setBand,
     setColormapName,
   } = setters
+
+  const handleBandChange = useCallback((e) => {
+    const band = e.target.value
+    setClim([CLIM_RANGES[band].min, CLIM_RANGES[band].max])
+    setColormapName(DEFAULT_COLORMAPS[band])
+    setBand(band)
+  })
 
   return (
     <>
@@ -133,7 +146,7 @@ const ParameterControls = ({ getters, setters }) => {
         <Box sx={{ ...sx.label, mt: [4] }}>Band</Box>
         <Select
           size='xs'
-          onChange={(e) => setBand(e.target.value)}
+          onChange={handleBandChange}
           sx={{ mt: [1] }}
           value={band}
         >
