@@ -91,7 +91,7 @@ const Raster = (props) => {
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })
-    tiles.current.redraw()
+    tiles.current.draw()
   }, [colormap])
 
   useEffect(() => {
