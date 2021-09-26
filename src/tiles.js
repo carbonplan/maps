@@ -102,7 +102,10 @@ export const createTiles = (regl, opts) => {
         if (mode === 'texture') {
           this.count = 6
         }
-        this.dimensions = metadata.metadata[`${levels[0]}/${variable}/.zattrs`]['_ARRAY_DIMENSIONS']
+        this.dimensions =
+          metadata.metadata[`${levels[0]}/${variable}/.zattrs`][
+            '_ARRAY_DIMENSIONS'
+          ]
         this.ndim = this.dimensions.length
 
         levels.map((z) => {
