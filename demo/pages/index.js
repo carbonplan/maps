@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, useThemeUI } from 'theme-ui'
 import { Dimmer, Meta } from '@carbonplan/components'
-import { Map, Raster, Line, Fill, RegionPicker } from '@carbonplan/maps'
+import { Map, Raster, Line, RegionPicker } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'

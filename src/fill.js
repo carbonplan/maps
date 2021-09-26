@@ -3,17 +3,17 @@ import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
 import uniqueString from 'unique-string'
 
-const Fill = ({ source, variable, color, id, maxZoom=5, opacity=1}) => {
+const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   const { map } = useMapbox()
   const removed = useRef(false)
-  
+
   map.on('remove', () => {
     removed.current = true
   })
 
   const sourceIdRef = useRef()
   const layerIdRef = useRef()
-  
+
   useEffect(() => {
     sourceIdRef.current = id || uniqueString()
     const { current: sourceId } = sourceIdRef
