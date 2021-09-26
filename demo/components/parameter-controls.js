@@ -15,7 +15,7 @@ const sx = {
 
 const CLIM_RANGES = {
   tavg: { max: 30, min: -20 },
-  prec: { max: 200, min: -100 },
+  prec: { max: 300, min: 0 },
 }
 
 const DEFAULT_COLORMAPS = {
