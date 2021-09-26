@@ -36,9 +36,9 @@ const ParameterControls = ({ getters, setters }) => {
 
   const handleBandChange = useCallback((e) => {
     const band = e.target.value
+    setBand(band)
     setClim([CLIM_RANGES[band].min, CLIM_RANGES[band].max])
     setColormapName(DEFAULT_COLORMAPS[band])
-    setBand(band)
   })
 
   return (
