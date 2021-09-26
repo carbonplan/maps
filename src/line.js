@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
-import uniqueString from 'unique-string'
+import { v4 as uuidv4 } from 'uuid'
 
 const Line = ({
   source,
@@ -24,7 +24,7 @@ const Line = ({
   const layerIdRef = useRef()
 
   useEffect(() => {
-    sourceIdRef.current = id || uniqueString()
+    sourceIdRef.current = id || uuidv4()
     const { current: sourceId } = sourceIdRef
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
@@ -38,7 +38,7 @@ const Line = ({
   }, [id])
 
   useEffect(() => {
-    layerIdRef.current = layerId || uniqueString()
+    layerIdRef.current = layerId || uuidv4()
     const { current: layerId } = layerIdRef
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {

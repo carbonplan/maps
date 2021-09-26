@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
-import uniqueString from 'unique-string'
+import { v4 as uuidv4 } from 'uuid'
 
 const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   const { map } = useMapbox()
@@ -15,7 +15,7 @@ const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   const layerIdRef = useRef()
 
   useEffect(() => {
-    sourceIdRef.current = id || uniqueString()
+    sourceIdRef.current = id || uuidv4()
     const { current: sourceId } = sourceIdRef
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
@@ -29,7 +29,7 @@ const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   }, [id])
 
   useEffect(() => {
-    layerIdRef.current = uniqueString()
+    layerIdRef.current = uuidv4()
     const { current: layerId } = layerIdRef
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {
