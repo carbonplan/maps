@@ -33,7 +33,6 @@ export const createTiles = (regl, opts) => {
     opacity,
     display,
     variable,
-    dimensions,
     selector = {},
     uniforms: customUniforms = {},
     frag: customFrag,
@@ -62,8 +61,6 @@ export const createTiles = (regl, opts) => {
       )
     }
 
-    this.dimensions = dimensions
-    this.ndim = dimensions.length
     this.bands = getBands(variable, selector)
 
     customUniforms = Object.keys(customUniforms)
@@ -105,6 +102,8 @@ export const createTiles = (regl, opts) => {
         if (mode === 'texture') {
           this.count = 6
         }
+        this.dimensions = metadata.metadata[`${levels[0]}/${variable}/.zattrs`]['_ARRAY_DIMENSIONS']
+        this.ndim = this.dimensions.length
 
         levels.map((z) => {
           Array(Math.pow(2, z))
@@ -144,7 +143,7 @@ export const createTiles = (regl, opts) => {
             Object.keys(selector).map(
               (key) =>
                 new Promise((innerResolve) => {
-                  loaders['0/' + key]([0], (err, chunk) => {
+                  loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
                     const coordinates = Array.from(chunk.data)
                     this.coordinates[key] = coordinates
                     innerResolve()
