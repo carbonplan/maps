@@ -15,8 +15,8 @@ const Map = ({
   center,
   debug,
   extensions,
+  glyphs,
   children,
-  style,
 }) => {
   return (
     <div
@@ -32,13 +32,13 @@ const Map = ({
       }}
     >
       <Mapbox
-        style={style}
         zoom={zoom}
         minZoom={minZoom}
         maxZoom={maxZoom}
         maxBounds={maxBounds}
         center={center}
         debug={debug}
+        glyphs={glyphs}
         style={{ position: 'absolute' }}
       >
         <Regl
