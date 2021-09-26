@@ -37,6 +37,7 @@
     "mapbox-gl": "^1.13.1",
     "ndarray": "^1.0.19",
     "regl": "^2.1.0",
+    "unique-string": "^3.0.0",
     "xhr-request": "^1.1.0",
     "zarr-js": "^2.1.1"
   },

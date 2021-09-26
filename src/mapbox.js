@@ -15,8 +15,8 @@ export const useMapbox = () => {
 }
 
 const Mapbox = ({
+  glyphs,
   style,
-  containerStyle,
   center,
   zoom,
   minZoom,
@@ -29,10 +29,14 @@ const Mapbox = ({
   const [ready, setReady] = useState()
 
   const ref = useCallback((node) => {
+    const mapboxStyle = { version: 8, sources: {}, layers: [] }
+    if (glyphs) {
+      mapboxStyle.glyphs = glyphs
+    }
     if (node !== null) {
       map.current = new mapboxgl.Map({
         container: node,
-        style: style || { version: 8, sources: {}, layers: [] },
+        style: mapboxStyle,
         minZoom: minZoom,
         maxZoom: maxZoom,
         maxBounds: maxBounds,
@@ -53,8 +57,10 @@ const Mapbox = ({
 
   useEffect(() => {
     return () => {
-      if (map.current) map.current.remove()
-      setReady(false)
+      if (map.current) {
+        map.current.remove()
+        setReady(false)
+      }
     }
   }, [])
 
@@ -70,7 +76,7 @@ const Mapbox = ({
           bottom: '0px',
           position: 'absolute',
           width: '100%',
-          ...containerStyle,
+          ...style,
         }}
         ref={ref}
       />
