@@ -55,7 +55,6 @@ const Index = () => {
               'https://storage.googleapis.com/carbonplan-share/maps-demo/4d/tavg-prec-month'
             }
             variable={'climate'}
-            dimensions={['band', 'month', 'y', 'x']}
             selector={{ month, band }}
             setRegionData={setRegionData}
           />
