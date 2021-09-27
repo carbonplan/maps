@@ -27,7 +27,7 @@ One common case for us at CarbonPlan is rendering gridded _raster_ data on a map
 
 We're building `@carbonplan/maps` to address these needs! We'll be releasing early and often so we can use it ourselves, but it's very much in progress, so expect lots of major version bumps and breaking changes.
 
-Check out the demo ([site](https://maps.demo.carbonplan.org), [code](https://github.com/carbonplan/maps/tree/main/demo)) which renders annual temperature data, or read on for more info on the library.
+Check out the demo ([site](https://maps.demo.carbonplan.org), [code](https://github.com/carbonplan/maps/tree/main/demo)) which renders monthly temperature and precipitation data, or read on for more info on the library.
 
 ## design
 
@@ -37,25 +37,27 @@ We assume raster data is stored in the [`zarr`](https://github.com/zarr-develope
 
 ## examples
 
-First, here's a simple map that renders a global temperature dataset at one month. The underyling dataset is a version of [`WorldClim`](https://www.worldclim.org/data/worldclim21.html) stored as a `zarr` pyramid with 6 levels of increasing resolution. We specify the `variable` we want to show and the dataset's `dimensions`, and all other metadata is inferred the dataset.
+First, here's a simple map that renders a global temperature dataset at one month. The underlying dataset is a version of [`WorldClim`](https://www.worldclim.org/data/worldclim21.html) stored as a `zarr` pyramid with 6 levels of increasing resolution. We specify the `variable` we want to show and the dataset's `dimensions`, and all other metadata is inferred the dataset.
 
 ```jsx
 import { Map, Raster } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
 
-const colormap = useColormap('warm')
+const TemperatureMap = () => {
+  const colormap = useColormap('warm')
 
-<Map>
-  <Raster
-    colormap={colormap}
-    clim={[-20,30]}
-    source={
-      'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
-    }
-    variable={'temperature'}
-    dimensions={['y', 'x']}
-  />
-</Map>
+  <Map>
+    <Raster
+      colormap={colormap}
+      clim={[-20,30]}
+      source={
+        'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
+      }
+      variable={'temperature'}
+      dimensions={['y', 'x']}
+    />
+  </Map>
+}
 ```
 
 With the same component we can render an annual dataset with a different temperature for each month, showing one month at a time via a `selector`. In this example, the selected month `4` can be static, or it can come from `react` state and the map will dynamically update!
