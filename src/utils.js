@@ -451,3 +451,10 @@ export const getPositions = (size, mode) => {
   }
   return position
 }
+
+export const updatePaintProperty = (map, ref, key, value) => {
+  const { current: id } = ref
+  if (map.getLayer(id)) {
+    map.setPaintProperty(id, key, value)
+  }
+}

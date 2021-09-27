@@ -15,8 +15,8 @@ const Map = ({
   center,
   debug,
   extensions,
+  glyphs,
   children,
-  containerStyle,
 }) => {
   return (
     <div
@@ -28,22 +28,22 @@ const Map = ({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        ...containerStyle,
+        ...style,
       }}
     >
       <Mapbox
-        style={style}
         zoom={zoom}
         minZoom={minZoom}
         maxZoom={maxZoom}
         maxBounds={maxBounds}
         center={center}
         debug={debug}
-        containerStyle={{ position: 'absolute' }}
+        glyphs={glyphs}
+        style={{ position: 'absolute' }}
       >
         <Regl
           extensions={extensions}
-          containerStyle={{
+          style={{
             position: 'absolute',
             pointerEvents: 'none',
             zIndex: -1,

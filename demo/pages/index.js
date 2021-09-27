@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Box, useThemeUI } from 'theme-ui'
 import { Dimmer, Meta } from '@carbonplan/components'
-import { Map, Raster, RegionPicker } from '@carbonplan/maps'
+import { Map, Raster, Line, RegionPicker } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
-import Basemap from '../components/basemap'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
-import style from '../components/style'
+
+const bucket = 'https://storage.googleapis.com/carbonplan-share/'
 
 const Index = () => {
   const { theme } = useThemeUI()
@@ -34,8 +34,12 @@ const Index = () => {
     <>
       <Meta />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Map style={style} zoom={2} center={[0, 0]} debug={false}>
-          <Basemap />
+        <Map zoom={2} center={[0, 0]} debug={false}>
+          <Line
+            color={theme.rawColors.primary}
+            source={bucket + 'maps-demo/land'}
+            variable={'land'}
+          />
           {showRegionPicker && (
             <RegionPicker
               color={theme.colors.primary}
@@ -51,9 +55,7 @@ const Index = () => {
             display={display}
             opacity={opacity}
             mode={'texture'}
-            source={
-              'https://storage.googleapis.com/carbonplan-share/maps-demo/4d/tavg-prec-month'
-            }
+            source={bucket + 'maps-demo/4d/tavg-prec-month'}
             variable={'climate'}
             selector={{ month, band }}
             setRegionData={setRegionData}

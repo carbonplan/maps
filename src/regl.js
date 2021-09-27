@@ -14,7 +14,7 @@ export const useRegl = () => {
   return useContext(ReglContext)
 }
 
-const Regl = ({ style, containerStyle, extensions, children }) => {
+const Regl = ({ style, extensions, children }) => {
   const regl = useRef()
   const [ready, setReady] = useState(false)
 
@@ -41,10 +41,7 @@ const Regl = ({ style, containerStyle, extensions, children }) => {
         regl: regl.current,
       }}
     >
-      <div
-        style={{ width: '100%', height: '100%', ...containerStyle }}
-        ref={ref}
-      />
+      <div style={{ width: '100%', height: '100%', ...style }} ref={ref} />
       {ready && children}
     </ReglContext.Provider>
   )
