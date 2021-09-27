@@ -46,17 +46,19 @@ import { useColormap } from '@carbonplan/colormaps'
 const TemperatureMap = () => {
   const colormap = useColormap('warm')
 
-  <Map>
-    <Raster
-      colormap={colormap}
-      clim={[-20,30]}
-      source={
-        'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
-      }
-      variable={'temperature'}
-      dimensions={['y', 'x']}
-    />
-  </Map>
+  return (
+    <Map>
+      <Raster
+        colormap={colormap}
+        clim={[-20, 30]}
+        source={
+          'https://storage.googleapis.com/carbonplan-scratch/map-tests/processed/temp'
+        }
+        variable={'temperature'}
+        dimensions={['y', 'x']}
+      />
+    </Map>
+  )
 }
 ```
 
