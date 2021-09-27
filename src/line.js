@@ -16,12 +16,14 @@ const Line = ({
   const { map } = useMapbox()
   const removed = useRef(false)
 
-  map.on('remove', () => {
-    removed.current = true
-  })
-
   const sourceIdRef = useRef()
   const layerIdRef = useRef()
+
+  useEffect(() => {
+    map.on('remove', () => {
+      removed.current = true
+    })
+  }, [])
 
   useEffect(() => {
     sourceIdRef.current = id || uuidv4()
