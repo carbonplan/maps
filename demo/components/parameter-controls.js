@@ -1,6 +1,6 @@
 import { Box } from 'theme-ui'
 import { useCallback } from 'react'
-import { Slider, Badge, Toggle, Select } from '@carbonplan/components'
+import { Slider, Badge, Toggle, Select, Link } from '@carbonplan/components'
 import { colormaps } from '@carbonplan/colormaps'
 
 const sx = {
@@ -165,6 +165,7 @@ const ParameterControls = ({ getters, setters }) => {
             <option key={d.name}>{d.name}</option>
           ))}
         </Select>
+        <Box sx={{ ...sx.label, mt: [4] }}><Link href='https://github.com/carbonplan/maps'>CODE ON Github</Link></Box>
       </Box>
     </>
   )
