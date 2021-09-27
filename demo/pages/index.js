@@ -32,7 +32,13 @@ const Index = () => {
 
   return (
     <>
-      <Meta />
+      <Meta
+        card={'https://images.carbonplan.org/social/maps-demo.png'}
+        description={
+          'Demo of our library for making interactive multi-dimensional data-driven web maps.'
+        }
+        title={'@carbonplan/maps'}
+      />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Map zoom={2} center={[0, 0]} debug={false}>
           <Line

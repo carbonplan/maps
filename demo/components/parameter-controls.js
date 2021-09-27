@@ -165,7 +165,9 @@ const ParameterControls = ({ getters, setters }) => {
             <option key={d.name}>{d.name}</option>
           ))}
         </Select>
-        <Box sx={{ ...sx.label, mt: [4] }}><Link href='https://github.com/carbonplan/maps'>CODE ON Github</Link></Box>
+        <Box sx={{ ...sx.label, mt: [4] }}>
+          <Link href='https://github.com/carbonplan/maps'>CODE ON Github</Link>
+        </Box>
       </Box>
     </>
   )
