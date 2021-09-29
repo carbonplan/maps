@@ -1,4 +1,4 @@
-import zarr from 'zarr-js'
+import { openArray } from 'zarr'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
 
@@ -22,6 +22,61 @@ import {
   getValuesToSet,
   setObjectValues,
 } from './utils'
+
+const initializeData = async (variable, selector) => {
+  const store = 'https://storage.googleapis.com/carbonplan-share'
+  const path = 'maps-demo/4d/tavg-prec-month'
+
+  const metadata = await fetch(`${store}/${path}/.zmetadata`)
+  const parsed = await metadata.json()
+  const { levels, maxZoom, tileSize } = getPyramidMetadata(parsed)
+  const dimensions =
+    parsed.metadata[`${levels[0]}/${variable}/.zattrs`]['_ARRAY_DIMENSIONS']
+
+  const loaders = {}
+  for (const level of levels) {
+    const z = await openArray({
+      store,
+      path: `${path}/${level}/${variable}`,
+      mode: 'r',
+    })
+
+    loaders[level] = async (chunk) => {
+      const data = await z.get(chunk)
+
+      console.log(chunk, data.data)
+      return data.data
+    }
+  }
+
+  let coordinates = {}
+  if (selector) {
+    // fetch coordinate data
+    await Promise.all(
+      Object.keys(selector).map((key) =>
+        (async () => {
+          const keyPath = `${levels[0]}/${key}`
+          const z = await openArray({
+            store,
+            path: `${path}/${keyPath}`,
+            mode: 'r',
+          })
+
+          try {
+            const raw = await z.getRaw()
+            coordinates[key] = Array.from(raw.data)
+          } catch (e) {
+            console.warn(e)
+            // TODO: remove hardcoded `band` coordinates from demo data (requires handling strings in zarr.js)
+            coordinates[key] = ['tavg', 'prec']
+          }
+        })()
+      )
+    )
+  }
+
+  return { levels, maxZoom, tileSize, loaders, dimensions, coordinates }
+}
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -89,24 +144,29 @@ export const createTiles = (regl, opts) => {
 
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
-    this.initialized = new Promise((resolve) => {
-      zarr().openGroup(source, (err, loaders, metadata) => {
-        const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
-        this.maxZoom = maxZoom
+    initializeData(variable, selector).then(
+      ({ levels, maxZoom, tileSize, dimensions, loaders, coordinates }) => {
         const position = getPositions(tileSize, mode)
         this.position = regl.buffer(position)
         this.size = tileSize
+        this.maxZoom = maxZoom
+        this.dimensions = dimensions
+        this.ndim = this.dimensions.length
+        this.loaders = loaders
+        this.coordinates = coordinates
+        this.accessors = getAccessors(
+          this.dimensions,
+          this.bands,
+          selector,
+          this.coordinates
+        )
+
         if (mode === 'grid' || mode === 'dotgrid') {
           this.count = position.length
         }
         if (mode === 'texture') {
           this.count = 6
         }
-        this.dimensions =
-          metadata.metadata[`${levels[0]}/${variable}/.zattrs`][
-            '_ARRAY_DIMENSIONS'
-          ]
-        this.ndim = this.dimensions.length
 
         levels.map((z) => {
           Array(Math.pow(2, z))
@@ -117,7 +177,6 @@ export const createTiles = (regl, opts) => {
                 .map((_, y) => {
                   const key = [x, y, z].join(',')
                   const buffers = {}
-                  const data = {}
                   let setReady
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
@@ -135,39 +194,8 @@ export const createTiles = (regl, opts) => {
                 })
             })
         })
-
-        levels.forEach((z) => {
-          this.loaders[z] = loaders[z + '/' + variable]
-        })
-
-        if (Object.keys(selector).length > 0) {
-          this.coordinates = {}
-          Promise.all(
-            Object.keys(selector).map(
-              (key) =>
-                new Promise((innerResolve) => {
-                  loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                    const coordinates = Array.from(chunk.data)
-                    this.coordinates[key] = coordinates
-                    innerResolve()
-                  })
-                })
-            )
-          ).then(() => {
-            this.accessors = getAccessors(
-              this.dimensions,
-              this.bands,
-              selector,
-              this.coordinates
-            )
-            resolve(true)
-          })
-        } else {
-          this.accessors = getAccessors(this.dimensions, this.bands, selector)
-          resolve(true)
-        }
-      })
-    })
+      }
+    )
 
     this.drawTiles = regl({
       vert: vert(mode, this.bands),
@@ -291,29 +319,29 @@ export const createTiles = (regl, opts) => {
 
       const selectorHash = getSelectorHash(selector)
 
-      Object.keys(this.active).map((key) => {
+      Object.keys(this.active).map(async (key) => {
         if (this.loaders[level] && this.accessors) {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
           const chunk = Array(this.ndim - 2)
             .fill(0)
             .concat([tileIndex[1], tileIndex[0]])
+
           tile.ready = true
           if (!tile.cache.data) {
             if (!tile.loading) {
               tile.loading = true
-              this.loaders[level](chunk, (err, data) => {
-                this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, selector))
-                })
-                tile.data = data
-                tile.setReady(true)
-                tile.cache.data = true
-                tile.cache.buffer = true
-                tile.cache.selector = selectorHash
-                tile.loading = false
-                this.redraw()
+              const data = await this.loaders[level](chunk)
+              this.bands.forEach((k) => {
+                tile.buffers[k](this.accessors[k](data, selector))
               })
+              tile.data = data
+              tile.setReady(true)
+              tile.cache.data = true
+              tile.cache.buffer = true
+              tile.cache.selector = selectorHash
+              tile.loading = false
+              this.redraw()
             }
           }
           if (!(tile.cache.selector == selectorHash) && tile.cache.data) {

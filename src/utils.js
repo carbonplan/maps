@@ -383,7 +383,7 @@ export const setObjectValues = (obj, keys, value) => {
  * @param {x} number x coordinate at which to lookup values
  * @param {y} number y coordinate at which to lookup values
  * @param {Array<string>} dimensions to iterate over
- * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
+ * @param {{[dimension]: Array<any>}} coordinates names to use for `keys`
  * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
  */
 export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
