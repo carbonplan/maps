@@ -144,7 +144,7 @@ export const createTiles = (regl, opts) => {
 
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
-    initializeData(variable, selector).then(
+    this.initialized = initializeData(variable, selector).then(
       ({ levels, maxZoom, tileSize, dimensions, loaders, coordinates }) => {
         const position = getPositions(tileSize, mode)
         this.position = regl.buffer(position)
@@ -194,6 +194,8 @@ export const createTiles = (regl, opts) => {
                 })
             })
         })
+
+        return true
       }
     )
 
