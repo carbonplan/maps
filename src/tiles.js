@@ -27,25 +27,26 @@ const initializeData = async (variable, selector) => {
   const store = 'https://storage.googleapis.com/carbonplan-share'
   const path = 'maps-demo/4d/tavg-prec-month'
 
-  const metadata = await fetch(`${store}/${path}/.zmetadata`)
-  const parsed = await metadata.json()
-  const { levels, maxZoom, tileSize } = getPyramidMetadata(parsed)
+  const metadataRes = await fetch(`${store}/${path}/.zmetadata`)
+  const metadata = await metadataRes.json()
+  const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
   const dimensions =
-    parsed.metadata[`${levels[0]}/${variable}/.zattrs`]['_ARRAY_DIMENSIONS']
+    metadata.metadata[`${levels[0]}/${variable}/.zattrs`]['_ARRAY_DIMENSIONS']
 
   const loaders = {}
   for (const level of levels) {
+    const keyPath = `${level}/${variable}`
+    const chunks = metadata.metadata[`${keyPath}/.zarray`].chunks
     const z = await openArray({
       store,
-      path: `${path}/${level}/${variable}`,
+      path: `${path}/${keyPath}`,
       mode: 'r',
     })
 
     loaders[level] = async (chunk) => {
-      const data = await z.get(chunk)
-
-      console.log(chunk, data.data)
-      return data.data
+      const data = await z.getRawChunk(chunk)
+      const result = ndarray(data.data, chunks)
+      return result
     }
   }
 
@@ -55,10 +56,9 @@ const initializeData = async (variable, selector) => {
     await Promise.all(
       Object.keys(selector).map((key) =>
         (async () => {
-          const keyPath = `${levels[0]}/${key}`
           const z = await openArray({
             store,
-            path: `${path}/${keyPath}`,
+            path: `${path}/${levels[0]}/${key}`,
             mode: 'r',
           })
 
