@@ -1,4 +1,4 @@
-import { openArray } from 'zarr'
+import { openArray, addCodec } from 'zarr/core'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
 
@@ -22,6 +22,9 @@ import {
   getValuesToSet,
   setObjectValues,
 } from './utils'
+
+// register dynamic import for compression codec
+addCodec('zlib', () => import('numcodecs/zlib').then(m => m.default))
 
 const initializeData = async (variable, selector) => {
   const store = 'https://storage.googleapis.com/carbonplan-share'
