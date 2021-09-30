@@ -29,6 +29,13 @@
     "dst",
     "mapbox.css"
   ],
+  "exports": {
+    ".": {
+      "import": "./dst/index.esm.js",
+      "require": "./dst/index.js"
+    },
+    "./mapbox.css": "./mapbox.css"
+  },
   "homepage": "https://github.com/carbonplan/maps#readme",
   "dependencies": {
     "@turf/turf": "^6.5.0",
