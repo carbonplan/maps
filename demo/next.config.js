@@ -1,6 +1,7 @@
 const path = require('path')
 
 module.exports = {
+  experimental: { esmExternals: true },
   webpack: (config, options) => {
     if (options.isServer) {
       config.externals = ['react', 'theme-ui', ...config.externals]
