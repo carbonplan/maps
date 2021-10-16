@@ -79,10 +79,10 @@ export const createTiles = (regl, map, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      const emptyTexture = ndarray(new Float32Array(Array(1).fill(fillValue)), [
-        1,
-        1,
-      ])
+      const emptyTexture = ndarray(
+        new Float32Array(Array(1).fill(fillValue)),
+        [1, 1]
+      )
       initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
