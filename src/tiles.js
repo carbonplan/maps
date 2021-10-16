@@ -23,7 +23,7 @@ import {
   setObjectValues,
 } from './utils'
 
-export const createTiles = (regl, opts) => {
+export const createTiles = (regl, map, opts) => {
   return new Tiles(opts)
 
   function Tiles({
@@ -262,15 +262,7 @@ export const createTiles = (regl, opts) => {
     }
 
     this.draw = () => {
-      if (this.display) {
-        this.drawTiles(this.getProps())
-        this.renderedTick = this.tick
-      } else {
-        regl.clear({
-          color: [0, 0, 0, 0],
-          depth: 1,
-        })
-      }
+      this.drawTiles(this.getProps())
     }
 
     this.updateCamera = ({ center, zoom, viewport, selector }) => {
@@ -312,7 +304,7 @@ export const createTiles = (regl, opts) => {
                 tile.cache.buffer = true
                 tile.cache.selector = selectorHash
                 tile.loading = false
-                this.redraw()
+                map.triggerRepaint()
               })
             }
           }
@@ -321,7 +313,7 @@ export const createTiles = (regl, opts) => {
               tile.buffers[k](this.accessors[k](tile.data, selector))
             })
             tile.cache.selector = selectorHash
-            this.redraw()
+            map.triggerRepaint()
           }
         }
       })
@@ -402,6 +394,9 @@ export const createTiles = (regl, opts) => {
       Object.keys(props).forEach((k) => {
         this[k] = props[k]
       })
+      if (!this.display) {
+        this.opacity = 0
+      }
     }
 
     this.updateColormap = ({ colormap }) => {
@@ -411,16 +406,5 @@ export const createTiles = (regl, opts) => {
         shape: [255, 1],
       })
     }
-
-    this.redraw = () => {
-      if (this.renderedTick !== this.tick) {
-        this.draw()
-      }
-    }
-
-    this.renderedTick = 0
-    regl.frame(({ tick }) => {
-      this.tick = tick
-    })
   }
 }

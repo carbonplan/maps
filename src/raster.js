@@ -44,7 +44,7 @@ const Raster = (props) => {
   }
 
   useEffect(() => {
-    tiles.current = createTiles(regl, props)
+    tiles.current = createTiles(regl, map, props)
   }, [])
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const Raster = (props) => {
   useEffect(() => {
     if (map.loaded()) {
       tiles.current.updateCamera(camera.current)
-      tiles.current.draw()
+      map.triggerRepaint()
     }
   }, Object.values(selector))
 
@@ -81,17 +81,17 @@ const Raster = (props) => {
   // Because the regl dimensions are updated via polling, tiles drawn on
   // map `render` will use stale dimensions under some race conditions.
   useEffect(() => {
-    tiles.current.redraw()
+    map.triggerRepaint()
   }, [viewport])
 
   useEffect(() => {
     tiles.current.updateUniforms({ display, opacity, clim, ...uniforms })
-    tiles.current.redraw()
+    map.triggerRepaint()
   }, [display, opacity, clim, ...Object.values(uniforms)])
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })
-    tiles.current.draw()
+    map.triggerRepaint()
   }, [colormap])
 
   useEffect(() => {
