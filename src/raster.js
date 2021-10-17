@@ -44,7 +44,12 @@ const Raster = (props) => {
   }
 
   useEffect(() => {
-    tiles.current = createTiles(regl, map, props)
+    tiles.current = createTiles(regl, {
+      ...props,
+      onLoad: () => {
+        map.triggerRepaint()
+      },
+    })
   }, [])
 
   useEffect(() => {

@@ -23,7 +23,7 @@ import {
   setObjectValues,
 } from './utils'
 
-export const createTiles = (regl, map, opts) => {
+export const createTiles = (regl, opts) => {
   return new Tiles(opts)
 
   function Tiles({
@@ -38,6 +38,7 @@ export const createTiles = (regl, map, opts) => {
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
+    onLoad = () => {},
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -48,6 +49,7 @@ export const createTiles = (regl, map, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
+    this.onLoad = onLoad
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -304,7 +306,7 @@ export const createTiles = (regl, map, opts) => {
                 tile.cache.buffer = true
                 tile.cache.selector = selectorHash
                 tile.loading = false
-                map.triggerRepaint()
+                this.onLoad()
               })
             }
           }
@@ -313,7 +315,7 @@ export const createTiles = (regl, map, opts) => {
               tile.buffers[k](this.accessors[k](tile.data, selector))
             })
             tile.cache.selector = selectorHash
-            map.triggerRepaint()
+            this.onLoad()
           }
         }
       })
