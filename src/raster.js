@@ -53,17 +53,23 @@ const Raster = (props) => {
   }, [])
 
   useEffect(() => {
-    map.on('render', () => {
+    const callback = () => {
       tiles.current.updateCamera(camera.current)
       tiles.current.draw()
-    })
+    }
+    map.on('render', callback)
+
+    return () => {
+      regl.clear({
+        color: [0, 0, 0, 0],
+        depth: 1,
+      })
+      map.off('render', callback)
+    }
   }, [])
 
   useEffect(() => {
-    if (map.loaded()) {
-      tiles.current.updateCamera(camera.current)
-      map.triggerRepaint()
-    }
+    map.triggerRepaint()
   }, Object.values(selector))
 
   // Listen for changes to the viewport dimensions in regl context
