@@ -50,6 +50,7 @@ export const createTiles = (regl, opts) => {
     this.variable = variable
     this.fillValue = fillValue
     this.invalidate = invalidate
+    this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -265,7 +266,6 @@ export const createTiles = (regl, opts) => {
       }, [])
     }
 
-    this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     regl.frame(({ viewportHeight, viewportWidth }) => {
       if (
         this.viewport.viewportHeight !== viewportHeight ||
