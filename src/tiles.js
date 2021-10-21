@@ -54,7 +54,7 @@ export const createTiles = (regl, opts) => {
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
-      shape: [255, 1],
+      shape: [colormap.length, 1],
     })
 
     const validModes = ['grid', 'dotgrid', 'texture']
@@ -423,7 +423,7 @@ export const createTiles = (regl, opts) => {
       this.colormap = regl.texture({
         data: colormap,
         format: 'rgb',
-        shape: [255, 1],
+        shape: [colormap.length, 1],
       })
       this.invalidate()
     }
