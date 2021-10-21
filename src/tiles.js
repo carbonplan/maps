@@ -38,6 +38,7 @@ export const createTiles = (regl, opts) => {
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
+    invalidate = () => {},
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -48,6 +49,8 @@ export const createTiles = (regl, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
+    this.invalidate = invalidate
+    this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -79,10 +82,10 @@ export const createTiles = (regl, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      const emptyTexture = ndarray(new Float32Array(Array(1).fill(fillValue)), [
-        1,
-        1,
-      ])
+      const emptyTexture = ndarray(
+        new Float32Array(Array(1).fill(fillValue)),
+        [1, 1]
+      )
       initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
@@ -161,10 +164,12 @@ export const createTiles = (regl, opts) => {
               this.coordinates
             )
             resolve(true)
+            this.invalidate()
           })
         } else {
           this.accessors = getAccessors(this.dimensions, this.bands, selector)
           resolve(true)
+          this.invalidate()
         }
       })
     })
@@ -261,19 +266,21 @@ export const createTiles = (regl, opts) => {
       }, [])
     }
 
-    this.draw = () => {
-      if (this.display) {
-        this.drawTiles(this.getProps())
-        this.renderedTick = this.tick
-      } else {
-        regl.clear({
-          color: [0, 0, 0, 0],
-          depth: 1,
-        })
+    regl.frame(({ viewportHeight, viewportWidth }) => {
+      if (
+        this.viewport.viewportHeight !== viewportHeight ||
+        this.viewport.viewportWidth !== viewportWidth
+      ) {
+        this.viewport = { viewportHeight, viewportWidth }
+        this.invalidate()
       }
+    })
+
+    this.draw = () => {
+      this.drawTiles(this.getProps())
     }
 
-    this.updateCamera = ({ center, zoom, viewport, selector }) => {
+    this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
       const camera = pointToCamera(center.lng, center.lat, level)
@@ -283,13 +290,11 @@ export const createTiles = (regl, opts) => {
       this.camera = [camera[0], camera[1]]
 
       this.active = getSiblings(tile, {
-        viewport,
+        viewport: this.viewport,
         zoom,
         camera: this.camera,
         size: this.size,
       })
-
-      const selectorHash = getSelectorHash(selector)
 
       Object.keys(this.active).map((key) => {
         if (this.loaders[level] && this.accessors) {
@@ -304,24 +309,24 @@ export const createTiles = (regl, opts) => {
               tile.loading = true
               this.loaders[level](chunk, (err, data) => {
                 this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, selector))
+                  tile.buffers[k](this.accessors[k](data, this.selector))
                 })
                 tile.data = data
                 tile.setReady(true)
                 tile.cache.data = true
                 tile.cache.buffer = true
-                tile.cache.selector = selectorHash
+                tile.cache.selector = this.selectorHash
                 tile.loading = false
-                this.redraw()
+                this.invalidate()
               })
             }
           }
-          if (!(tile.cache.selector == selectorHash) && tile.cache.data) {
+          if (!(tile.cache.selector == this.selectorHash) && tile.cache.data) {
             this.bands.forEach((k) => {
-              tile.buffers[k](this.accessors[k](tile.data, selector))
+              tile.buffers[k](this.accessors[k](tile.data, this.selector))
             })
-            tile.cache.selector = selectorHash
-            this.redraw()
+            tile.cache.selector = this.selectorHash
+            this.invalidate()
           }
         }
       })
@@ -398,10 +403,20 @@ export const createTiles = (regl, opts) => {
       return out
     }
 
+    this.updateSelector = ({ selector }) => {
+      this.selector = selector
+      this.selectorHash = getSelectorHash(selector)
+      this.invalidate()
+    }
+
     this.updateUniforms = (props) => {
       Object.keys(props).forEach((k) => {
         this[k] = props[k]
       })
+      if (!this.display) {
+        this.opacity = 0
+      }
+      this.invalidate()
     }
 
     this.updateColormap = ({ colormap }) => {
@@ -410,17 +425,7 @@ export const createTiles = (regl, opts) => {
         format: 'rgb',
         shape: [255, 1],
       })
+      this.invalidate()
     }
-
-    this.redraw = () => {
-      if (this.renderedTick !== this.tick) {
-        this.draw()
-      }
-    }
-
-    this.renderedTick = 0
-    regl.frame(({ tick }) => {
-      this.tick = tick
-    })
   }
 }

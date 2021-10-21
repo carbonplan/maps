@@ -22,12 +22,8 @@ const Raster = (props) => {
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
-  const [viewport, setViewport] = useState({
-    viewportHeight: 0,
-    viewportWidth: 0,
-  })
 
-  camera.current = { center: center, zoom: zoom, viewport, selector }
+  camera.current = { center: center, zoom: zoom }
 
   const queryRegion = async (r) => {
     const queryStart = new Date().getTime()
@@ -44,54 +40,40 @@ const Raster = (props) => {
   }
 
   useEffect(() => {
-    tiles.current = createTiles(regl, props)
-  }, [])
-
-  useEffect(() => {
-    map.on('render', () => {
-      tiles.current.updateCamera(camera.current)
-      tiles.current.draw()
+    tiles.current = createTiles(regl, {
+      ...props,
+      invalidate: () => {
+        map.triggerRepaint()
+      },
     })
   }, [])
 
   useEffect(() => {
-    if (map.loaded()) {
+    const callback = () => {
       tiles.current.updateCamera(camera.current)
       tiles.current.draw()
     }
-  }, Object.values(selector))
+    map.on('render', callback)
 
-  // Listen for changes to the viewport dimensions in regl context
-  useEffect(() => {
-    regl.frame(({ viewportHeight, viewportWidth }) => {
-      setViewport((previousViewport) => {
-        if (
-          previousViewport.viewportHeight !== viewportHeight ||
-          previousViewport.viewportWidth !== viewportWidth
-        ) {
-          return { viewportHeight, viewportWidth }
-        } else {
-          return previousViewport
-        }
+    return () => {
+      regl.clear({
+        color: [0, 0, 0, 0],
+        depth: 1,
       })
-    })
+      map.off('render', callback)
+    }
   }, [])
 
-  // Ensure that tiles are redrawn when viewport dimensions have changed.
-  // Because the regl dimensions are updated via polling, tiles drawn on
-  // map `render` will use stale dimensions under some race conditions.
   useEffect(() => {
-    tiles.current.redraw()
-  }, [viewport])
+    tiles.current.updateSelector({ selector })
+  }, Object.values(selector))
 
   useEffect(() => {
     tiles.current.updateUniforms({ display, opacity, clim, ...uniforms })
-    tiles.current.redraw()
   }, [display, opacity, clim, ...Object.values(uniforms)])
 
   useEffect(() => {
     tiles.current.updateColormap({ colormap })
-    tiles.current.draw()
   }, [colormap])
 
   useEffect(() => {
