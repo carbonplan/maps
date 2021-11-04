@@ -120,7 +120,6 @@ export const createTiles = (regl, opts) => {
                 .map((_, y) => {
                   const key = [x, y, z].join(',')
                   const buffers = {}
-                  const data = {}
                   let setReady
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
@@ -143,34 +142,28 @@ export const createTiles = (regl, opts) => {
           this.loaders[z] = loaders[z + '/' + variable]
         })
 
-        if (Object.keys(selector).length > 0) {
-          this.coordinates = {}
-          Promise.all(
-            Object.keys(selector).map(
-              (key) =>
-                new Promise((innerResolve) => {
-                  loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                    const coordinates = Array.from(chunk.data)
-                    this.coordinates[key] = coordinates
-                    innerResolve()
-                  })
+        this.coordinates = {}
+        Promise.all(
+          Object.keys(selector).map(
+            (key) =>
+              new Promise((innerResolve) => {
+                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                  const coordinates = Array.from(chunk.data)
+                  this.coordinates[key] = coordinates
+                  innerResolve()
                 })
-            )
-          ).then(() => {
-            this.accessors = getAccessors(
-              this.dimensions,
-              this.bands,
-              selector,
-              this.coordinates
-            )
-            resolve(true)
-            this.invalidate()
-          })
-        } else {
-          this.accessors = getAccessors(this.dimensions, this.bands, selector)
+              })
+          )
+        ).then(() => {
+          this.accessors = getAccessors(
+            this.dimensions,
+            this.bands,
+            selector,
+            this.coordinates
+          )
           resolve(true)
           this.invalidate()
-        }
+        })
       })
     })
 
