@@ -2,9 +2,7 @@ import zarr from 'zarr-js'
 import Dataset from './dataset'
 import DataArray from './data-array'
 
-const loadZarr = () => {}
-
-export const openZarr = async (uri, variable) => {
+export const openZarrTree = async (uri, variable) => {
   const result = await new Promise((resolve, reject) => {
     zarr().openGroup(uri, (err, loaders, metadata) => {
       if (err) {
@@ -20,15 +18,18 @@ export const openZarr = async (uri, variable) => {
           metadata.metadata[`${groups[0]}/${variable}/.zattrs`][
             '_ARRAY_DIMENSIONS'
           ]
-        const shape =
-          metadata.metadata[`${groups[0]}/${variable}/.zarray`]['chunks']
 
-        resolve({ dimensions, groups, shape, loaders })
+        const chunks = [variable, ...dimensions].reduce((accum, v) => {
+          accum[v] = metadata.metadata[`${groups[0]}/${v}/.zarray`]['chunks']
+          return accum
+        }, {})
+
+        resolve({ dimensions, groups, chunks, loaders })
       }
     })
   })
 
-  const { loaders, dimensions, groups, shape } = result
+  const { loaders, dimensions, groups, chunks } = result
 
   const coordinates = {}
 
@@ -44,14 +45,27 @@ export const openZarr = async (uri, variable) => {
     )
   )
 
-  const dataArrays = groups.reduce((accum, group) => {
-    accum[group] = new DataArray({
+  return groups.reduce((result, group) => {
+    const variableArray = new DataArray({
       dimensions,
       coordinates,
-      shape,
+      shape: chunks[variable],
       _loader: loaders[`${group}/${variable}`],
     })
-    return accum
+
+    const dataArrays = dimensions.reduce(
+      (accum, dimension) => {
+        accum[dimension] = new DataArray({
+          dimensions,
+          coordinates,
+          shape: chunks[dimension],
+          _loader: loaders[`${group}/${dimension}`],
+        })
+        return accum
+      },
+      { [variable]: variableArray }
+    )
+    result[group] = new Dataset({ dataVars: dataArrays, coordinates })
+    return result
   }, {})
-  return new Dataset({ dataVars: dataArrays, coordinates })
 }
