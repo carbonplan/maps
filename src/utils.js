@@ -308,30 +308,6 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
-const getPicker = (dimensions, selector, bandInfo, coordinates) => {
-  return (data, s) => {
-    const indexes = dimensions
-      .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d) => {
-        if (selector[d] === undefined) {
-          return null
-        } else {
-          let value
-          if (Array.isArray(selector[d])) {
-            // If the selector value is a fixed array, grab value from the band information
-            value = bandInfo[d]
-          } else {
-            // Otherwise index into the active selector, s
-            value = s[d]
-          }
-          return coordinates[d].findIndex((coordinate) => coordinate === value)
-        }
-      })
-
-    return data.pick(...indexes)
-  }
-}
-
 export const getAccessors = (
   dimensions,
   bands,
@@ -339,12 +315,37 @@ export const getAccessors = (
   coordinates = {}
 ) => {
   if (Object.keys(selector).length === 0) {
-    return { [bands[0]]: (d) => d }
+    return { [bands[0]]: (dataArray) => dataArray.data }
   } else {
     const bandInformation = getBandInformation(selector)
     const result = bands.reduce((accessors, band) => {
-      const info = bandInformation[band]
-      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      accessors[band] = (dataArray, s) => {
+        const indexes = dimensions.reduce((accum, d) => {
+          if (['x', 'y'].includes(d)) {
+            return accum
+          }
+
+          if (selector[d] === undefined) {
+            return accum
+          }
+
+          let value
+          if (Array.isArray(selector[d])) {
+            // If the selector value is a fixed array, grab value from the band information
+            value = bandInformation[band][d]
+          } else {
+            // Otherwise index into the active selector, s
+            value = s[d]
+          }
+          const index = coordinates[d].findIndex(
+            (coordinate) => coordinate === value
+          )
+          accum[d] = index
+          return accum
+        }, {})
+
+        return dataArray.indexSelect(indexes).data
+      }
       return accessors
     }, {})
     return result
@@ -379,14 +380,14 @@ export const setObjectValues = (obj, keys, value) => {
 
 /**
  * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
- * @param {data} ndarray
+ * @param {data} DataArray
  * @param {x} number x coordinate at which to lookup values
  * @param {y} number y coordinate at which to lookup values
  * @param {Array<string>} dimensions to iterate over
  * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
  * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
  */
-export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
+export const getValuesToSet = (dataArray, x, y, dimensions, coordinates) => {
   let keys = [[]]
   let indexes = [[]]
   dimensions.forEach((dimension) => {
@@ -416,7 +417,7 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
 
   return keys.map((key, i) => ({
     keys: key,
-    value: data.get(...indexes[i]),
+    value: dataArray.data.get(...indexes[i]),
   }))
 }
 

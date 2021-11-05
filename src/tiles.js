@@ -1,6 +1,7 @@
 import zarr from 'zarr-js'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
+import DataArray from './utils/data-array'
 
 import { vert, frag } from './shaders'
 import {
@@ -301,10 +302,15 @@ export const createTiles = (regl, opts) => {
             if (!tile.loading) {
               tile.loading = true
               this.loaders[level](chunk, (err, data) => {
-                this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, this.selector))
+                tile.data = new DataArray({
+                  rawData: data.data,
+                  shape: data.shape,
+                  dimensions: this.dimensions,
+                  coordinates: this.coordinates,
                 })
-                tile.data = data
+                this.bands.forEach((k) => {
+                  tile.buffers[k](this.accessors[k](tile.data, this.selector))
+                })
                 tile.setReady(true)
                 tile.cache.data = true
                 tile.cache.buffer = true
