@@ -1,17 +1,18 @@
 import ndarray from 'ndarray'
 
 class DataArray {
-  constructor({ rawData, data, dimensions, coordinates, shape }) {
+  constructor({ rawData, data, dimensions, coordinates, shape, _loader }) {
     this.dimensions = dimensions
     this.coordinates = coordinates
     this.ndim = dimensions.length
     if (rawData) {
       this.data = ndarray(rawData, shape)
       this.shape = shape
-    } else {
+    } else if (data) {
       this.data = data
       this.shape = data.shape
     }
+    this._loader = _loader
   }
 
   indexSelect(selector) {
@@ -48,6 +49,12 @@ class DataArray {
     }, {})
 
     return this.indexSelect(indexSelector)
+  }
+
+  load(...args) {
+    if (this._loader) {
+      return this._loader(...args)
+    }
   }
 }
 
