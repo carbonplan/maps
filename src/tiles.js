@@ -21,6 +21,7 @@ import {
   getSelectorHash,
   getValuesToSet,
   setObjectValues,
+  getChunks,
 } from './utils'
 
 export const createTiles = (regl, opts) => {
@@ -109,6 +110,11 @@ export const createTiles = (regl, opts) => {
           metadata.metadata[`${levels[0]}/${variable}/.zattrs`][
             '_ARRAY_DIMENSIONS'
           ]
+        this.shape =
+          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['shape']
+        this.chunks =
+          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['chunks']
+
         this.ndim = this.dimensions.length
 
         levels.map((z) => {
@@ -120,13 +126,17 @@ export const createTiles = (regl, opts) => {
                 .map((_, y) => {
                   const key = [x, y, z].join(',')
                   const buffers = {}
-                  const data = {}
                   let setReady
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
                   })
                   this.tiles[key] = {
-                    cache: { data: false, buffer: false, selector: null },
+                    cache: {
+                      data: false,
+                      buffer: false,
+                      selector: null,
+                      chunk: null,
+                    },
                     loading: false,
                     ready: new Promise((resolve) => {
                       setReady = resolve
@@ -161,7 +171,8 @@ export const createTiles = (regl, opts) => {
               this.dimensions,
               this.bands,
               selector,
-              this.coordinates
+              this.coordinates,
+              this.chunks
             )
             resolve(true)
             this.invalidate()
@@ -300,11 +311,21 @@ export const createTiles = (regl, opts) => {
         if (this.loaders[level] && this.accessors) {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
-          const chunk = Array(this.ndim - 2)
-            .fill(0)
-            .concat([tileIndex[1], tileIndex[0]])
+
+          // also need to pass through `shape` and `chunks`
+          const chunks = getChunks(
+            this.selector,
+            this.dimensions,
+            this.coordinates,
+            this.shape,
+            this.chunks,
+            tileIndex[0],
+            tileIndex[1]
+          )
+          const chunk = chunks[0]
+          const chunkKey = chunk.join('.')
           tile.ready = true
-          if (!tile.cache.data) {
+          if (tile.cache.chunk !== chunkKey) {
             if (!tile.loading) {
               tile.loading = true
               this.loaders[level](chunk, (err, data) => {
@@ -313,6 +334,7 @@ export const createTiles = (regl, opts) => {
                 })
                 tile.data = data
                 tile.setReady(true)
+                tile.cache.chunk = chunkKey
                 tile.cache.data = true
                 tile.cache.buffer = true
                 tile.cache.selector = this.selectorHash

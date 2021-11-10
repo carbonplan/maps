@@ -308,11 +308,11 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
-const getPicker = (dimensions, selector, bandInfo, coordinates) => {
+const getPicker = (dimensions, selector, bandInfo, coordinates, chunks) => {
   return (data, s) => {
     const indexes = dimensions
       .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d) => {
+      .map((d, i) => {
         if (selector[d] === undefined) {
           return null
         } else {
@@ -324,7 +324,11 @@ const getPicker = (dimensions, selector, bandInfo, coordinates) => {
             // Otherwise index into the active selector, s
             value = s[d]
           }
-          return coordinates[d].findIndex((coordinate) => coordinate === value)
+          const chunk = chunks[i]
+          return (
+            coordinates[d].findIndex((coordinate) => coordinate === value) %
+            chunk
+          )
         }
       })
 
@@ -336,7 +340,8 @@ export const getAccessors = (
   dimensions,
   bands,
   selector = {},
-  coordinates = {}
+  coordinates = {},
+  chunks
 ) => {
   if (Object.keys(selector).length === 0) {
     return { [bands[0]]: (d) => d }
@@ -344,7 +349,13 @@ export const getAccessors = (
     const bandInformation = getBandInformation(selector)
     const result = bands.reduce((accessors, band) => {
       const info = bandInformation[band]
-      accessors[band] = getPicker(dimensions, selector, info, coordinates)
+      accessors[band] = getPicker(
+        dimensions,
+        selector,
+        info,
+        coordinates,
+        chunks
+      )
       return accessors
     }, {})
     return result
@@ -422,6 +433,56 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
 
 export const getSelectorHash = (selector) => {
   return JSON.stringify(selector)
+}
+
+export const getChunks = (
+  selector,
+  dimensions,
+  coordinates,
+  shape,
+  chunks,
+  x,
+  y
+) => {
+  const chunkIndicesToUse = dimensions.map((dimension, i) => {
+    if (dimension === 'x') {
+      return [x]
+    } else if (dimension === 'y') {
+      return [y]
+    }
+
+    const selectorValue = selector[dimension]
+    const coords = coordinates[dimension]
+    const chunkSize = chunks[i]
+    let indices
+    if (Array.isArray(selectorValue)) {
+      // Return all indices of selector value when array
+      indices = selectorValue.map((v) => coords.indexOf(v))
+    } else if (selectorValue) {
+      // Return index of single selector value otherwise when present
+      indices = [coords.indexOf(selectorValue)]
+    } else {
+      // Otherwise, vary over the entire shape of the dimension
+      indices = Array(shape[i])
+        .fill(null)
+        .map((_, j) => j)
+    }
+
+    return indices.map((index) => Math.floor(index / chunkSize))
+  })
+
+  let result = [[]]
+  chunkIndicesToUse.forEach((indices) => {
+    const updatedResult = []
+    indices.forEach((index) => {
+      result.forEach((prev) => {
+        updatedResult.push([...prev, index])
+      })
+    })
+    result = updatedResult
+  })
+
+  return result
 }
 
 export const getPositions = (size, mode) => {
