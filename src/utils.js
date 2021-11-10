@@ -390,17 +390,27 @@ export const setObjectValues = (obj, keys, value) => {
 
 /**
  * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
- * @param {data} ndarray
- * @param {x} number x coordinate at which to lookup values
- * @param {y} number y coordinate at which to lookup values
+ * @param {ndarray} data
+ * @param {Array<number>} chunk from which this data is sourced
+ * @param {Array<number>} chunks dimensions of each chunk
+ * @param {number} x coordinate at which to lookup values
+ * @param {number} y coordinate at which to lookup values
  * @param {Array<string>} dimensions to iterate over
  * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
  * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
  */
-export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
+export const getValuesToSet = (
+  data,
+  chunk,
+  chunks,
+  x,
+  y,
+  dimensions,
+  coordinates
+) => {
   let keys = [[]]
   let indexes = [[]]
-  dimensions.forEach((dimension) => {
+  dimensions.forEach((dimension, i) => {
     if (dimension === 'x') {
       // only update update indexes used for getting values
       indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
@@ -408,15 +418,18 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
       // only update update indexes used for getting values
       indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
     } else {
-      const values = coordinates[dimension]
+      const values = coordinates[dimension].slice(
+        chunk[i] * chunks[i],
+        (chunk[i] + 1) * chunks[i]
+      )
       const updatedKeys = []
       const updatedIndexes = []
-      values.forEach((value, i) => {
-        keys.forEach((prevKeys, j) => {
+      values.forEach((value, j) => {
+        keys.forEach((prevKeys, k) => {
           updatedKeys.push([...prevKeys, value])
 
-          const prevIndexes = indexes[j]
-          updatedIndexes.push([...prevIndexes, i])
+          const prevIndexes = indexes[k]
+          updatedIndexes.push([...prevIndexes, j])
         })
       })
 

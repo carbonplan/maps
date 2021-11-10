@@ -142,6 +142,11 @@ export const createTiles = (regl, opts) => {
                       setReady = resolve
                     }),
                     setReady: setReady,
+                    resetReady: function () {
+                      this.ready = new Promise((resolve) => {
+                        this.setReady = resolve
+                      })
+                    },
                     data: null,
                     buffers: buffers,
                   }
@@ -322,11 +327,17 @@ export const createTiles = (regl, opts) => {
             tileIndex[0],
             tileIndex[1]
           )
+
+          // TODO: handle combining chunks
           const chunk = chunks[0]
           const chunkKey = chunk.join('.')
-          tile.ready = true
+
           if (tile.cache.chunk !== chunkKey) {
             if (!tile.loading) {
+              if (tile.cache.chunk) {
+                tile.resetReady()
+              }
+
               tile.loading = true
               this.loaders[level](chunk, (err, data) => {
                 this.bands.forEach((k) => {
@@ -387,7 +398,10 @@ export const createTiles = (regl, opts) => {
               }
             )
             if (distanceToCenter < radius) {
-              const data = this.tiles[key].data
+              const {
+                data,
+                cache: { chunk },
+              } = this.tiles[key]
 
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
@@ -395,6 +409,8 @@ export const createTiles = (regl, opts) => {
               if (this.ndim > 2) {
                 const valuesToSet = getValuesToSet(
                   data,
+                  chunk.split('.'),
+                  this.chunks,
                   i,
                   j,
                   this.dimensions,
