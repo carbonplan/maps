@@ -23,6 +23,7 @@ import {
   setObjectValues,
   getChunks,
 } from './utils'
+import Tile from './tile'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -126,30 +127,10 @@ export const createTiles = (regl, opts) => {
                 .map((_, y) => {
                   const key = [x, y, z].join(',')
                   const buffers = {}
-                  let setReady
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
                   })
-                  this.tiles[key] = {
-                    cache: {
-                      data: false,
-                      buffer: false,
-                      selector: null,
-                      chunk: null,
-                    },
-                    loading: false,
-                    ready: new Promise((resolve) => {
-                      setReady = resolve
-                    }),
-                    setReady: setReady,
-                    resetReady: function () {
-                      this.ready = new Promise((resolve) => {
-                        this.setReady = resolve
-                      })
-                    },
-                    data: null,
-                    buffers: buffers,
-                  }
+                  this.tiles[key] = new Tile({ key, buffers })
                 })
             })
         })
@@ -317,7 +298,6 @@ export const createTiles = (regl, opts) => {
           const tileIndex = keyToTile(key)
           const tile = this.tiles[key]
 
-          // also need to pass through `shape` and `chunks`
           const chunks = getChunks(
             this.selector,
             this.dimensions,
