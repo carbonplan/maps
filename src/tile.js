@@ -4,11 +4,8 @@ class Tile {
   constructor({ key, buffers, loader, shape, chunks, dimensions }) {
     this.key = key
     this.buffers = buffers
-    this.cache = {
-      data: false,
-      buffer: false,
-      selector: null,
-      chunk: null,
+    this._cache = {
+      buffer: null,
     }
 
     this.loading = false
@@ -52,6 +49,14 @@ class Tile {
     this.loading = false
 
     return this.getData()
+  }
+
+  getCacheKey() {
+    return this._cache.buffer
+  }
+
+  setCacheKey(cacheKey) {
+    this._cache.buffer = cacheKey
   }
 
   getData() {

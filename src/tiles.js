@@ -312,13 +312,13 @@ export const createTiles = (regl, opts) => {
             tileIndex[1]
           )
 
-          if (tile.cache.selector !== this.selectorHash) {
+          if (tile.getCacheKey() !== this.selectorHash) {
             if (!tile.loading) {
               tile.loadChunks(chunks).then((data) => {
                 this.bands.forEach((k) => {
                   tile.buffers[k](this.accessors[k](data, this.selector))
                 })
-                tile.cache.selector = this.selectorHash
+                tile.setCacheKey(this.selectorHash)
                 this.invalidate()
               })
             }

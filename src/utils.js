@@ -129,7 +129,7 @@ export const getAncestorToRender = (targetKey, tiles) => {
   let [x, y, z] = keyToTile(targetKey)
   while (z >= 0) {
     const key = tileToKey([x, y, z])
-    if (tiles[key].cache.buffer) {
+    if (tiles[key].getCacheKey()) {
       return key
     }
     z--
@@ -152,7 +152,7 @@ export const getDescendantsToRender = (targetKey, tiles, maxZoom) => {
       }
     }
 
-    const coveringKeys = keys.filter((key) => tiles[key].cache.buffer)
+    const coveringKeys = keys.filter((key) => tiles[key].getCacheKey())
     const currentCoverage = coveringKeys.length / keys.length
 
     if (coverage === 1) {
