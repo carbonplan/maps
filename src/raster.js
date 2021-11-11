@@ -16,6 +16,9 @@ const Raster = (props) => {
     uniforms = {},
   } = props
   const { center, zoom } = useControls()
+  const [regionDataInvalidated, setRegionDataInvalidated] = useState(
+    new Date().getTime()
+  )
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
@@ -44,6 +47,9 @@ const Raster = (props) => {
       ...props,
       invalidate: () => {
         map.triggerRepaint()
+      },
+      invalidateRegion: () => {
+        setRegionDataInvalidated(new Date().getTime())
       },
     })
   }, [])
@@ -80,7 +86,7 @@ const Raster = (props) => {
     if (region && setRegionData) {
       queryRegion(region)
     }
-  }, [setRegionData, region])
+  }, [setRegionData, region, regionDataInvalidated])
 
   return null
 }

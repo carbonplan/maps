@@ -40,7 +40,8 @@ export const createTiles = (regl, opts) => {
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
-    invalidate = () => {},
+    invalidate,
+    invalidateRegion,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -297,32 +298,47 @@ export const createTiles = (regl, opts) => {
         size: this.size,
       })
 
-      Object.keys(this.active).map((key) => {
-        if (this.loaders[level] && this.accessors) {
-          const tileIndex = keyToTile(key)
-          const tile = this.tiles[key]
+      Promise.all(
+        Object.keys(this.active).map(
+          (key) =>
+            new Promise((resolve) => {
+              if (this.loaders[level] && this.accessors) {
+                const tileIndex = keyToTile(key)
+                const tile = this.tiles[key]
 
-          const chunks = getChunks(
-            this.selector,
-            this.dimensions,
-            this.coordinates,
-            this.shape,
-            this.chunks,
-            tileIndex[0],
-            tileIndex[1]
-          )
+                const chunks = getChunks(
+                  this.selector,
+                  this.dimensions,
+                  this.coordinates,
+                  this.shape,
+                  this.chunks,
+                  tileIndex[0],
+                  tileIndex[1]
+                )
 
-          if (tile.getCacheKey() !== this.selectorHash) {
-            if (!tile.loading) {
-              tile.loadChunks(chunks).then((data) => {
-                this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, this.selector))
-                })
-                tile.setCacheKey(this.selectorHash)
-                this.invalidate()
-              })
-            }
-          }
+                if (tile.getBufferCache() !== this.selectorHash) {
+                  if (!tile.loading) {
+                    const previousDataCache = tile.getDataCache()
+                    tile.loadChunks(chunks).then((data) => {
+                      this.bands.forEach((k) => {
+                        tile.buffers[k](this.accessors[k](data, this.selector))
+                      })
+                      tile.setBufferCache(this.selectorHash)
+                      this.invalidate()
+
+                      const shouldInvalidateRegion =
+                        previousDataCache &&
+                        previousDataCache !== tile.getDataCache()
+                      resolve(shouldInvalidateRegion)
+                    })
+                  }
+                }
+              }
+            })
+        )
+      ).then((results) => {
+        if (results.some(Boolean)) {
+          invalidateRegion()
         }
       })
     }

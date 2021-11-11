@@ -50,12 +50,16 @@ class Tile {
     return this.getData()
   }
 
-  getCacheKey() {
+  getBufferCache() {
     return this._cache
   }
 
-  setCacheKey(cacheKey) {
+  setBufferCache(cacheKey) {
     this._cache = cacheKey
+  }
+
+  getDataCache() {
+    return this._data.chunksCache
   }
 
   getData() {
