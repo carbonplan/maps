@@ -4,9 +4,6 @@ class Tile {
   constructor({ key, buffers, loader, shape, chunks, dimensions }) {
     this.key = key
     this.buffers = buffers
-    this._cache = {
-      buffer: null,
-    }
 
     this.loading = false
     this.shape = shape
@@ -14,8 +11,10 @@ class Tile {
     this.dimensions = dimensions
 
     this.chunkedData = {}
+    this._cache = null
+
     this._data = {
-      cache: null,
+      chunksCache: null,
       value: null,
     }
     this._loader = loader
@@ -52,18 +51,18 @@ class Tile {
   }
 
   getCacheKey() {
-    return this._cache.buffer
+    return this._cache
   }
 
   setCacheKey(cacheKey) {
-    this._cache.buffer = cacheKey
+    this._cache = cacheKey
   }
 
   getData() {
     const keys = Object.keys(this.chunkedData)
     const cacheKey = keys.join(',')
 
-    if (this._data.cache === cacheKey) {
+    if (this._data.chunksCache === cacheKey) {
       return this._data.value
     }
 
@@ -100,7 +99,7 @@ class Tile {
       })
     })
 
-    this._data.cache = cacheKey
+    this._data.chunksCache = cacheKey
     this._data.value = data
 
     return data
