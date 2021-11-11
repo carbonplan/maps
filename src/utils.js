@@ -389,7 +389,7 @@ export const setObjectValues = (obj, keys, value) => {
 export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
   let keys = [[]]
   let indexes = [[]]
-  dimensions.forEach((dimension, i) => {
+  dimensions.forEach((dimension) => {
     if (dimension === 'x') {
       // only update update indexes used for getting values
       indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
@@ -397,14 +397,15 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
       // only update update indexes used for getting values
       indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
     } else {
+      const values = coordinates[dimension]
       const updatedKeys = []
       const updatedIndexes = []
-      coordinates[dimension].forEach((value, j) => {
-        keys.forEach((prevKeys, k) => {
+      values.forEach((value, i) => {
+        keys.forEach((prevKeys, j) => {
           updatedKeys.push([...prevKeys, value])
 
-          const prevIndexes = indexes[k]
-          updatedIndexes.push([...prevIndexes, j])
+          const prevIndexes = indexes[j]
+          updatedIndexes.push([...prevIndexes, i])
         })
       })
 
