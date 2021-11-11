@@ -118,7 +118,9 @@ export const createTiles = (regl, opts) => {
 
         this.ndim = this.dimensions.length
 
-        levels.map((z) => {
+        levels.forEach((z) => {
+          const loader = loaders[z + '/' + variable]
+          this.loaders[z] = loader
           Array(Math.pow(2, z))
             .fill(0)
             .map((_, x) => {
@@ -130,13 +132,16 @@ export const createTiles = (regl, opts) => {
                   this.bands.forEach((k) => {
                     buffers[k] = initialize()
                   })
-                  this.tiles[key] = new Tile({ key, buffers })
+                  this.tiles[key] = new Tile({
+                    key,
+                    buffers,
+                    loader,
+                    shape: this.shape,
+                    chunks: this.chunks,
+                    dimensions: this.dimensions,
+                  })
                 })
             })
-        })
-
-        levels.forEach((z) => {
-          this.loaders[z] = loaders[z + '/' + variable]
         })
 
         if (Object.keys(selector).length > 0) {
@@ -308,38 +313,17 @@ export const createTiles = (regl, opts) => {
             tileIndex[1]
           )
 
-          // TODO: handle combining chunks
-          const chunk = chunks[0]
-          const chunkKey = chunk.join('.')
-
-          if (tile.cache.chunk !== chunkKey) {
+          if (tile.cache.selector !== this.selectorHash) {
             if (!tile.loading) {
-              if (tile.cache.chunk) {
-                tile.resetReady()
-              }
-
-              tile.loading = true
-              this.loaders[level](chunk, (err, data) => {
+              tile.loadChunks(chunks).then((data) => {
                 this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, this.selector))
+                  // TODO: handle combining chunks
+                  tile.buffers[k](this.accessors[k](data[0], this.selector))
                 })
-                tile.data = data
-                tile.setReady(true)
-                tile.cache.chunk = chunkKey
-                tile.cache.data = true
-                tile.cache.buffer = true
                 tile.cache.selector = this.selectorHash
-                tile.loading = false
                 this.invalidate()
               })
             }
-          }
-          if (!(tile.cache.selector == this.selectorHash) && tile.cache.data) {
-            this.bands.forEach((k) => {
-              tile.buffers[k](this.accessors[k](tile.data, this.selector))
-            })
-            tile.cache.selector = this.selectorHash
-            this.invalidate()
           }
         }
       })
@@ -378,19 +362,12 @@ export const createTiles = (regl, opts) => {
               }
             )
             if (distanceToCenter < radius) {
-              const {
-                data,
-                cache: { chunk },
-              } = this.tiles[key]
-
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
                 const valuesToSet = getValuesToSet(
-                  data,
-                  chunk.split('.'),
-                  this.chunks,
+                  this.tiles[key].getData(),
                   i,
                   j,
                   this.dimensions,

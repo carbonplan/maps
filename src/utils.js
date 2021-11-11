@@ -391,23 +391,13 @@ export const setObjectValues = (obj, keys, value) => {
 /**
  * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
  * @param {ndarray} data
- * @param {Array<number>} chunk from which this data is sourced
- * @param {Array<number>} chunks dimensions of each chunk
  * @param {number} x coordinate at which to lookup values
  * @param {number} y coordinate at which to lookup values
  * @param {Array<string>} dimensions to iterate over
  * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
  * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
  */
-export const getValuesToSet = (
-  data,
-  chunk,
-  chunks,
-  x,
-  y,
-  dimensions,
-  coordinates
-) => {
+export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
   let keys = [[]]
   let indexes = [[]]
   dimensions.forEach((dimension, i) => {
@@ -418,13 +408,9 @@ export const getValuesToSet = (
       // only update update indexes used for getting values
       indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
     } else {
-      const values = coordinates[dimension].slice(
-        chunk[i] * chunks[i],
-        (chunk[i] + 1) * chunks[i]
-      )
       const updatedKeys = []
       const updatedIndexes = []
-      values.forEach((value, j) => {
+      coordinates[dimension].forEach((value, j) => {
         keys.forEach((prevKeys, k) => {
           updatedKeys.push([...prevKeys, value])
 
