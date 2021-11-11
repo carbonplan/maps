@@ -51,7 +51,7 @@ class Tile {
     this.setReady(true)
     this.loading = false
 
-    return data
+    return this.getData()
   }
 
   getData() {
@@ -62,7 +62,8 @@ class Tile {
       return this._data.value
     }
 
-    const data = ndarray([], this.shape)
+    const size = this.shape.reduce((product, el) => product * el, 1)
+    const data = ndarray(new Float32Array(size), this.shape)
     keys.forEach((key) => {
       const chunk = key.split('.')
       const chunkData = this.chunkedData[key]

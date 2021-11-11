@@ -308,11 +308,11 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
-const getPicker = (dimensions, selector, bandInfo, coordinates, chunks) => {
+const getPicker = (dimensions, selector, bandInfo, coordinates) => {
   return (data, s) => {
     const indexes = dimensions
       .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d, i) => {
+      .map((d) => {
         if (selector[d] === undefined) {
           return null
         } else {
@@ -324,11 +324,7 @@ const getPicker = (dimensions, selector, bandInfo, coordinates, chunks) => {
             // Otherwise index into the active selector, s
             value = s[d]
           }
-          const chunk = chunks[i]
-          return (
-            coordinates[d].findIndex((coordinate) => coordinate === value) %
-            chunk
-          )
+          return coordinates[d].findIndex((coordinate) => coordinate === value)
         }
       })
 
@@ -340,8 +336,7 @@ export const getAccessors = (
   dimensions,
   bands,
   selector = {},
-  coordinates = {},
-  chunks
+  coordinates = {}
 ) => {
   if (Object.keys(selector).length === 0) {
     return { [bands[0]]: (d) => d }
@@ -349,13 +344,7 @@ export const getAccessors = (
     const bandInformation = getBandInformation(selector)
     const result = bands.reduce((accessors, band) => {
       const info = bandInformation[band]
-      accessors[band] = getPicker(
-        dimensions,
-        selector,
-        info,
-        coordinates,
-        chunks
-      )
+      accessors[band] = getPicker(dimensions, selector, info, coordinates)
       return accessors
     }, {})
     return result

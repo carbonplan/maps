@@ -162,8 +162,7 @@ export const createTiles = (regl, opts) => {
               this.dimensions,
               this.bands,
               selector,
-              this.coordinates,
-              this.chunks
+              this.coordinates
             )
             resolve(true)
             this.invalidate()
@@ -317,8 +316,7 @@ export const createTiles = (regl, opts) => {
             if (!tile.loading) {
               tile.loadChunks(chunks).then((data) => {
                 this.bands.forEach((k) => {
-                  // TODO: handle combining chunks
-                  tile.buffers[k](this.accessors[k](data[0], this.selector))
+                  tile.buffers[k](this.accessors[k](data, this.selector))
                 })
                 tile.cache.selector = this.selectorHash
                 this.invalidate()
