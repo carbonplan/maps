@@ -7,11 +7,11 @@ const AverageDisplay = ({ band, month, data: { loading, value } }) => {
     return 'loading...'
   }
 
-  if (!value.climate[band] || !value.climate[band][month]) {
+  if (!value.tavg || !value.tavg[month]) {
     throw new Error('Value not present')
   }
 
-  const activeData = value.climate[band][month]
+  const activeData = value.tavg[month]
 
   let result
   const filteredData = activeData.filter((d) => d !== -3.3999999521443642e38)
