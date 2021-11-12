@@ -110,14 +110,19 @@ export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
   }, {})
 }
 
-export const getKeysToRender = (targetKey, tiles, maxZoom) => {
-  const ancestor = getAncestorToRender(targetKey, tiles)
+export const getKeysToRender = (targetKey, tiles, maxZoom, bufferCache) => {
+  const ancestor = getAncestorToRender(targetKey, tiles, bufferCache)
 
   if (ancestor) {
     return [ancestor]
   }
 
-  const descendants = getDescendantsToRender(targetKey, tiles, maxZoom)
+  const descendants = getDescendantsToRender(
+    targetKey,
+    tiles,
+    maxZoom,
+    bufferCache
+  )
   if (descendants.length) {
     return descendants
   }
@@ -125,11 +130,11 @@ export const getKeysToRender = (targetKey, tiles, maxZoom) => {
   return [targetKey]
 }
 
-export const getAncestorToRender = (targetKey, tiles) => {
+export const getAncestorToRender = (targetKey, tiles, bufferCache) => {
   let [x, y, z] = keyToTile(targetKey)
   while (z >= 0) {
     const key = tileToKey([x, y, z])
-    if (tiles[key].getBufferCache()) {
+    if (tiles[key].getBufferCache() === bufferCache) {
       return key
     }
     z--
@@ -138,7 +143,12 @@ export const getAncestorToRender = (targetKey, tiles) => {
   }
 }
 
-export const getDescendantsToRender = (targetKey, tiles, maxZoom) => {
+export const getDescendantsToRender = (
+  targetKey,
+  tiles,
+  maxZoom,
+  bufferCache
+) => {
   let [initialX, initialY, initialZ] = keyToTile(targetKey)
   let [x, y, z] = [initialX, initialY, initialZ]
   let coverage = 0
@@ -152,7 +162,9 @@ export const getDescendantsToRender = (targetKey, tiles, maxZoom) => {
       }
     }
 
-    const coveringKeys = keys.filter((key) => tiles[key].getBufferCache())
+    const coveringKeys = keys.filter(
+      (key) => tiles[key].getBufferCache() === bufferCache
+    )
     const currentCoverage = coveringKeys.length / keys.length
 
     if (coverage === 1) {

@@ -224,7 +224,12 @@ export const createTiles = (regl, opts) => {
       const adjustedActive = Object.keys(this.tiles)
         .filter((key) => this.active[key])
         .reduce((accum, key) => {
-          const keysToRender = getKeysToRender(key, this.tiles, this.maxZoom)
+          const keysToRender = getKeysToRender(
+            key,
+            this.tiles,
+            this.maxZoom,
+            this.selectorHash
+          )
           keysToRender.forEach((keyToRender) => {
             const offsets = this.active[key]
 
