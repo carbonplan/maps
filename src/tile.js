@@ -1,5 +1,10 @@
 import ndarray from 'ndarray'
-import { getBandInformation, getChunks, keyToTile } from './utils'
+import {
+  getBandInformation,
+  getChunks,
+  keyToTile,
+  getSelectorHash,
+} from './utils'
 
 class Tile {
   constructor({
@@ -20,15 +25,16 @@ class Tile {
     this.chunks = chunks
     this.dimensions = dimensions
     this.coordinates = coordinates
-    this.buffers = {}
     this.bands = bands
 
+    this._bufferCache = null
+    this._buffers = {}
+
     bands.forEach((k) => {
-      this.buffers[k] = initializeBuffer()
+      this._buffers[k] = initializeBuffer()
     })
 
     this.chunkedData = {}
-    this._cache = null
 
     this._data = {
       chunkKeys: [],
@@ -36,15 +42,30 @@ class Tile {
     }
     this._loader = loader
     this._ready = false
-    this.resetReady()
+    this._resetReady()
   }
 
   ready() {
     return this._ready
   }
 
+  _setReady() {
+    this._resolver(true)
+  }
+
+  _resetReady() {
+    this._ready = new Promise((resolve) => {
+      this._resolver = resolve
+    })
+  }
+
+  getBuffers() {
+    return this._buffers
+  }
+
   async loadChunks(chunks) {
     this.loading = true
+    this._resetReady()
     const updated = await Promise.all(
       chunks.map(
         (chunk) =>
@@ -61,13 +82,13 @@ class Tile {
           })
       )
     )
-    this.setReady(true)
+    this._setReady(true)
     this.loading = false
 
     return updated.some(Boolean)
   }
 
-  async populateBuffers(chunks, selector, cacheKey) {
+  async populateBuffers(chunks, selector) {
     const updated = await this.loadChunks(chunks)
 
     const bandInformation = getBandInformation(selector)
@@ -91,7 +112,7 @@ class Tile {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
       }
       if (info) {
-        const indexes = this.dimensions
+        const indices = this.dimensions
           .map((d) => (['x', 'y'].includes(d) ? null : d))
           .map((d, i) => {
             if (info[d] === undefined) {
@@ -106,22 +127,22 @@ class Tile {
             }
           })
 
-        this.buffers[band](data.pick(...indexes))
+        this._buffers[band](data.pick(...indices))
       } else {
-        this.buffers[band](data)
+        this._buffers[band](data)
       }
     })
 
-    this.setBufferCache(cacheKey)
+    this._bufferCache = getSelectorHash(selector)
     return updated
   }
 
-  getBufferCache() {
-    return this._cache
+  isBufferPopulated() {
+    return !!this._bufferCache
   }
 
-  setBufferCache(cacheKey) {
-    this._cache = cacheKey
+  hasPopulatedBuffer(selector) {
+    return this._bufferCache && this._bufferCache === getSelectorHash(selector)
   }
 
   getData() {
@@ -173,16 +194,6 @@ class Tile {
     this._data.value = data
 
     return data
-  }
-
-  setReady() {
-    this._resolver(true)
-  }
-
-  resetReady() {
-    this._ready = new Promise((resolve) => {
-      this._resolver = resolve
-    })
   }
 }
 

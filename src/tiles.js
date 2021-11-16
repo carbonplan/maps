@@ -17,7 +17,6 @@ import {
   getTilesOfRegion,
   getPyramidMetadata,
   getBands,
-  getSelectorHash,
   getValuesToSet,
   setObjectValues,
   getChunks,
@@ -242,7 +241,7 @@ export const createTiles = (regl, opts) => {
 
           offsets.forEach((offset) => {
             accum.push({
-              ...tile.buffers,
+              ...tile.getBuffers(),
               level,
               offset,
             })
@@ -301,10 +300,10 @@ export const createTiles = (regl, opts) => {
                   tileIndex[1]
                 )
 
-                if (tile.getBufferCache() !== this.selectorHash) {
+                if (!tile.hasPopulatedBuffer(this.selector)) {
                   if (!tile.loading) {
                     tile
-                      .populateBuffers(chunks, this.selector, this.selectorHash)
+                      .populateBuffers(chunks, this.selector)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
@@ -392,7 +391,6 @@ export const createTiles = (regl, opts) => {
 
     this.updateSelector = ({ selector }) => {
       this.selector = selector
-      this.selectorHash = getSelectorHash(selector)
       this.invalidate()
     }
 
