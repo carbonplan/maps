@@ -303,16 +303,11 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.getBufferCache() !== this.selectorHash) {
                   if (!tile.loading) {
-                    const previousDataCache = tile.getDataCache()
                     tile
                       .populateBuffers(chunks, this.selector, this.selectorHash)
-                      .then(() => {
+                      .then((dataUpdated) => {
                         this.invalidate()
-
-                        const shouldInvalidateRegion =
-                          previousDataCache &&
-                          previousDataCache !== tile.getDataCache()
-                        resolve(shouldInvalidateRegion)
+                        resolve(dataUpdated)
                       })
                   }
                 }

@@ -45,17 +45,17 @@ class Tile {
 
   async loadChunks(chunks) {
     this.loading = true
-    const data = await Promise.all(
+    const updated = await Promise.all(
       chunks.map(
         (chunk) =>
           new Promise((resolve) => {
             const key = chunk.join('.')
             if (this.chunkedData[key]) {
-              resolve(this.chunkedData[key])
+              resolve(false)
             } else {
               this._loader(chunk, (err, data) => {
                 this.chunkedData[key] = data
-                resolve(data)
+                resolve(true)
               })
             }
           })
@@ -63,10 +63,12 @@ class Tile {
     )
     this.setReady(true)
     this.loading = false
+
+    return updated.some(Boolean)
   }
 
   async populateBuffers(chunks, selector, cacheKey) {
-    await this.loadChunks(chunks)
+    const updated = await this.loadChunks(chunks)
 
     const bandInformation = getBandInformation(selector)
 
@@ -111,6 +113,7 @@ class Tile {
     })
 
     this.setBufferCache(cacheKey)
+    return updated
   }
 
   getBufferCache() {
@@ -119,10 +122,6 @@ class Tile {
 
   setBufferCache(cacheKey) {
     this._cache = cacheKey
-  }
-
-  getDataCache() {
-    return Object.keys(this.chunkedData).join(',')
   }
 
   getData() {
