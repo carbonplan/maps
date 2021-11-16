@@ -31,7 +31,7 @@ class Tile {
     this._cache = null
 
     this._data = {
-      chunksCache: null,
+      chunkKeys: [],
       value: null,
     }
     this._loader = loader
@@ -122,20 +122,24 @@ class Tile {
   }
 
   getDataCache() {
-    return this._data.chunksCache
+    return Object.keys(this.chunkedData).join(',')
   }
 
   getData() {
     const keys = Object.keys(this.chunkedData)
-    const cacheKey = keys.join(',')
+    const keysToAdd = keys.filter((key) => !this._data.chunkKeys.includes(key))
 
-    if (this._data.chunksCache === cacheKey) {
+    if (keysToAdd.length === 0) {
       return this._data.value
     }
 
-    const size = this.shape.reduce((product, el) => product * el, 1)
-    const data = ndarray(new Float32Array(size), this.shape)
-    keys.forEach((key) => {
+    let data = this._data.value
+    if (!data) {
+      const size = this.shape.reduce((product, el) => product * el, 1)
+      data = ndarray(new Float32Array(size), this.shape)
+    }
+
+    keysToAdd.forEach((key) => {
       const chunk = key.split('.')
       const chunkData = this.chunkedData[key]
       const result = this.chunks.reduce(
@@ -166,7 +170,7 @@ class Tile {
       })
     })
 
-    this._data.chunksCache = cacheKey
+    this._data.chunkKeys = keys
     this._data.value = data
 
     return data
