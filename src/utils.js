@@ -1,4 +1,5 @@
 import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
+import { select } from 'd3-selection'
 
 const d2r = Math.PI / 180
 
@@ -263,7 +264,7 @@ export const getPyramidMetadata = (metadata) => {
  * @param {selector} Object of {[dimension]: dimensionValue|Array<dimensionValue>} pairs
  * @returns Object containing bandName, {[dimension]: dimensionValue} pairs
  */
-const getBandInformation = (selector) => {
+export const getBandInformation = (selector) => {
   const combinedBands = Object.keys(selector)
     .filter((key) => Array.isArray(selector[key]))
     .reduce((bandMapping, selectorKey) => {
@@ -305,49 +306,6 @@ export const getBands = (variable, selector = {}) => {
     return bandNames
   } else {
     return [variable]
-  }
-}
-
-const getPicker = (dimensions, selector, bandInfo, coordinates) => {
-  return (data, s) => {
-    const indexes = dimensions
-      .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d) => {
-        if (selector[d] === undefined) {
-          return null
-        } else {
-          let value
-          if (Array.isArray(selector[d])) {
-            // If the selector value is a fixed array, grab value from the band information
-            value = bandInfo[d]
-          } else {
-            // Otherwise index into the active selector, s
-            value = s[d]
-          }
-          return coordinates[d].findIndex((coordinate) => coordinate === value)
-        }
-      })
-
-    return data.pick(...indexes)
-  }
-}
-
-export const getAccessors = (
-  dimensions,
-  bands,
-  selector = {},
-  coordinates = {}
-) => {
-  if (Object.keys(selector).length === 0) {
-    return { [bands[0]]: (d) => d }
-  } else {
-    const bandInformation = getBandInformation(selector)
-    const result = bands.reduce((accessors, band) => {
-      const info = bandInformation[band]
-      accessors[band] = getPicker(dimensions, selector, info, coordinates)
-      return accessors
-    }, {})
-    return result
   }
 }
 

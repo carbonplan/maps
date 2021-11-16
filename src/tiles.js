@@ -17,7 +17,6 @@ import {
   getTilesOfRegion,
   getPyramidMetadata,
   getBands,
-  getAccessors,
   getSelectorHash,
   getValuesToSet,
   setObjectValues,
@@ -132,13 +131,6 @@ export const createTiles = (regl, opts) => {
               })
           )
         ).then(() => {
-          this.accessors = getAccessors(
-            this.dimensions,
-            this.bands,
-            selector,
-            this.coordinates
-          )
-
           levels.forEach((z) => {
             const loader = loaders[z + '/' + variable]
             this.loaders[z] = loader
@@ -312,18 +304,16 @@ export const createTiles = (regl, opts) => {
                 if (tile.getBufferCache() !== this.selectorHash) {
                   if (!tile.loading) {
                     const previousDataCache = tile.getDataCache()
-                    tile.loadChunks(chunks).then((data) => {
-                      this.bands.forEach((k) => {
-                        tile.buffers[k](this.accessors[k](data, this.selector))
-                      })
-                      tile.setBufferCache(this.selectorHash)
-                      this.invalidate()
+                    tile
+                      .populateBuffers(chunks, this.selector, this.selectorHash)
+                      .then(() => {
+                        this.invalidate()
 
-                      const shouldInvalidateRegion =
-                        previousDataCache &&
-                        previousDataCache !== tile.getDataCache()
-                      resolve(shouldInvalidateRegion)
-                    })
+                        const shouldInvalidateRegion =
+                          previousDataCache &&
+                          previousDataCache !== tile.getDataCache()
+                        resolve(shouldInvalidateRegion)
+                      })
                   }
                 }
               }

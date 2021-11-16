@@ -1,9 +1,9 @@
 import ndarray from 'ndarray'
+import { getBandInformation, getChunks, keyToTile } from './utils'
 
 class Tile {
   constructor({
     key,
-    buffers,
     loader,
     shape,
     chunks,
@@ -13,6 +13,7 @@ class Tile {
     initializeBuffer,
   }) {
     this.key = key
+    this.tileCoordinates = keyToTile(key)
 
     this.loading = false
     this.shape = shape
@@ -20,6 +21,7 @@ class Tile {
     this.dimensions = dimensions
     this.coordinates = coordinates
     this.buffers = {}
+    this.bands = bands
 
     bands.forEach((k) => {
       this.buffers[k] = initializeBuffer()
@@ -61,12 +63,54 @@ class Tile {
     )
     this.setReady(true)
     this.loading = false
-
-    return this.getData()
   }
 
-  async loadBuffers(chunks, selector) {
+  async populateBuffers(chunks, selector, cacheKey) {
     await this.loadChunks(chunks)
+
+    const bandInformation = getBandInformation(selector)
+
+    this.bands.forEach((band) => {
+      const info = bandInformation[band] || selector
+      const chunks = getChunks(
+        info,
+        this.dimensions,
+        this.coordinates,
+        this.shape,
+        this.chunks,
+        this.tileCoordinates[0],
+        this.tileCoordinates[1]
+      )
+      const chunk = chunks[0]
+      const chunkKey = chunk.join('.')
+      const data = this.chunkedData[chunkKey]
+
+      if (!data) {
+        throw new Error(`Missing data for chunk: ${chunkKey}`)
+      }
+      if (info) {
+        const indexes = this.dimensions
+          .map((d) => (['x', 'y'].includes(d) ? null : d))
+          .map((d, i) => {
+            if (info[d] === undefined) {
+              return null
+            } else {
+              const value = info[d]
+              return (
+                this.coordinates[d].findIndex(
+                  (coordinate) => coordinate === value
+                ) % this.chunks[i]
+              )
+            }
+          })
+
+        this.buffers[band](data.pick(...indexes))
+      } else {
+        this.buffers[band](data)
+      }
+    })
+
+    this.setBufferCache(cacheKey)
   }
 
   getBufferCache() {
