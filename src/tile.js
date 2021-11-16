@@ -1,14 +1,29 @@
 import ndarray from 'ndarray'
 
 class Tile {
-  constructor({ key, buffers, loader, shape, chunks, dimensions }) {
+  constructor({
+    key,
+    buffers,
+    loader,
+    shape,
+    chunks,
+    dimensions,
+    coordinates,
+    bands,
+    initializeBuffer,
+  }) {
     this.key = key
-    this.buffers = buffers
 
     this.loading = false
     this.shape = shape
     this.chunks = chunks
     this.dimensions = dimensions
+    this.coordinates = coordinates
+    this.buffers = {}
+
+    bands.forEach((k) => {
+      this.buffers[k] = initializeBuffer()
+    })
 
     this.chunkedData = {}
     this._cache = null
@@ -48,6 +63,10 @@ class Tile {
     this.loading = false
 
     return this.getData()
+  }
+
+  async loadBuffers(chunks, selector) {
+    await this.loadChunks(chunks)
   }
 
   getBufferCache() {

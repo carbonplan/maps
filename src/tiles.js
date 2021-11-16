@@ -119,60 +119,53 @@ export const createTiles = (regl, opts) => {
 
         this.ndim = this.dimensions.length
 
-        levels.forEach((z) => {
-          const loader = loaders[z + '/' + variable]
-          this.loaders[z] = loader
-          Array(Math.pow(2, z))
-            .fill(0)
-            .map((_, x) => {
-              Array(Math.pow(2, z))
-                .fill(0)
-                .map((_, y) => {
-                  const key = [x, y, z].join(',')
-                  const buffers = {}
-                  this.bands.forEach((k) => {
-                    buffers[k] = initialize()
-                  })
-                  this.tiles[key] = new Tile({
-                    key,
-                    buffers,
-                    loader,
-                    shape: this.shape,
-                    chunks: this.chunks,
-                    dimensions: this.dimensions,
-                  })
+        this.coordinates = {}
+        Promise.all(
+          Object.keys(selector).map(
+            (key) =>
+              new Promise((innerResolve) => {
+                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                  const coordinates = Array.from(chunk.data)
+                  this.coordinates[key] = coordinates
+                  innerResolve()
                 })
-            })
-        })
+              })
+          )
+        ).then(() => {
+          this.accessors = getAccessors(
+            this.dimensions,
+            this.bands,
+            selector,
+            this.coordinates
+          )
 
-        if (Object.keys(selector).length > 0) {
-          this.coordinates = {}
-          Promise.all(
-            Object.keys(selector).map(
-              (key) =>
-                new Promise((innerResolve) => {
-                  loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                    const coordinates = Array.from(chunk.data)
-                    this.coordinates[key] = coordinates
-                    innerResolve()
+          levels.forEach((z) => {
+            const loader = loaders[z + '/' + variable]
+            this.loaders[z] = loader
+            Array(Math.pow(2, z))
+              .fill(0)
+              .map((_, x) => {
+                Array(Math.pow(2, z))
+                  .fill(0)
+                  .map((_, y) => {
+                    const key = [x, y, z].join(',')
+                    this.tiles[key] = new Tile({
+                      key,
+                      loader,
+                      shape: this.shape,
+                      chunks: this.chunks,
+                      dimensions: this.dimensions,
+                      coordinates: this.coordinates,
+                      bands: this.bands,
+                      initializeBuffer: initialize,
+                    })
                   })
-                })
-            )
-          ).then(() => {
-            this.accessors = getAccessors(
-              this.dimensions,
-              this.bands,
-              selector,
-              this.coordinates
-            )
-            resolve(true)
-            this.invalidate()
+              })
           })
-        } else {
-          this.accessors = getAccessors(this.dimensions, this.bands, selector)
+
           resolve(true)
           this.invalidate()
-        }
+        })
       })
     })
 
@@ -302,7 +295,7 @@ export const createTiles = (regl, opts) => {
         Object.keys(this.active).map(
           (key) =>
             new Promise((resolve) => {
-              if (this.loaders[level] && this.accessors) {
+              if (this.loaders[level]) {
                 const tileIndex = keyToTile(key)
                 const tile = this.tiles[key]
 
