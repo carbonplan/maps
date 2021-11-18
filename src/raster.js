@@ -11,7 +11,7 @@ const Raster = (props) => {
     opacity = 1,
     clim,
     colormap,
-    setRegionData,
+    regionOptions = {},
     selector = {},
     uniforms = {},
   } = props
@@ -32,13 +32,13 @@ const Raster = (props) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
 
-    setRegionData({ loading: true })
+    regionOptions.setData({ value: null })
 
     const data = await tiles.current.queryRegion(r)
 
     // Invoke callback as long as a more recent query has not already been initiated
     if (lastQueried.current === queryStart) {
-      setRegionData({ loading: false, value: data })
+      regionOptions.setData({ value: data })
     }
   }
 
@@ -83,10 +83,10 @@ const Raster = (props) => {
   }, [colormap])
 
   useEffect(() => {
-    if (region && setRegionData) {
+    if (region && regionOptions?.setData) {
       queryRegion(region)
     }
-  }, [setRegionData, region, regionDataInvalidated])
+  }, [regionOptions?.setData, region, regionDataInvalidated])
 
   return null
 }

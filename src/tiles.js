@@ -35,6 +35,7 @@ export const createTiles = (regl, opts) => {
     variable,
     selector = {},
     uniforms: customUniforms = {},
+    regionOptions,
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
@@ -52,6 +53,7 @@ export const createTiles = (regl, opts) => {
     this.fillValue = fillValue
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
+    this.regionOptions = regionOptions
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -324,7 +326,27 @@ export const createTiles = (regl, opts) => {
       const tiles = getTilesOfRegion(region, this.level)
 
       await this.initialized
-      await Promise.all(tiles.map((key) => this.tiles[key].ready))
+
+      if (this.regionOptions.loadAllChunks) {
+        await Promise.all(
+          tiles.map((key) => {
+            const tileIndex = keyToTile(key)
+            const chunks = getChunks(
+              {},
+              this.dimensions,
+              this.coordinates,
+              this.shape,
+              this.chunks,
+              tileIndex[0],
+              tileIndex[1]
+            )
+
+            return this.tiles[key].loadChunks(chunks)
+          })
+        )
+      } else {
+        await Promise.all(tiles.map((key) => this.tiles[key].ready))
+      }
 
       let results,
         lat = [],
