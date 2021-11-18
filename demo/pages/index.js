@@ -64,7 +64,7 @@ const Index = () => {
             source={bucket + 'maps-demo/3d/tavg-month-chunked'}
             variable={'tavg'}
             selector={{ month }}
-            setRegionData={setRegionData}
+            regionOptions={{ setData: setRegionData, loadAllChunks: true }}
           />
           <RegionControls
             band={band}

@@ -2,8 +2,8 @@ import { Box, IconButton } from 'theme-ui'
 import { useRecenterRegion } from '@carbonplan/maps'
 import { XCircle } from '@carbonplan/icons'
 
-const AverageDisplay = ({ band, month, data: { loading, value } }) => {
-  if (loading) {
+const AverageDisplay = ({ band, month, data: { value } }) => {
+  if (!value) {
     return 'loading...'
   }
 
