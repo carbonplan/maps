@@ -1,4 +1,5 @@
 import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
+import { select } from 'd3-selection'
 
 const d2r = Math.PI / 180
 
@@ -129,7 +130,7 @@ export const getAncestorToRender = (targetKey, tiles) => {
   let [x, y, z] = keyToTile(targetKey)
   while (z >= 0) {
     const key = tileToKey([x, y, z])
-    if (tiles[key].cache.buffer) {
+    if (tiles[key].isBufferPopulated()) {
       return key
     }
     z--
@@ -152,7 +153,7 @@ export const getDescendantsToRender = (targetKey, tiles, maxZoom) => {
       }
     }
 
-    const coveringKeys = keys.filter((key) => tiles[key].cache.buffer)
+    const coveringKeys = keys.filter((key) => tiles[key].isBufferPopulated())
     const currentCoverage = coveringKeys.length / keys.length
 
     if (coverage === 1) {
@@ -263,7 +264,7 @@ export const getPyramidMetadata = (metadata) => {
  * @param {selector} Object of {[dimension]: dimensionValue|Array<dimensionValue>} pairs
  * @returns Object containing bandName, {[dimension]: dimensionValue} pairs
  */
-const getBandInformation = (selector) => {
+export const getBandInformation = (selector) => {
   const combinedBands = Object.keys(selector)
     .filter((key) => Array.isArray(selector[key]))
     .reduce((bandMapping, selectorKey) => {
@@ -308,49 +309,6 @@ export const getBands = (variable, selector = {}) => {
   }
 }
 
-const getPicker = (dimensions, selector, bandInfo, coordinates) => {
-  return (data, s) => {
-    const indexes = dimensions
-      .map((d) => (['x', 'y'].includes(d) ? null : d))
-      .map((d) => {
-        if (selector[d] === undefined) {
-          return null
-        } else {
-          let value
-          if (Array.isArray(selector[d])) {
-            // If the selector value is a fixed array, grab value from the band information
-            value = bandInfo[d]
-          } else {
-            // Otherwise index into the active selector, s
-            value = s[d]
-          }
-          return coordinates[d].findIndex((coordinate) => coordinate === value)
-        }
-      })
-
-    return data.pick(...indexes)
-  }
-}
-
-export const getAccessors = (
-  dimensions,
-  bands,
-  selector = {},
-  coordinates = {}
-) => {
-  if (Object.keys(selector).length === 0) {
-    return { [bands[0]]: (d) => d }
-  } else {
-    const bandInformation = getBandInformation(selector)
-    const result = bands.reduce((accessors, band) => {
-      const info = bandInformation[band]
-      accessors[band] = getPicker(dimensions, selector, info, coordinates)
-      return accessors
-    }, {})
-    return result
-  }
-}
-
 /**
  * Mutates a given object by adding `value` to array at nested location specified by `keys`
  * @param {obj} Object of any structure
@@ -379,9 +337,9 @@ export const setObjectValues = (obj, keys, value) => {
 
 /**
  * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
- * @param {data} ndarray
- * @param {x} number x coordinate at which to lookup values
- * @param {y} number y coordinate at which to lookup values
+ * @param {ndarray} data
+ * @param {number} x coordinate at which to lookup values
+ * @param {number} y coordinate at which to lookup values
  * @param {Array<string>} dimensions to iterate over
  * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
  * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
@@ -422,6 +380,56 @@ export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
 
 export const getSelectorHash = (selector) => {
   return JSON.stringify(selector)
+}
+
+export const getChunks = (
+  selector,
+  dimensions,
+  coordinates,
+  shape,
+  chunks,
+  x,
+  y
+) => {
+  const chunkIndicesToUse = dimensions.map((dimension, i) => {
+    if (dimension === 'x') {
+      return [x]
+    } else if (dimension === 'y') {
+      return [y]
+    }
+
+    const selectorValue = selector[dimension]
+    const coords = coordinates[dimension]
+    const chunkSize = chunks[i]
+    let indices
+    if (Array.isArray(selectorValue)) {
+      // Return all indices of selector value when array
+      indices = selectorValue.map((v) => coords.indexOf(v))
+    } else if (selectorValue) {
+      // Return index of single selector value otherwise when present
+      indices = [coords.indexOf(selectorValue)]
+    } else {
+      // Otherwise, vary over the entire shape of the dimension
+      indices = Array(shape[i])
+        .fill(null)
+        .map((_, j) => j)
+    }
+
+    return indices.map((index) => Math.floor(index / chunkSize))
+  })
+
+  let result = [[]]
+  chunkIndicesToUse.forEach((indices) => {
+    const updatedResult = []
+    indices.forEach((index) => {
+      result.forEach((prev) => {
+        updatedResult.push([...prev, index])
+      })
+    })
+    result = updatedResult
+  })
+
+  return result
 }
 
 export const getPositions = (size, mode) => {

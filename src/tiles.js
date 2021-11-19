@@ -17,11 +17,11 @@ import {
   getTilesOfRegion,
   getPyramidMetadata,
   getBands,
-  getAccessors,
-  getSelectorHash,
   getValuesToSet,
   setObjectValues,
+  getChunks,
 } from './utils'
+import Tile from './tile'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -35,10 +35,12 @@ export const createTiles = (regl, opts) => {
     variable,
     selector = {},
     uniforms: customUniforms = {},
+    regionOptions,
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
-    invalidate = () => {},
+    invalidate,
+    invalidateRegion,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -51,6 +53,7 @@ export const createTiles = (regl, opts) => {
     this.fillValue = fillValue
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
+    this.regionOptions = regionOptions
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -109,68 +112,53 @@ export const createTiles = (regl, opts) => {
           metadata.metadata[`${levels[0]}/${variable}/.zattrs`][
             '_ARRAY_DIMENSIONS'
           ]
+        this.shape =
+          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['shape']
+        this.chunks =
+          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['chunks']
+
         this.ndim = this.dimensions.length
 
-        levels.map((z) => {
-          Array(Math.pow(2, z))
-            .fill(0)
-            .map((_, x) => {
-              Array(Math.pow(2, z))
-                .fill(0)
-                .map((_, y) => {
-                  const key = [x, y, z].join(',')
-                  const buffers = {}
-                  const data = {}
-                  let setReady
-                  this.bands.forEach((k) => {
-                    buffers[k] = initialize()
-                  })
-                  this.tiles[key] = {
-                    cache: { data: false, buffer: false, selector: null },
-                    loading: false,
-                    ready: new Promise((resolve) => {
-                      setReady = resolve
-                    }),
-                    setReady: setReady,
-                    data: null,
-                    buffers: buffers,
-                  }
+        this.coordinates = {}
+        Promise.all(
+          Object.keys(selector).map(
+            (key) =>
+              new Promise((innerResolve) => {
+                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                  const coordinates = Array.from(chunk.data)
+                  this.coordinates[key] = coordinates
+                  innerResolve()
                 })
-            })
-        })
-
-        levels.forEach((z) => {
-          this.loaders[z] = loaders[z + '/' + variable]
-        })
-
-        if (Object.keys(selector).length > 0) {
-          this.coordinates = {}
-          Promise.all(
-            Object.keys(selector).map(
-              (key) =>
-                new Promise((innerResolve) => {
-                  loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                    const coordinates = Array.from(chunk.data)
-                    this.coordinates[key] = coordinates
-                    innerResolve()
+              })
+          )
+        ).then(() => {
+          levels.forEach((z) => {
+            const loader = loaders[z + '/' + variable]
+            this.loaders[z] = loader
+            Array(Math.pow(2, z))
+              .fill(0)
+              .map((_, x) => {
+                Array(Math.pow(2, z))
+                  .fill(0)
+                  .map((_, y) => {
+                    const key = [x, y, z].join(',')
+                    this.tiles[key] = new Tile({
+                      key,
+                      loader,
+                      shape: this.shape,
+                      chunks: this.chunks,
+                      dimensions: this.dimensions,
+                      coordinates: this.coordinates,
+                      bands: this.bands,
+                      initializeBuffer: initialize,
+                    })
                   })
-                })
-            )
-          ).then(() => {
-            this.accessors = getAccessors(
-              this.dimensions,
-              this.bands,
-              selector,
-              this.coordinates
-            )
-            resolve(true)
-            this.invalidate()
+              })
           })
-        } else {
-          this.accessors = getAccessors(this.dimensions, this.bands, selector)
+
           resolve(true)
           this.invalidate()
-        }
+        })
       })
     })
 
@@ -255,7 +243,7 @@ export const createTiles = (regl, opts) => {
 
           offsets.forEach((offset) => {
             accum.push({
-              ...tile.buffers,
+              ...tile.getBuffers(),
               level,
               offset,
             })
@@ -296,38 +284,46 @@ export const createTiles = (regl, opts) => {
         size: this.size,
       })
 
-      Object.keys(this.active).map((key) => {
-        if (this.loaders[level] && this.accessors) {
-          const tileIndex = keyToTile(key)
-          const tile = this.tiles[key]
-          const chunk = Array(this.ndim - 2)
-            .fill(0)
-            .concat([tileIndex[1], tileIndex[0]])
-          tile.ready = true
-          if (!tile.cache.data) {
-            if (!tile.loading) {
-              tile.loading = true
-              this.loaders[level](chunk, (err, data) => {
-                this.bands.forEach((k) => {
-                  tile.buffers[k](this.accessors[k](data, this.selector))
-                })
-                tile.data = data
-                tile.setReady(true)
-                tile.cache.data = true
-                tile.cache.buffer = true
-                tile.cache.selector = this.selectorHash
-                tile.loading = false
-                this.invalidate()
-              })
-            }
-          }
-          if (!(tile.cache.selector == this.selectorHash) && tile.cache.data) {
-            this.bands.forEach((k) => {
-              tile.buffers[k](this.accessors[k](tile.data, this.selector))
+      Promise.all(
+        Object.keys(this.active).map(
+          (key) =>
+            new Promise((resolve) => {
+              if (this.loaders[level]) {
+                const tileIndex = keyToTile(key)
+                const tile = this.tiles[key]
+
+                const chunks = getChunks(
+                  this.selector,
+                  this.dimensions,
+                  this.coordinates,
+                  this.shape,
+                  this.chunks,
+                  tileIndex[0],
+                  tileIndex[1]
+                )
+
+                if (!tile.hasPopulatedBuffer(this.selector)) {
+                  if (!tile.loading) {
+                    if (tile.hasLoadedChunks(chunks)) {
+                      tile.populateBuffersSync(this.selector)
+                      this.invalidate()
+                      resolve(false)
+                    } else {
+                      tile
+                        .populateBuffers(chunks, this.selector)
+                        .then((dataUpdated) => {
+                          this.invalidate()
+                          resolve(dataUpdated)
+                        })
+                    }
+                  }
+                }
+              }
             })
-            tile.cache.selector = this.selectorHash
-            this.invalidate()
-          }
+        )
+      ).then((results) => {
+        if (results.some(Boolean)) {
+          invalidateRegion()
         }
       })
     }
@@ -336,7 +332,27 @@ export const createTiles = (regl, opts) => {
       const tiles = getTilesOfRegion(region, this.level)
 
       await this.initialized
-      await Promise.all(tiles.map((key) => this.tiles[key].ready))
+
+      if (this.regionOptions.loadAllChunks) {
+        await Promise.all(
+          tiles.map((key) => {
+            const tileIndex = keyToTile(key)
+            const chunks = getChunks(
+              {},
+              this.dimensions,
+              this.coordinates,
+              this.shape,
+              this.chunks,
+              tileIndex[0],
+              tileIndex[1]
+            )
+
+            return this.tiles[key].loadChunks(chunks)
+          })
+        )
+      } else {
+        await Promise.all(tiles.map((key) => this.tiles[key].ready))
+      }
 
       let results,
         lat = [],
@@ -365,14 +381,12 @@ export const createTiles = (regl, opts) => {
               }
             )
             if (distanceToCenter < radius) {
-              const data = this.tiles[key].data
-
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
                 const valuesToSet = getValuesToSet(
-                  data,
+                  this.tiles[key].getData(),
                   i,
                   j,
                   this.dimensions,
@@ -405,7 +419,6 @@ export const createTiles = (regl, opts) => {
 
     this.updateSelector = ({ selector }) => {
       this.selector = selector
-      this.selectorHash = getSelectorHash(selector)
       this.invalidate()
     }
 
