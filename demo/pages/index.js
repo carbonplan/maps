@@ -61,9 +61,9 @@ const Index = () => {
             display={display}
             opacity={opacity}
             mode={'texture'}
-            source={bucket + 'maps-demo/3d/tavg-month-chunked'}
-            variable={'tavg'}
-            selector={{ month }}
+            source={bucket + 'maps-demo/4d/tavg-prec-month-chunked'}
+            variable={'climate'}
+            selector={{ band, month }}
             regionOptions={{ setData: setRegionData, loadAllChunks: true }}
           />
           <RegionControls
