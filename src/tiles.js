@@ -304,12 +304,18 @@ export const createTiles = (regl, opts) => {
 
                 if (!tile.hasPopulatedBuffer(this.selector)) {
                   if (!tile.loading) {
-                    tile
-                      .populateBuffers(chunks, this.selector)
-                      .then((dataUpdated) => {
-                        this.invalidate()
-                        resolve(dataUpdated)
-                      })
+                    if (tile.hasLoadedChunks(chunks)) {
+                      tile.populateBuffersSync(this.selector)
+                      this.invalidate()
+                      resolve(false)
+                    } else {
+                      tile
+                        .populateBuffers(chunks, this.selector)
+                        .then((dataUpdated) => {
+                          this.invalidate()
+                          resolve(dataUpdated)
+                        })
+                    }
                   }
                 }
               }

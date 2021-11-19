@@ -91,6 +91,12 @@ class Tile {
   async populateBuffers(chunks, selector) {
     const updated = await this.loadChunks(chunks)
 
+    this.populateBuffersSync(selector)
+
+    return updated
+  }
+
+  populateBuffersSync(selector) {
     const bandInformation = getBandInformation(selector)
 
     this.bands.forEach((band) => {
@@ -134,11 +140,14 @@ class Tile {
     })
 
     this._bufferCache = getSelectorHash(selector)
-    return updated
   }
 
   isBufferPopulated() {
     return !!this._bufferCache
+  }
+
+  hasLoadedChunks(chunks) {
+    return chunks.every((chunk) => this.chunkedData[chunk.join('.')])
   }
 
   hasPopulatedBuffer(selector) {
