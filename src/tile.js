@@ -110,6 +110,14 @@ class Tile {
         this.tileCoordinates[0],
         this.tileCoordinates[1]
       )
+
+      if (chunks.length !== 1) {
+        throw new Error(
+          `Expected 1 chunk for band '${band}', found ${
+            chunks.length
+          }: ${chunks.join(', ')}`
+        )
+      }
       const chunk = chunks[0]
       const chunkKey = chunk.join('.')
       const data = this.chunkedData[chunkKey]
@@ -151,7 +159,9 @@ class Tile {
   }
 
   hasPopulatedBuffer(selector) {
-    return this._bufferCache && this._bufferCache === getSelectorHash(selector)
+    return (
+      !!this._bufferCache && this._bufferCache === getSelectorHash(selector)
+    )
   }
 
   getData() {
@@ -165,7 +175,7 @@ class Tile {
     let data = this._data.value
     if (!data) {
       const size = this.shape.reduce((product, el) => product * el, 1)
-      data = ndarray(new Float32Array(size), this.shape)
+      data = ndarray(new Array(size).fill(null), this.shape)
     }
 
     keysToAdd.forEach((key) => {
