@@ -351,7 +351,7 @@ export const createTiles = (regl, opts) => {
           })
         )
       } else {
-        await Promise.all(tiles.map((key) => this.tiles[key].ready))
+        await Promise.all(tiles.map((key) => this.tiles[key].ready()))
       }
 
       let results,

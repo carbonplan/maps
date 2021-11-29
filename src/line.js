@@ -40,8 +40,8 @@ const Line = ({
   }, [id])
 
   useEffect(() => {
-    layerIdRef.current = layerId || uuidv4()
-    const { current: layerId } = layerIdRef
+    const layerId = layerIdRef.current || uuidv4()
+    layerIdRef.current = layerId
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {
       map.addLayer({
