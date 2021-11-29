@@ -39,7 +39,7 @@ export const createTiles = (regl, opts) => {
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
-    setLoading = () => {},
+    setLoading,
     invalidate,
     invalidateRegion,
   }) {
@@ -55,7 +55,8 @@ export const createTiles = (regl, opts) => {
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this.regionOptions = regionOptions
-    this.setLoading = setLoading
+    this._loading = false
+    this._setLoading = setLoading
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -270,6 +271,15 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
+    this.setLoading = (value) => {
+      if (!this._setLoading || value === this._loading) {
+        return
+      } else {
+        this._loading = value
+        this._setLoading(value)
+      }
+    }
+
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
@@ -327,9 +337,12 @@ export const createTiles = (regl, opts) => {
         )
       ).then((results) => {
         if (results.some(Boolean)) {
-          // Set loading=false when tiles have been updated with newly fetched data
-          this.setLoading(false)
           invalidateRegion()
+        }
+
+        if (Object.keys(this.active).every((key) => !this.tiles[key].loading)) {
+          // Set loading=false only when all active tiles are done loading
+          this.setLoading(false)
         }
       })
     }
