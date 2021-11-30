@@ -4,6 +4,7 @@ import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
+import { useSetLoading } from './loading'
 
 const Raster = (props) => {
   const {
@@ -22,6 +23,7 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
+  const { setLoading } = useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
@@ -45,6 +47,10 @@ const Raster = (props) => {
   useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
+      setLoading: (value) => {
+        props.setLoading && props.setLoading(value)
+        setLoading(value)
+      },
       invalidate: () => {
         map.triggerRepaint()
       },
