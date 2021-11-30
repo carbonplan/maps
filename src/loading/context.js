@@ -2,9 +2,11 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useReducer,
   useRef,
-  useState,
 } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 const LoadingContext = createContext({})
 
@@ -13,28 +15,42 @@ export const useLoadingContext = () => {
 }
 
 export const useSetLoading = () => {
-  const { values, setValue } = useLoadingContext()
-  const key = useRef(new Date().getTime())
+  const { values, dispatch } = useLoadingContext()
+  const key = useRef(uuidv4())
+
+  useEffect(() => {
+    return () => {
+      dispatch({ id: key.current, type: 'delete' })
+    }
+  }, [])
 
   const setLoading = useCallback(
     (value) => {
-      setValue(key.current, value)
+      dispatch({ id: key.current, value, type: 'set' })
     },
-    [key.current, setValue]
+    [key.current]
   )
 
   return { setLoading, loading: !!values[key.current] }
 }
 
-export const LoadingProvider = ({ children }) => {
-  const [loading, setLoading] = useState({})
-
-  const setValue = (key, value) => {
-    setLoading({ ...loading, [key]: value })
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'set':
+      return { ...state, [action.id]: action.value }
+    case 'delete':
+      const { [action.id]: removed, ...remaining } = state
+      return remaining
+    default:
+      throw new Error(`Unexpected action: ${action.type}`)
   }
+}
+
+export const LoadingProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, {})
 
   return (
-    <LoadingContext.Provider value={{ values: loading, setValue }}>
+    <LoadingContext.Provider value={{ values: state, dispatch }}>
       {children}
     </LoadingContext.Provider>
   )

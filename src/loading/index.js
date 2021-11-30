@@ -1,2 +1,2 @@
-export { LoadingProvider, useSetLoading } from './loading/context'
-export { LoadingUpdater } from './loading/loading-updater'
+export { LoadingProvider, useSetLoading } from './context'
+export { LoadingUpdater } from './loading-updater'
