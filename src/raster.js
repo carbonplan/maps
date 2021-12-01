@@ -67,6 +67,7 @@ const Raster = (props) => {
         depth: 1,
       })
       map.off('render', callback)
+      map.triggerRepaint()
     }
   }, [])
 
