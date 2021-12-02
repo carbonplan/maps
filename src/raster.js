@@ -11,7 +11,7 @@ const Raster = (props) => {
     opacity = 1,
     clim,
     colormap,
-    index = null,
+    index = 0,
     regionOptions = {},
     selector = {},
     uniforms = {},
