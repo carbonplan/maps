@@ -11,6 +11,7 @@ const Raster = (props) => {
     opacity = 1,
     clim,
     colormap,
+    index = 0,
     regionOptions = {},
     selector = {},
     uniforms = {},
@@ -69,7 +70,7 @@ const Raster = (props) => {
       map.off('render', callback)
       map.triggerRepaint()
     }
-  }, [])
+  }, [index])
 
   useEffect(() => {
     tiles.current.updateSelector({ selector })
