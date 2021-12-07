@@ -17,7 +17,6 @@ import {
   getTilesOfRegion,
   getPyramidMetadata,
   getBands,
-  getValuesToSet,
   setObjectValues,
   getChunks,
 } from './utils'
@@ -404,13 +403,7 @@ export const createTiles = (regl, opts) => {
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
-                const valuesToSet = getValuesToSet(
-                  this.tiles[key].getData(),
-                  i,
-                  j,
-                  this.dimensions,
-                  this.coordinates
-                )
+                const valuesToSet = this.tiles[key].getData({ x: i, y: j })
 
                 valuesToSet.forEach(({ keys, value }) => {
                   setObjectValues(results, keys, value)

@@ -348,52 +348,75 @@ describe('Tile', () => {
     })
 
     describe('getData()', () => {
-      it('returns null by default', () => {
+      it('returns empty array by default', () => {
         const tile = new Tile(defaults)
 
-        expect(tile.getData()).toBe(null)
+        expect(tile.getData({ x: 0, y: 0 })).toEqual([])
       })
 
-      it('returns ndarray with full shape of tile when at least one chunk has been loaded', async () => {
+      it('returns array containing array of {keys, value} pairs', async () => {
         const tile = new Tile(defaults)
 
         // Load 1st chunk
         await tile.loadChunks([[0, 0, 0]])
-        let result = tile.getData()
+        const result = tile.getData({ x: 0, y: 0 })
 
         expect(result).toBeDefined()
-        expect(result.shape).toEqual(defaults.shape)
-        expect(result.data).toHaveLength(10)
-        expect(result.data).toEqual([
-          '0,0,0-0',
-          '0,0,0-1',
-          '0,0,0-2',
-          '0,0,0-3',
-          '0,0,0-4',
-          null,
-          null,
-          null,
-          null,
-          null,
+        expect(result).toHaveLength(5)
+        expect(result).toEqual([
+          { keys: [1], value: '0,0,0-0' },
+          { keys: [2], value: '0,0,0-1' },
+          { keys: [3], value: '0,0,0-2' },
+          { keys: [4], value: '0,0,0-3' },
+          { keys: [5], value: '0,0,0-4' },
         ])
+      })
 
+      it('combines chunks when multiple are loaded', async () => {
+        const tile = new Tile(defaults)
+
+        // Load 1st chunk
+        await tile.loadChunks([[0, 0, 0]])
         // Load 2nd chunk
         await tile.loadChunks([[1, 0, 0]])
-        result = tile.getData()
+        const result = tile.getData({ x: 0, y: 0 })
 
-        expect(result.data).toHaveLength(10)
-        expect(result.data).toEqual([
-          '0,0,0-0',
-          '0,0,0-1',
-          '0,0,0-2',
-          '0,0,0-3',
-          '0,0,0-4',
-          '1,0,0-0',
-          '1,0,0-1',
-          '1,0,0-2',
-          '1,0,0-3',
-          '1,0,0-4',
+        expect(result).toHaveLength(10)
+        expect(result).toEqual([
+          { keys: [1], value: '0,0,0-0' },
+          { keys: [2], value: '0,0,0-1' },
+          { keys: [3], value: '0,0,0-2' },
+          { keys: [4], value: '0,0,0-3' },
+          { keys: [5], value: '0,0,0-4' },
+          { keys: [6], value: '1,0,0-0' },
+          { keys: [7], value: '1,0,0-1' },
+          { keys: [8], value: '1,0,0-2' },
+          { keys: [9], value: '1,0,0-3' },
+          { keys: [10], value: '1,0,0-4' },
         ])
+      })
+
+      it('returns values at specified x, y indices', async () => {
+        const tile = new Tile({
+          ...defaults,
+          loader: jest.fn().mockImplementation((chunk, cb) =>
+            cb(
+              null, // error
+              ndarray([1, 2, 3, 4], [2, 2])
+            )
+          ),
+          shape: [2, 2],
+          chunks: [2, 2],
+          dimensions: ['y', 'x'],
+          coordinates: {},
+        })
+
+        await tile.loadChunks([[0, 0]])
+
+        expect(tile.getData({ x: 0, y: 0 })).toEqual([{ keys: [], value: 1 }])
+        expect(tile.getData({ x: 1, y: 0 })).toEqual([{ keys: [], value: 2 }])
+        expect(tile.getData({ x: 0, y: 1 })).toEqual([{ keys: [], value: 3 }])
+        expect(tile.getData({ x: 1, y: 1 })).toEqual([{ keys: [], value: 4 }])
       })
     })
   })

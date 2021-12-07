@@ -164,55 +164,52 @@ class Tile {
     )
   }
 
-  getData() {
-    const keys = Object.keys(this.chunkedData)
-    const keysToAdd = keys.filter((key) => !this._data.chunkKeys.includes(key))
+  getData({ x, y }) {
+    const result = []
 
-    if (keysToAdd.length === 0) {
-      return this._data.value
-    }
-
-    let data = this._data.value
-    if (!data) {
-      const size = this.shape.reduce((product, el) => product * el, 1)
-      data = ndarray(new Array(size).fill(null), this.shape)
-    }
-
-    keysToAdd.forEach((key) => {
+    Object.keys(this.chunkedData).forEach((key) => {
       const chunk = key.split('.')
       const chunkData = this.chunkedData[key]
-      const result = this.chunks.reduce(
+      const combinedIndices = this.chunks.reduce(
         (accum, count, i) => {
-          const chunkOffset = ['x', 'y'].includes(this.dimensions[i])
-            ? 0
-            : chunk[i] * count
-          let updatedAccum = []
-          for (let j = 0; j < count; j++) {
-            const index = chunkOffset + j
-            updatedAccum = updatedAccum.concat(
-              accum.map((prev) => [...prev, index])
-            )
+          if (this.dimensions[i] === 'x') {
+            return accum.map((prev) => [...prev, x])
+          } else if (this.dimensions[i] === 'y') {
+            return accum.map((prev) => [...prev, y])
+          } else {
+            let updatedAccum = []
+
+            const chunkOffset = chunk[i] * count
+            for (let j = 0; j < count; j++) {
+              const index = chunkOffset + j
+              updatedAccum = updatedAccum.concat(
+                accum.map((prev) => [...prev, index])
+              )
+            }
+
+            return updatedAccum
           }
-          return updatedAccum
         },
         [[]]
       )
 
-      result.forEach((indices) => {
+      combinedIndices.forEach((indices) => {
+        const keys = indices
+          .filter((el, i) => this.coordinates[this.dimensions[i]])
+          .map((el, i) => this.coordinates[this.dimensions[i]][el])
         const chunkIndices = indices.map((el, i) =>
           ['x', 'y'].includes(this.dimensions[i])
             ? el
             : el - chunk[i] * this.chunks[i]
         )
-        const value = chunkData.get(...chunkIndices)
-        data.set(...indices, value)
+        result.push({
+          keys,
+          value: chunkData.get(...chunkIndices),
+        })
       })
     })
 
-    this._data.chunkKeys = keys
-    this._data.value = data
-
-    return data
+    return result
   }
 }
 
