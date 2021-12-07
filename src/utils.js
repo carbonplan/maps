@@ -335,49 +335,6 @@ export const setObjectValues = (obj, keys, value) => {
   return obj
 }
 
-/**
- * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
- * @param {ndarray} data
- * @param {number} x coordinate at which to lookup values
- * @param {number} y coordinate at which to lookup values
- * @param {Array<string>} dimensions to iterate over
- * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
- * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
- */
-export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
-  let keys = [[]]
-  let indexes = [[]]
-  dimensions.forEach((dimension) => {
-    if (dimension === 'x') {
-      // only update update indexes used for getting values
-      indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
-    } else if (dimension === 'y') {
-      // only update update indexes used for getting values
-      indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
-    } else {
-      const values = coordinates[dimension]
-      const updatedKeys = []
-      const updatedIndexes = []
-      values.forEach((value, i) => {
-        keys.forEach((prevKeys, j) => {
-          updatedKeys.push([...prevKeys, value])
-
-          const prevIndexes = indexes[j]
-          updatedIndexes.push([...prevIndexes, i])
-        })
-      })
-
-      keys = updatedKeys
-      indexes = updatedIndexes
-    }
-  })
-
-  return keys.map((key, i) => ({
-    keys: key,
-    value: data.get(...indexes[i]),
-  }))
-}
-
 export const getSelectorHash = (selector) => {
   return JSON.stringify(selector)
 }
