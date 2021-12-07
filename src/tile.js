@@ -1,4 +1,3 @@
-import ndarray from 'ndarray'
 import {
   getBandInformation,
   getChunks,
