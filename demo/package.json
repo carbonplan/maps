@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@carbonplan/colormaps": "^2.0.0",
+    "@carbonplan/colormaps": "^2.2.0",
     "@carbonplan/components": "^10.0.0",
     "@carbonplan/icons": "^1.0.0",
     "@carbonplan/maps": "^1.1.0",
