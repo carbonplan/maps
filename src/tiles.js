@@ -329,9 +329,9 @@ export const createTiles = (regl, opts) => {
     }
 
     this.queryRegion = async (region) => {
-      const tiles = getTilesOfRegion(region, this.level)
-
       await this.initialized
+
+      const tiles = getTilesOfRegion(region, this.level)
 
       if (this.regionOptions.loadAllChunks) {
         await Promise.all(
