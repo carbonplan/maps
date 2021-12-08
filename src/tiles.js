@@ -34,7 +34,6 @@ export const createTiles = (regl, opts) => {
     variable,
     selector = {},
     uniforms: customUniforms = {},
-    regionOptions,
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
@@ -53,7 +52,6 @@ export const createTiles = (regl, opts) => {
     this.fillValue = fillValue
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
-    this.regionOptions = regionOptions
     this._loading = false
     this._setLoading = setLoading
     this.colormap = regl.texture({
@@ -346,31 +344,36 @@ export const createTiles = (regl, opts) => {
       })
     }
 
-    this.queryRegion = async (region) => {
+    this.queryRegion = async (region, selectData = 'default') => {
       await this.initialized
 
       const tiles = getTilesOfRegion(region, this.level)
 
-      if (this.regionOptions.loadAllChunks) {
-        await Promise.all(
-          tiles.map((key) => {
-            const tileIndex = keyToTile(key)
-            const chunks = getChunks(
-              {},
-              this.dimensions,
-              this.coordinates,
-              this.shape,
-              this.chunks,
-              tileIndex[0],
-              tileIndex[1]
-            )
-
-            return this.tiles[key].loadChunks(chunks)
-          })
-        )
+      let selector
+      if (selectData === 'default') {
+        selector = this.selector
+      } else if (selectData === 'all') {
+        selector = {}
       } else {
-        await Promise.all(tiles.map((key) => this.tiles[key].ready()))
+        selector = selectData
       }
+
+      await Promise.all(
+        tiles.map((key) => {
+          const tileIndex = keyToTile(key)
+          const chunks = getChunks(
+            selector,
+            this.dimensions,
+            this.coordinates,
+            this.shape,
+            this.chunks,
+            tileIndex[0],
+            tileIndex[1]
+          )
+
+          return this.tiles[key].loadChunks(chunks)
+        })
+      )
 
       let results,
         lat = [],
@@ -403,7 +406,10 @@ export const createTiles = (regl, opts) => {
               lat.push(pointCoords[1])
 
               if (this.ndim > 2) {
-                const valuesToSet = this.tiles[key].getData({ x: i, y: j })
+                const valuesToSet = this.tiles[key].getPointValues({
+                  selector,
+                  point: [i, j],
+                })
 
                 valuesToSet.forEach(({ keys, value }) => {
                   setObjectValues(results, keys, value)

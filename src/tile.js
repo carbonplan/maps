@@ -163,22 +163,51 @@ class Tile {
     )
   }
 
-  getData({ x, y }) {
+  getPointValues({ selector, point: [x, y] }) {
     const result = []
+    const chunks = getChunks(
+      selector,
+      this.dimensions,
+      this.coordinates,
+      this.shape,
+      this.chunks,
+      this.tileCoordinates[0],
+      this.tileCoordinates[1]
+    )
 
-    Object.keys(this.chunkedData).forEach((key) => {
-      const chunk = key.split('.')
+    chunks.forEach((chunk) => {
+      const key = chunk.join('.')
       const chunkData = this.chunkedData[key]
+
+      if (!chunkData) {
+        throw new Error(`Missing data for chunk: ${key}`)
+      }
+
       const combinedIndices = this.chunks.reduce(
         (accum, count, i) => {
-          if (this.dimensions[i] === 'x') {
+          const dimension = this.dimensions[i]
+          const chunkOffset = chunk[i] * count
+
+          if (dimension === 'x') {
             return accum.map((prev) => [...prev, x])
-          } else if (this.dimensions[i] === 'y') {
+          } else if (dimension === 'y') {
             return accum.map((prev) => [...prev, y])
+          } else if (selector.hasOwnProperty(dimension)) {
+            const selectorValues = Array.isArray(selector[dimension])
+              ? selector[dimension]
+              : [selector[dimension]]
+            const selectorIndices = selectorValues
+              .map((value) => this.coordinates[dimension].indexOf(value))
+              .filter(
+                (index) => chunkOffset <= index && index < chunkOffset + count
+              )
+
+            return selectorIndices.reduce((a, index) => {
+              return a.concat(accum.map((prev) => [...prev, index]))
+            }, [])
           } else {
             let updatedAccum = []
 
-            const chunkOffset = chunk[i] * count
             for (let j = 0; j < count; j++) {
               const index = chunkOffset + j
               updatedAccum = updatedAccum.concat(

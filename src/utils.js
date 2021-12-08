@@ -372,7 +372,12 @@ export const getChunks = (
         .map((_, j) => j)
     }
 
-    return indices.map((index) => Math.floor(index / chunkSize))
+    return (
+      indices
+        .map((index) => Math.floor(index / chunkSize))
+        // Filter out repeated instances of indices
+        .filter((v, i, a) => a.indexOf(v) === i)
+    )
   })
 
   let result = [[]]

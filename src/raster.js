@@ -31,13 +31,13 @@ const Raster = (props) => {
 
   camera.current = { center: center, zoom: zoom }
 
-  const queryRegion = async (r) => {
+  const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
 
     regionOptions.setData({ value: null })
 
-    const data = await tiles.current.queryRegion(r)
+    const data = await tiles.current.queryRegion(r, s)
 
     // Invoke callback as long as a more recent query has not already been initiated
     if (lastQueried.current === queryStart) {
@@ -92,9 +92,14 @@ const Raster = (props) => {
 
   useEffect(() => {
     if (region && regionOptions?.setData) {
-      queryRegion(region)
+      queryRegion(region, regionOptions.selectData)
     }
-  }, [regionOptions?.setData, region, regionDataInvalidated])
+  }, [
+    regionOptions?.setData,
+    regionOptions?.selectData,
+    region,
+    regionDataInvalidated,
+  ])
 
   return null
 }
