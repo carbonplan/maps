@@ -412,6 +412,32 @@ describe('Tile', () => {
       })
 
       it('handles empty selectors', async () => {
+        const selector = {}
+        const tile = new Tile({
+          ...defaults,
+          loader: jest.fn().mockImplementation((chunk, cb) =>
+            cb(
+              null, // error
+              ndarray([1, 2, 3, 4], [4, 1, 1])
+            )
+          ),
+          shape: [4, 1, 1],
+          chunks: [4, 1, 1],
+          dimensions: ['band', 'y', 'x'],
+          coordinates: { band: ['a', 'b', 'c', 'd'] },
+        })
+
+        await tile.loadChunks([[0, 0, 0]])
+
+        expect(tile.getPointValues({ selector, point: [0, 0] })).toEqual([
+          { keys: ['a'], value: 1 },
+          { keys: ['b'], value: 2 },
+          { keys: ['c'], value: 3 },
+          { keys: ['d'], value: 4 },
+        ])
+      })
+
+      it('handles empty selectors over multiple chunks', async () => {
         const tile = new Tile(defaults)
 
         // Load 1st chunk
