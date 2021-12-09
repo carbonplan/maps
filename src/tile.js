@@ -223,7 +223,14 @@ class Tile {
 
       combinedIndices.forEach((indices) => {
         const keys = indices
-          .filter((el, i) => this.coordinates[this.dimensions[i]])
+          .filter((el, i) => {
+            const coordinates = this.coordinates[this.dimensions[i]]
+            const selectorValue = selector[this.dimensions[i]]
+            return (
+              coordinates &&
+              (Array.isArray(selectorValue) || selectorValue == undefined)
+            )
+          })
           .map((el, i) => this.coordinates[this.dimensions[i]][el])
         const chunkIndices = indices.map((el, i) =>
           ['x', 'y'].includes(this.dimensions[i])

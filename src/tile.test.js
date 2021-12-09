@@ -368,7 +368,7 @@ describe('Tile', () => {
         })
 
         expect(result).toHaveLength(1)
-        expect(result).toEqual([{ keys: [1], value: '0,0,0-0' }])
+        expect(result).toEqual([{ keys: [], value: '0,0,0-0' }])
       })
 
       it('handles array selector values', async () => {
@@ -377,13 +377,20 @@ describe('Tile', () => {
         // Load 1st chunk
         await tile.loadChunks([[0, 0, 0]])
 
-        const result = tile.getPointValues({
-          selector: { year: [1, 2, 3, 4, 5] },
-          point: [0, 0],
-        })
-
-        expect(result).toHaveLength(5)
-        expect(result).toEqual([
+        // Still includes keys when selector value has length 1
+        expect(
+          tile.getPointValues({
+            selector: { year: [1] },
+            point: [0, 0],
+          })
+        ).toEqual([{ keys: [1], value: '0,0,0-0' }])
+        // Also includes keys when selector value has length > 1
+        expect(
+          tile.getPointValues({
+            selector: { year: [1, 2, 3, 4, 5] },
+            point: [0, 0],
+          })
+        ).toEqual([
           { keys: [1], value: '0,0,0-0' },
           { keys: [2], value: '0,0,0-1' },
           { keys: [3], value: '0,0,0-2' },
