@@ -362,7 +362,7 @@ export const getChunks = (
     if (Array.isArray(selectorValue)) {
       // Return all indices of selector value when array
       indices = selectorValue.map((v) => coords.indexOf(v))
-    } else if (selectorValue) {
+    } else if (selectorValue != undefined) {
       // Return index of single selector value otherwise when present
       indices = [coords.indexOf(selectorValue)]
     } else {
