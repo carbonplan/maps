@@ -39,6 +39,7 @@ export const createTiles = (regl, opts) => {
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
+    setLoading,
     invalidate,
     invalidateRegion,
   }) {
@@ -54,6 +55,8 @@ export const createTiles = (regl, opts) => {
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this.regionOptions = regionOptions
+    this._loading = false
+    this._setLoading = setLoading
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -268,6 +271,15 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
+    this.setLoading = (value) => {
+      if (!this._setLoading || value === this._loading) {
+        return
+      } else {
+        this._loading = value
+        this._setLoading(value)
+      }
+    }
+
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
@@ -301,22 +313,24 @@ export const createTiles = (regl, opts) => {
                   tileIndex[0],
                   tileIndex[1]
                 )
+                if (tile.hasPopulatedBuffer(this.selector) || tile.loading) {
+                  resolve(false)
+                  return
+                }
 
-                if (!tile.hasPopulatedBuffer(this.selector)) {
-                  if (!tile.loading) {
-                    if (tile.hasLoadedChunks(chunks)) {
-                      tile.populateBuffersSync(this.selector)
+                if (tile.hasLoadedChunks(chunks)) {
+                  tile.populateBuffersSync(this.selector)
+                  this.invalidate()
+                  resolve(false)
+                } else {
+                  // Set loading=true if any tile data is not yet fetched
+                  this.setLoading(true)
+                  tile
+                    .populateBuffers(chunks, this.selector)
+                    .then((dataUpdated) => {
                       this.invalidate()
-                      resolve(false)
-                    } else {
-                      tile
-                        .populateBuffers(chunks, this.selector)
-                        .then((dataUpdated) => {
-                          this.invalidate()
-                          resolve(dataUpdated)
-                        })
-                    }
-                  }
+                      resolve(dataUpdated)
+                    })
                 }
               }
             })
@@ -324,6 +338,11 @@ export const createTiles = (regl, opts) => {
       ).then((results) => {
         if (results.some(Boolean)) {
           invalidateRegion()
+        }
+
+        if (Object.keys(this.active).every((key) => !this.tiles[key].loading)) {
+          // Set loading=false only when all active tiles are done loading
+          this.setLoading(false)
         }
       })
     }
