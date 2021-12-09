@@ -344,20 +344,12 @@ export const createTiles = (regl, opts) => {
       })
     }
 
-    this.queryRegion = async (region, selectData = 'default') => {
+    this.queryRegion = async (region, customSelector) => {
       await this.initialized
 
       const tiles = getTilesOfRegion(region, this.level)
 
-      let selector
-      if (selectData === 'default') {
-        selector = this.selector
-      } else if (selectData === 'all') {
-        selector = {}
-      } else {
-        selector = selectData
-      }
-
+      const selector = customSelector || this.selector
       await Promise.all(
         tiles.map((key) => {
           const tileIndex = keyToTile(key)
