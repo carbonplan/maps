@@ -344,12 +344,11 @@ export const createTiles = (regl, opts) => {
       })
     }
 
-    this.queryRegion = async (region, customSelector) => {
+    this.queryRegion = async (region, selector) => {
       await this.initialized
 
       const tiles = getTilesOfRegion(region, this.level)
 
-      const selector = customSelector || this.selector
       await Promise.all(
         tiles.map((key) => {
           const tileIndex = keyToTile(key)
@@ -370,7 +369,10 @@ export const createTiles = (regl, opts) => {
       let results,
         lat = [],
         lon = []
-      if (this.ndim > 2) {
+      const resultDim =
+        this.ndim -
+        Object.keys(selector).filter((k) => !Array.isArray(selector[k])).length
+      if (resultDim > 2) {
         results = {}
       } else {
         results = []
@@ -404,7 +406,11 @@ export const createTiles = (regl, opts) => {
                 })
 
                 valuesToSet.forEach(({ keys, value }) => {
-                  setObjectValues(results, keys, value)
+                  if (keys.length > 0) {
+                    setObjectValues(results, keys, value)
+                  } else {
+                    results.push(value)
+                  }
                 })
               } else {
                 results.push(data.get(j, i))

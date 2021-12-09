@@ -92,13 +92,14 @@ const Raster = (props) => {
 
   useEffect(() => {
     if (region && regionOptions?.setData) {
-      queryRegion(region, regionOptions.selector)
+      queryRegion(region, regionOptions.selector || selector)
     }
   }, [
     regionOptions?.setData,
-    regionOptions?.selector,
     region,
     regionDataInvalidated,
+    ...Object.values(regionOptions?.selector || {}),
+    ...Object.values(selector),
   ])
 
   return null
