@@ -347,52 +347,156 @@ describe('Tile', () => {
       })
     })
 
-    describe('getData()', () => {
-      it('returns null by default', () => {
+    describe('getPointValues()', () => {
+      it('throws when requesting data for chunk not yet loaded', () => {
         const tile = new Tile(defaults)
 
-        expect(tile.getData()).toBe(null)
+        expect(() =>
+          tile.getPointValues({ selector: { year: 1 }, point: [0, 0] })
+        ).toThrow('Missing data for chunk: 0.0.0')
       })
 
-      it('returns ndarray with full shape of tile when at least one chunk has been loaded', async () => {
+      it('handles single selector values', async () => {
         const tile = new Tile(defaults)
 
         // Load 1st chunk
         await tile.loadChunks([[0, 0, 0]])
-        let result = tile.getData()
 
-        expect(result).toBeDefined()
-        expect(result.shape).toEqual(defaults.shape)
-        expect(result.data).toHaveLength(10)
-        expect(result.data).toEqual([
-          '0,0,0-0',
-          '0,0,0-1',
-          '0,0,0-2',
-          '0,0,0-3',
-          '0,0,0-4',
-          null,
-          null,
-          null,
-          null,
-          null,
+        const result = tile.getPointValues({
+          selector: { year: 1 },
+          point: [0, 0],
+        })
+
+        expect(result).toHaveLength(1)
+        expect(result).toEqual([{ keys: [], value: '0,0,0-0' }])
+      })
+
+      it('handles array selector values', async () => {
+        const tile = new Tile(defaults)
+
+        // Load 1st chunk
+        await tile.loadChunks([[0, 0, 0]])
+
+        // Still includes keys when selector value has length 1
+        expect(
+          tile.getPointValues({
+            selector: { year: [1] },
+            point: [0, 0],
+          })
+        ).toEqual([{ keys: [1], value: '0,0,0-0' }])
+        // Also includes keys when selector value has length > 1
+        expect(
+          tile.getPointValues({
+            selector: { year: [1, 2, 3, 4, 5] },
+            point: [0, 0],
+          })
+        ).toEqual([
+          { keys: [1], value: '0,0,0-0' },
+          { keys: [2], value: '0,0,0-1' },
+          { keys: [3], value: '0,0,0-2' },
+          { keys: [4], value: '0,0,0-3' },
+          { keys: [5], value: '0,0,0-4' },
         ])
+      })
 
+      it('combines chunks when multiple are loaded', async () => {
+        const tile = new Tile(defaults)
+
+        // Load 1st chunk
+        await tile.loadChunks([[0, 0, 0]])
         // Load 2nd chunk
         await tile.loadChunks([[1, 0, 0]])
-        result = tile.getData()
+        const result = tile.getPointValues({
+          selector: { year: [1, 6] },
+          point: [0, 0],
+        })
 
-        expect(result.data).toHaveLength(10)
-        expect(result.data).toEqual([
-          '0,0,0-0',
-          '0,0,0-1',
-          '0,0,0-2',
-          '0,0,0-3',
-          '0,0,0-4',
-          '1,0,0-0',
-          '1,0,0-1',
-          '1,0,0-2',
-          '1,0,0-3',
-          '1,0,0-4',
+        expect(result).toHaveLength(2)
+        expect(result).toEqual([
+          { keys: [1], value: '0,0,0-0' },
+          { keys: [6], value: '1,0,0-0' },
+        ])
+      })
+
+      it('handles empty selectors', async () => {
+        const selector = {}
+        const tile = new Tile({
+          ...defaults,
+          loader: jest.fn().mockImplementation((chunk, cb) =>
+            cb(
+              null, // error
+              ndarray([1, 2, 3, 4], [4, 1, 1])
+            )
+          ),
+          shape: [4, 1, 1],
+          chunks: [4, 1, 1],
+          dimensions: ['band', 'y', 'x'],
+          coordinates: { band: ['a', 'b', 'c', 'd'] },
+        })
+
+        await tile.loadChunks([[0, 0, 0]])
+
+        expect(tile.getPointValues({ selector, point: [0, 0] })).toEqual([
+          { keys: ['a'], value: 1 },
+          { keys: ['b'], value: 2 },
+          { keys: ['c'], value: 3 },
+          { keys: ['d'], value: 4 },
+        ])
+      })
+
+      it('handles empty selectors over multiple chunks', async () => {
+        const tile = new Tile(defaults)
+
+        // Load 1st chunk
+        await tile.loadChunks([[0, 0, 0]])
+        // Load 2nd chunk
+        await tile.loadChunks([[1, 0, 0]])
+        const result = tile.getPointValues({ selector: {}, point: [0, 0] })
+
+        expect(result).toHaveLength(10)
+        expect(result).toEqual([
+          { keys: [1], value: '0,0,0-0' },
+          { keys: [2], value: '0,0,0-1' },
+          { keys: [3], value: '0,0,0-2' },
+          { keys: [4], value: '0,0,0-3' },
+          { keys: [5], value: '0,0,0-4' },
+          { keys: [6], value: '1,0,0-0' },
+          { keys: [7], value: '1,0,0-1' },
+          { keys: [8], value: '1,0,0-2' },
+          { keys: [9], value: '1,0,0-3' },
+          { keys: [10], value: '1,0,0-4' },
+        ])
+      })
+
+      it('returns values at specified x, y indices', async () => {
+        const selector = {}
+        const tile = new Tile({
+          ...defaults,
+          loader: jest.fn().mockImplementation((chunk, cb) =>
+            cb(
+              null, // error
+              ndarray([1, 2, 3, 4], [2, 2])
+            )
+          ),
+          shape: [2, 2],
+          chunks: [2, 2],
+          dimensions: ['y', 'x'],
+          coordinates: {},
+        })
+
+        await tile.loadChunks([[0, 0]])
+
+        expect(tile.getPointValues({ selector, point: [0, 0] })).toEqual([
+          { keys: [], value: 1 },
+        ])
+        expect(tile.getPointValues({ selector, point: [1, 0] })).toEqual([
+          { keys: [], value: 2 },
+        ])
+        expect(tile.getPointValues({ selector, point: [0, 1] })).toEqual([
+          { keys: [], value: 3 },
+        ])
+        expect(tile.getPointValues({ selector, point: [1, 1] })).toEqual([
+          { keys: [], value: 4 },
         ])
       })
     })

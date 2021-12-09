@@ -1,4 +1,3 @@
-import ndarray from 'ndarray'
 import {
   getBandInformation,
   getChunks,
@@ -164,55 +163,91 @@ class Tile {
     )
   }
 
-  getData() {
-    const keys = Object.keys(this.chunkedData)
-    const keysToAdd = keys.filter((key) => !this._data.chunkKeys.includes(key))
+  getPointValues({ selector, point: [x, y] }) {
+    const result = []
+    const chunks = getChunks(
+      selector,
+      this.dimensions,
+      this.coordinates,
+      this.shape,
+      this.chunks,
+      this.tileCoordinates[0],
+      this.tileCoordinates[1]
+    )
 
-    if (keysToAdd.length === 0) {
-      return this._data.value
-    }
-
-    let data = this._data.value
-    if (!data) {
-      const size = this.shape.reduce((product, el) => product * el, 1)
-      data = ndarray(new Array(size).fill(null), this.shape)
-    }
-
-    keysToAdd.forEach((key) => {
-      const chunk = key.split('.')
+    chunks.forEach((chunk) => {
+      const key = chunk.join('.')
       const chunkData = this.chunkedData[key]
-      const result = this.chunks.reduce(
+
+      if (!chunkData) {
+        throw new Error(`Missing data for chunk: ${key}`)
+      }
+
+      const combinedIndices = this.chunks.reduce(
         (accum, count, i) => {
-          const chunkOffset = ['x', 'y'].includes(this.dimensions[i])
-            ? 0
-            : chunk[i] * count
-          let updatedAccum = []
-          for (let j = 0; j < count; j++) {
-            const index = chunkOffset + j
-            updatedAccum = updatedAccum.concat(
-              accum.map((prev) => [...prev, index])
-            )
+          const dimension = this.dimensions[i]
+          const chunkOffset = chunk[i] * count
+
+          if (dimension === 'x') {
+            return accum.map((prev) => [...prev, x])
+          } else if (dimension === 'y') {
+            return accum.map((prev) => [...prev, y])
+          } else if (selector.hasOwnProperty(dimension)) {
+            const selectorValues = Array.isArray(selector[dimension])
+              ? selector[dimension]
+              : [selector[dimension]]
+            const selectorIndices = selectorValues
+              .map((value) => this.coordinates[dimension].indexOf(value))
+              .filter(
+                (index) => chunkOffset <= index && index < chunkOffset + count
+              )
+
+            return selectorIndices.reduce((a, index) => {
+              return a.concat(accum.map((prev) => [...prev, index]))
+            }, [])
+          } else {
+            let updatedAccum = []
+
+            for (let j = 0; j < count; j++) {
+              const index = chunkOffset + j
+              updatedAccum = updatedAccum.concat(
+                accum.map((prev) => [...prev, index])
+              )
+            }
+
+            return updatedAccum
           }
-          return updatedAccum
         },
         [[]]
       )
 
-      result.forEach((indices) => {
+      combinedIndices.forEach((indices) => {
+        const keys = indices.reduce((accum, el, i) => {
+          const coordinates = this.coordinates[this.dimensions[i]]
+          const selectorValue = selector[this.dimensions[i]]
+
+          if (
+            coordinates &&
+            (Array.isArray(selectorValue) || selectorValue == undefined)
+          ) {
+            accum.push(coordinates[el])
+          }
+
+          return accum
+        }, [])
         const chunkIndices = indices.map((el, i) =>
           ['x', 'y'].includes(this.dimensions[i])
             ? el
             : el - chunk[i] * this.chunks[i]
         )
-        const value = chunkData.get(...chunkIndices)
-        data.set(...indices, value)
+        result.push({
+          keys,
+          value: chunkData.get(...chunkIndices),
+        })
       })
     })
 
-    this._data.chunkKeys = keys
-    this._data.value = data
-
-    return data
+    return result
   }
 }
 
