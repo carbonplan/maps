@@ -399,22 +399,18 @@ export const createTiles = (regl, opts) => {
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
 
-              if (this.ndim > 2) {
-                const valuesToSet = this.tiles[key].getPointValues({
-                  selector,
-                  point: [i, j],
-                })
+              const valuesToSet = this.tiles[key].getPointValues({
+                selector,
+                point: [i, j],
+              })
 
-                valuesToSet.forEach(({ keys, value }) => {
-                  if (keys.length > 0) {
-                    setObjectValues(results, keys, value)
-                  } else {
-                    results.push(value)
-                  }
-                })
-              } else {
-                results.push(data.get(j, i))
-              }
+              valuesToSet.forEach(({ keys, value }) => {
+                if (keys.length > 0) {
+                  setObjectValues(results, keys, value)
+                } else {
+                  results.push(value)
+                }
+              })
             }
           }
         }
