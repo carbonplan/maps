@@ -419,8 +419,32 @@ export const createTiles = (regl, opts) => {
       const out = { [this.variable]: results }
 
       if (this.ndim > 2) {
-        out.dimensions = [...Object.keys(this.coordinates), 'lat', 'lon']
-        out.coordinates = { ...this.coordinates, lat, lon }
+        out.dimensions = this.dimensions.map((d) => {
+          if (d === 'x') {
+            return 'lon'
+          } else if (d === 'y') {
+            return 'lat'
+          } else {
+            return d
+          }
+        })
+
+        out.coordinates = this.dimensions.reduce(
+          (coords, d) => {
+            if (d !== 'x' && d !== 'y') {
+              if (selector.hasOwnProperty(d)) {
+                coords[d] = Array.isArray(selector[d])
+                  ? selector[d]
+                  : [selector[d]]
+              } else {
+                coords[d] = this.coordinates[d]
+              }
+            }
+
+            return coords
+          },
+          { lat, lon }
+        )
       } else {
         out.dimensions = ['lat', 'lon']
         out.coordinates = { lat, lon }
