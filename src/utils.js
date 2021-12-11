@@ -249,12 +249,31 @@ export const getTilesOfRegion = (region, level) => {
 }
 
 export const getPyramidMetadata = (metadata) => {
-  const kwargs = metadata.metadata['.zattrs'].multiscales[0].metadata.kwargs
-  const maxZoom = kwargs.levels - 1
-  const levels = Array(maxZoom + 1)
-    .fill()
-    .map((_, i) => i)
-  const tileSize = kwargs.pixels_per_tile
+  const multiscales = metadata.metadata['.zattrs'].multiscales
+
+  if (!multiscales) {
+    throw new Error(
+      'Missing `multiscales` value in .zattrs. Please check your pyramid generation code.'
+    )
+  }
+
+  const datasets = multiscales[0].datasets
+
+  if (!datasets || datasets.length === 0) {
+    throw new Error(
+      'No datasets provided in `multiscales` metadata. Please check your pyramid generation code.'
+    )
+  }
+
+  const levels = datasets.map((dataset) => Number(dataset.path))
+  const maxZoom = Math.max(...levels)
+  const tileSize = datasets[0].pixels_per_tile
+
+  if (!tileSize) {
+    throw new Error(
+      'Missing required `pixels_per_tile` value in `multiscales` metadata. Please check your pyramid generation code.'
+    )
+  }
   return { levels, maxZoom, tileSize }
 }
 
