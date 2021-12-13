@@ -124,6 +124,8 @@ class Tile {
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
       }
+
+      let bandData = data
       if (info) {
         const indices = this.dimensions
           .map((d) => (['x', 'y'].includes(d) ? null : d))
@@ -140,10 +142,15 @@ class Tile {
             }
           })
 
-        this._buffers[band](data.pick(...indices))
-      } else {
-        this._buffers[band](data)
+        bandData = data.pick(...indices)
       }
+
+      if (bandData.dimension !== 2) {
+        throw new Error(
+          `Unexpected data dimensions for band: ${band}. Found ${bandData.dimension}, expected 2. Check the selector value.`
+        )
+      }
+      this._buffers[band](bandData)
     })
 
     this._bufferCache = getSelectorHash(selector)
