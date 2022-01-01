@@ -1,6 +1,12 @@
 import zarr from 'zarr-js'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
+let GeoTIFF;
+try {
+  GeoTIFF = require('geotiff');
+} catch (err) {
+  GeoTIFF = null;
+}
 
 import { vert, frag } from './shaders'
 import {
@@ -36,6 +42,7 @@ export const createTiles = (regl, opts) => {
     selector = {},
     uniforms: customUniforms = {},
     regionOptions,
+    type = 'zarr',
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
@@ -54,6 +61,7 @@ export const createTiles = (regl, opts) => {
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this.regionOptions = regionOptions
+    this.type = type
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -95,7 +103,109 @@ export const createTiles = (regl, opts) => {
 
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
+    this.loadCog = (source, resolve) => {
+      GeoTIFF.fromUrl(source).then(async (tiff) => {
+        const image = await tiff.getImage();
+        const width = image.getWidth();
+        const height = image.getHeight();
+        const tileWidth = image.getTileWidth();
+        const tileHeight = image.getTileHeight();
+        // Assumption
+        const tileSize = tileWidth;
+        // Review: How do we want
+        const imageCount = await tiff.getImageCount();
+        const levels = Array.from(Array(imageCount).keys());
+        // you'll have square the factor number of tiles.
+        // Zoom level 1 has 4 tiles, so we split the height in 2 and width in 2.
+        // Zoom level 2 has 16 tiles so we split the height in 4 and width in 4.
+        // Zoom level 3 has 64 tiles so we split the height in 8 and the width in 8.
+        const factors = levels.map(z => Math.pow(2, z));
+
+        this.maxZoom = imageCount - 1;
+        const position = getPositions(tileSize, mode);
+        this.position = regl.buffer(position)
+        this.size = tileSize
+        if (mode === 'grid' || mode === 'dotgrid') {
+          this.count = position.length
+        }
+        if (mode === 'texture') {
+          this.count = 6
+        }
+        // in future versions this might have a selector for different bands
+        this.dimensions = ['x', 'y'];
+        this.shape = [tileWidth, tileHeight];
+        this.chunks = this.shape;
+        this.ndim = this.dimensions.length
+
+        this.coordinates = {}
+
+        Promise.all(
+          Object.keys(selector).map(
+            (key) =>
+            new Promise((innerResolve) => {
+              loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                const coordinates = Array.from(chunk.data)
+                this.coordinates[key] = coordinates
+                innerResolve()
+              })
+            })
+            )
+            ).then(() => {
+              levels.forEach((z) => {
+                Array(Math.pow(2, z))
+                .fill(0)
+                .map((_, x) => {
+                  Array(Math.pow(2, z))
+                  .fill(0)
+                  .map((_, y) => {
+                    const key = [x, y, z].join(',');
+
+                    const factor = factors[z];
+                    const widthChunk = width / factor;
+                    const heightChunk = height / factor;
+                    const xStart = x * widthChunk;
+                    const yStart = y * heightChunk;
+                    const xOffset = xStart + widthChunk
+                    const yOffset = yStart + heightChunk
+                    const imgWindow = [ xStart, yStart, xOffset, yOffset ];
+                    const loader = async (k, cb) => {
+                      let data;
+                      await tiff.readRasters({
+                        window: imgWindow,
+                        width: tileWidth,
+                        height: tileHeight,
+                        resampleMethod: 'nearest'
+                      }).then((tiffData) => {
+                        data = ndarray(Float32Array.from(tiffData[0]), this.shape)
+                      })
+                      return cb(null, data)
+                    };
+                    this.loaders[z] = loader;
+
+                    this.tiles[key] = new Tile({
+                      key,
+                      loader,
+                      shape: this.shape,
+                      chunks: this.chunks,
+                      dimensions: this.dimensions,
+                      coordinates: this.coordinates,
+                      bands: this.bands,
+                      initializeBuffer: initialize,
+                    })
+                  })
+                })
+              })
+
+              resolve(true)
+              this.invalidate()
+            })
+          })
+        }
+
     this.initialized = new Promise((resolve) => {
+      if (this.type === 'cog') {
+        return this.loadCog(source, resolve)
+      }
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom

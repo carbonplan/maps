@@ -116,3 +116,49 @@ All the original code in this repository is [MIT](https://choosealicense.com/lic
 ## about us
 
 CarbonPlan is a non-profit organization that uses data and science for climate action. We aim to improve the transparency and scientific integrity of carbon removal and climate solutions through open data and tools. Find out more at [carbonplan.org](https://carbonplan.org/) or get in touch by [opening an issue](https://github.com/carbonplan/maps/issues/new) or [sending us an email](mailto:hello@carbonplan.org).
+
+# Visualizing COGs
+
+_Experimental_
+
+This package includes [`geotiff.js`](https://geotiffjs.github.io/) as an optional dependency in `package.json`. If only visualizing zarr, skip installing `geotiff.js` with:
+
+```bash
+npm install --no-optional
+```
+
+To visualize a COG, include the `type={'cog'}` parameter as the `Raster` in your front-end files and a source pointing to your geotiff (assumes a URL):
+
+```jsx
+  <Raster
+    type={'cog'}
+    source={ 'https://ds-data-projects.s3.amazonaws.com/smce-eis/3B-MO.MS.MRG.3IMERG.20200501-S000000-E235959.05.V06B.HDF5.tif' }
+  />
+```
+
+# Local Development
+
+To test using this package locally, begin by git cloning this repository to your machine. Then, in the `package.json` of a given application, include `"@carbonplan/maps": "file:../maps"` as a dependency with the appropriate path to where you have clone the repo locally.
+
+Example `package.json` file:
+
+```json
+{
+  "name": "simple-map-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  // ...
+  "dependencies": {
+    //...
+    "@carbonplan/maps": "file:../maps",
+    //...
+  }
+}
+```
+
+Then to watch for updates:
+
+```bash
+npm run watch
+```
