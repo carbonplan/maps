@@ -148,11 +148,8 @@ Example `package.json` file:
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  // ...
   "dependencies": {
-    //...
     "@carbonplan/maps": "file:../maps",
-    //...
   }
 }
 ```
