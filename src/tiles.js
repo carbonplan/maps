@@ -1,11 +1,11 @@
 import zarr from 'zarr-js'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
-let GeoTIFF;
+let GeoTIFF
 try {
-  GeoTIFF = require('geotiff');
+  GeoTIFF = require('geotiff')
 } catch (err) {
-  GeoTIFF = null;
+  GeoTIFF = null
 }
 
 import { vert, frag } from './shaders'
@@ -105,20 +105,20 @@ export const createTiles = (regl, opts) => {
 
     this.loadCog = (source, resolve) => {
       GeoTIFF.fromUrl(source).then(async (tiff) => {
-        const image = await tiff.getImage();
-        const width = image.getWidth();
-        const height = image.getHeight();
-        const tileWidth = image.getTileWidth();
-        const tileHeight = image.getTileHeight();
+        const image = await tiff.getImage()
+        const width = image.getWidth()
+        const height = image.getHeight()
+        const tileWidth = image.getTileWidth()
+        const tileHeight = image.getTileHeight()
         // Assumption
-        const tileSize = tileWidth;
-        const imageCount = await tiff.getImageCount();
-        const levels = Array.from(Array(imageCount).keys());
+        const tileSize = tileWidth
+        const imageCount = await tiff.getImageCount()
+        const levels = Array.from(Array(imageCount).keys())
         // The square of the factor number of tiles for a given zoom
-        const factors = levels.map(z => Math.pow(2, z));
+        const factors = levels.map((z) => Math.pow(2, z))
 
-        this.maxZoom = imageCount - 1;
-        const position = getPositions(tileSize, mode);
+        this.maxZoom = imageCount - 1
+        const position = getPositions(tileSize, mode)
         this.position = regl.buffer(position)
         this.size = tileSize
         if (mode === 'grid' || mode === 'dotgrid') {
@@ -128,9 +128,9 @@ export const createTiles = (regl, opts) => {
           this.count = 6
         }
         // Review: What's the right way to set dimensions? In the future we may have a selector for different variables, like zarr stores have for the time dimension or additional variables.
-        this.dimensions = ['x', 'y'];
-        this.shape = [tileWidth, tileHeight];
-        this.chunks = this.shape;
+        this.dimensions = ['x', 'y']
+        this.shape = [tileWidth, tileHeight]
+        this.chunks = this.shape
         this.ndim = this.dimensions.length
 
         this.coordinates = {}
@@ -138,45 +138,50 @@ export const createTiles = (regl, opts) => {
         Promise.all(
           Object.keys(selector).map(
             (key) =>
-            new Promise((innerResolve) => {
-              loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                const coordinates = Array.from(chunk.data)
-                this.coordinates[key] = coordinates
-                innerResolve()
+              new Promise((innerResolve) => {
+                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                  const coordinates = Array.from(chunk.data)
+                  this.coordinates[key] = coordinates
+                  innerResolve()
+                })
               })
-            })
-            )
-            ).then(() => {
-              levels.forEach((z) => {
+          )
+        ).then(() => {
+          levels.forEach((z) => {
+            Array(Math.pow(2, z))
+              .fill(0)
+              .map((_, x) => {
                 Array(Math.pow(2, z))
-                .fill(0)
-                .map((_, x) => {
-                  Array(Math.pow(2, z))
                   .fill(0)
                   .map((_, y) => {
-                    const key = [x, y, z].join(',');
+                    const key = [x, y, z].join(',')
 
-                    const factor = factors[z];
-                    const widthChunk = width / factor;
-                    const heightChunk = height / factor;
-                    const xStart = x * widthChunk;
-                    const yStart = y * heightChunk;
+                    const factor = factors[z]
+                    const widthChunk = width / factor
+                    const heightChunk = height / factor
+                    const xStart = x * widthChunk
+                    const yStart = y * heightChunk
                     const xOffset = xStart + widthChunk
                     const yOffset = yStart + heightChunk
-                    const imgWindow = [ xStart, yStart, xOffset, yOffset ];
+                    const imgWindow = [xStart, yStart, xOffset, yOffset]
                     const loader = async (k, cb) => {
-                      let data;
-                      await tiff.readRasters({
-                        window: imgWindow,
-                        width: tileWidth,
-                        height: tileHeight,
-                        resampleMethod: 'nearest'
-                      }).then((tiffData) => {
-                        data = ndarray(Float32Array.from(tiffData[0]), this.shape)
-                      })
+                      let data
+                      await tiff
+                        .readRasters({
+                          window: imgWindow,
+                          width: tileWidth,
+                          height: tileHeight,
+                          resampleMethod: 'nearest',
+                        })
+                        .then((tiffData) => {
+                          data = ndarray(
+                            Float32Array.from(tiffData[0]),
+                            this.shape
+                          )
+                        })
                       return cb(null, data)
-                    };
-                    this.loaders[z] = loader;
+                    }
+                    this.loaders[z] = loader
 
                     this.tiles[key] = new Tile({
                       key,
@@ -189,14 +194,14 @@ export const createTiles = (regl, opts) => {
                       initializeBuffer: initialize,
                     })
                   })
-                })
               })
-
-              resolve(true)
-              this.invalidate()
-            })
           })
-        }
+
+          resolve(true)
+          this.invalidate()
+        })
+      })
+    }
 
     this.initialized = new Promise((resolve) => {
       if (this.type === 'cog') {
@@ -204,7 +209,7 @@ export const createTiles = (regl, opts) => {
       }
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { maxZoom, tileSize } = getPyramidMetadata(metadata)
-        const levels = Array.from(Array(maxZoom + 1).keys());
+        const levels = Array.from(Array(maxZoom + 1).keys())
         this.maxZoom = maxZoom
         const position = getPositions(tileSize, mode)
         this.position = regl.buffer(position)

@@ -130,10 +130,12 @@ npm install --no-optional
 To visualize a COG, include the `type={'cog'}` parameter as the `Raster` in your front-end files and a source pointing to your geotiff (assumes a URL):
 
 ```jsx
-  <Raster
-    type={'cog'}
-    source={ 'https://ds-data-projects.s3.amazonaws.com/smce-eis/3B-MO.MS.MRG.3IMERG.20200501-S000000-E235959.05.V06B.HDF5.tif' }
-  />
+<Raster
+  type={'cog'}
+  source={
+    'https://ds-data-projects.s3.amazonaws.com/smce-eis/3B-MO.MS.MRG.3IMERG.20200501-S000000-E235959.05.V06B.HDF5.tif'
+  }
+/>
 ```
 
 # Local Development
@@ -149,7 +151,7 @@ Example `package.json` file:
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@carbonplan/maps": "file:../maps",
+    "@carbonplan/maps": "file:../maps"
   }
 }
 ```
