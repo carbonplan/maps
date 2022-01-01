@@ -207,7 +207,8 @@ export const createTiles = (regl, opts) => {
         return this.loadCog(source, resolve)
       }
       zarr().openGroup(source, (err, loaders, metadata) => {
-        const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
+        const { maxZoom, tileSize } = getPyramidMetadata(metadata)
+        const levels = Array.from(Array(maxZoom + 1).keys());
         this.maxZoom = maxZoom
         const position = getPositions(tileSize, mode)
         this.position = regl.buffer(position)

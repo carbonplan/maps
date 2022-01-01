@@ -267,8 +267,7 @@ export const getPyramidMetadata = (metadata) => {
 
   const levels = datasets.map((dataset) => Number(dataset.path))
   const maxZoom = Math.max(...levels)
-  const tileSize = datasets[0].pixels_per_tile
-
+  const tileSize = datasets[0].pixels_per_tile || multiscales[0].metadata.kwargs.pixels_per_tile;
   if (!tileSize) {
     throw new Error(
       'Missing required `pixels_per_tile` value in `multiscales` metadata. Please check your pyramid generation code.'
