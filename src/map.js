@@ -2,6 +2,7 @@ import React from 'react'
 import Mapbox from './mapbox'
 import Regl from './regl'
 import { RegionProvider } from './region/context'
+import { LoadingProvider, LoadingUpdater } from './loading'
 
 const Map = ({
   id,
@@ -17,6 +18,7 @@ const Map = ({
   extensions,
   glyphs,
   children,
+  setLoading,
 }) => {
   return (
     <div
@@ -49,7 +51,10 @@ const Map = ({
             zIndex: -1,
           }}
         >
-          <RegionProvider>{children}</RegionProvider>
+          <LoadingProvider>
+            {setLoading && <LoadingUpdater setLoading={setLoading} />}
+            <RegionProvider>{children}</RegionProvider>
+          </LoadingProvider>
         </Regl>
       </Mapbox>
     </div>

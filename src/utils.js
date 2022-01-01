@@ -249,12 +249,31 @@ export const getTilesOfRegion = (region, level) => {
 }
 
 export const getPyramidMetadata = (metadata) => {
-  const kwargs = metadata.metadata['.zattrs'].multiscales[0].metadata.kwargs
-  const maxZoom = kwargs.levels - 1
-  const levels = Array(maxZoom + 1)
-    .fill()
-    .map((_, i) => i)
-  const tileSize = kwargs.pixels_per_tile
+  const multiscales = metadata.metadata['.zattrs'].multiscales
+
+  if (!multiscales) {
+    throw new Error(
+      'Missing `multiscales` value in .zattrs. Please check your pyramid generation code.'
+    )
+  }
+
+  const datasets = multiscales[0].datasets
+
+  if (!datasets || datasets.length === 0) {
+    throw new Error(
+      'No datasets provided in `multiscales` metadata. Please check your pyramid generation code.'
+    )
+  }
+
+  const levels = datasets.map((dataset) => Number(dataset.path))
+  const maxZoom = Math.max(...levels)
+  const tileSize = datasets[0].pixels_per_tile
+
+  if (!tileSize) {
+    throw new Error(
+      'Missing required `pixels_per_tile` value in `multiscales` metadata. Please check your pyramid generation code.'
+    )
+  }
   return { levels, maxZoom, tileSize }
 }
 
@@ -335,49 +354,6 @@ export const setObjectValues = (obj, keys, value) => {
   return obj
 }
 
-/**
- * Returns all `value`s and identifying `keys` from iterating over the dimensions of `data` at specified x,y location
- * @param {ndarray} data
- * @param {number} x coordinate at which to lookup values
- * @param {number} y coordinate at which to lookup values
- * @param {Array<string>} dimensions to iterate over
- * @param {{[dimension]: Array<any>}} coordinate names to use for `keys`
- * @returns Array of containing `keys: Array<string>` and `value: any` (value of `data` corresponding to `keys`)
- */
-export const getValuesToSet = (data, x, y, dimensions, coordinates) => {
-  let keys = [[]]
-  let indexes = [[]]
-  dimensions.forEach((dimension) => {
-    if (dimension === 'x') {
-      // only update update indexes used for getting values
-      indexes = indexes.map((prevIndexes) => [...prevIndexes, x])
-    } else if (dimension === 'y') {
-      // only update update indexes used for getting values
-      indexes = indexes.map((prevIndexes) => [...prevIndexes, y])
-    } else {
-      const values = coordinates[dimension]
-      const updatedKeys = []
-      const updatedIndexes = []
-      values.forEach((value, i) => {
-        keys.forEach((prevKeys, j) => {
-          updatedKeys.push([...prevKeys, value])
-
-          const prevIndexes = indexes[j]
-          updatedIndexes.push([...prevIndexes, i])
-        })
-      })
-
-      keys = updatedKeys
-      indexes = updatedIndexes
-    }
-  })
-
-  return keys.map((key, i) => ({
-    keys: key,
-    value: data.get(...indexes[i]),
-  }))
-}
-
 export const getSelectorHash = (selector) => {
   return JSON.stringify(selector)
 }
@@ -405,7 +381,7 @@ export const getChunks = (
     if (Array.isArray(selectorValue)) {
       // Return all indices of selector value when array
       indices = selectorValue.map((v) => coords.indexOf(v))
-    } else if (selectorValue) {
+    } else if (selectorValue != undefined) {
       // Return index of single selector value otherwise when present
       indices = [coords.indexOf(selectorValue)]
     } else {
@@ -415,7 +391,12 @@ export const getChunks = (
         .map((_, j) => j)
     }
 
-    return indices.map((index) => Math.floor(index / chunkSize))
+    return (
+      indices
+        .map((index) => Math.floor(index / chunkSize))
+        // Filter out repeated instances of indices
+        .filter((v, i, a) => a.indexOf(v) === i)
+    )
   })
 
   let result = [[]]

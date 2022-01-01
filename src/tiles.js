@@ -23,7 +23,6 @@ import {
   getTilesOfRegion,
   getPyramidMetadata,
   getBands,
-  getValuesToSet,
   setObjectValues,
   getChunks,
 } from './utils'
@@ -41,11 +40,11 @@ export const createTiles = (regl, opts) => {
     variable,
     selector = {},
     uniforms: customUniforms = {},
-    regionOptions,
     type = 'zarr',
     frag: customFrag,
     fillValue = -9999,
     mode = 'texture',
+    setLoading,
     invalidate,
     invalidateRegion,
   }) {
@@ -60,8 +59,9 @@ export const createTiles = (regl, opts) => {
     this.fillValue = fillValue
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
-    this.regionOptions = regionOptions
     this.type = type
+    this._loading = false
+    this._setLoading = setLoading
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -378,6 +378,15 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
+    this.setLoading = (value) => {
+      if (!this._setLoading || value === this._loading) {
+        return
+      } else {
+        this._loading = value
+        this._setLoading(value)
+      }
+    }
+
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
@@ -411,22 +420,24 @@ export const createTiles = (regl, opts) => {
                   tileIndex[0],
                   tileIndex[1]
                 )
+                if (tile.hasPopulatedBuffer(this.selector) || tile.loading) {
+                  resolve(false)
+                  return
+                }
 
-                if (!tile.hasPopulatedBuffer(this.selector)) {
-                  if (!tile.loading) {
-                    if (tile.hasLoadedChunks(chunks)) {
-                      tile.populateBuffersSync(this.selector)
+                if (tile.hasLoadedChunks(chunks)) {
+                  tile.populateBuffersSync(this.selector)
+                  this.invalidate()
+                  resolve(false)
+                } else {
+                  // Set loading=true if any tile data is not yet fetched
+                  this.setLoading(true)
+                  tile
+                    .populateBuffers(chunks, this.selector)
+                    .then((dataUpdated) => {
                       this.invalidate()
-                      resolve(false)
-                    } else {
-                      tile
-                        .populateBuffers(chunks, this.selector)
-                        .then((dataUpdated) => {
-                          this.invalidate()
-                          resolve(dataUpdated)
-                        })
-                    }
-                  }
+                      resolve(dataUpdated)
+                    })
                 }
               }
             })
@@ -435,39 +446,43 @@ export const createTiles = (regl, opts) => {
         if (results.some(Boolean)) {
           invalidateRegion()
         }
+
+        if (Object.keys(this.active).every((key) => !this.tiles[key].loading)) {
+          // Set loading=false only when all active tiles are done loading
+          this.setLoading(false)
+        }
       })
     }
 
-    this.queryRegion = async (region) => {
-      const tiles = getTilesOfRegion(region, this.level)
-
+    this.queryRegion = async (region, selector) => {
       await this.initialized
 
-      if (this.regionOptions.loadAllChunks) {
-        await Promise.all(
-          tiles.map((key) => {
-            const tileIndex = keyToTile(key)
-            const chunks = getChunks(
-              {},
-              this.dimensions,
-              this.coordinates,
-              this.shape,
-              this.chunks,
-              tileIndex[0],
-              tileIndex[1]
-            )
+      const tiles = getTilesOfRegion(region, this.level)
 
-            return this.tiles[key].loadChunks(chunks)
-          })
-        )
-      } else {
-        await Promise.all(tiles.map((key) => this.tiles[key].ready))
-      }
+      await Promise.all(
+        tiles.map((key) => {
+          const tileIndex = keyToTile(key)
+          const chunks = getChunks(
+            selector,
+            this.dimensions,
+            this.coordinates,
+            this.shape,
+            this.chunks,
+            tileIndex[0],
+            tileIndex[1]
+          )
+
+          return this.tiles[key].loadChunks(chunks)
+        })
+      )
 
       let results,
         lat = [],
         lon = []
-      if (this.ndim > 2) {
+      const resultDim =
+        this.ndim -
+        Object.keys(selector).filter((k) => !Array.isArray(selector[k])).length
+      if (resultDim > 2) {
         results = {}
       } else {
         results = []
@@ -494,21 +509,18 @@ export const createTiles = (regl, opts) => {
               lon.push(pointCoords[0])
               lat.push(pointCoords[1])
 
-              if (this.ndim > 2) {
-                const valuesToSet = getValuesToSet(
-                  this.tiles[key].getData(),
-                  i,
-                  j,
-                  this.dimensions,
-                  this.coordinates
-                )
+              const valuesToSet = this.tiles[key].getPointValues({
+                selector,
+                point: [i, j],
+              })
 
-                valuesToSet.forEach(({ keys, value }) => {
+              valuesToSet.forEach(({ keys, value }) => {
+                if (keys.length > 0) {
                   setObjectValues(results, keys, value)
-                })
-              } else {
-                results.push(data.get(j, i))
-              }
+                } else {
+                  results.push(value)
+                }
+              })
             }
           }
         }
@@ -517,8 +529,32 @@ export const createTiles = (regl, opts) => {
       const out = { [this.variable]: results }
 
       if (this.ndim > 2) {
-        out.dimensions = [...Object.keys(this.coordinates), 'lat', 'lon']
-        out.coordinates = { ...this.coordinates, lat, lon }
+        out.dimensions = this.dimensions.map((d) => {
+          if (d === 'x') {
+            return 'lon'
+          } else if (d === 'y') {
+            return 'lat'
+          } else {
+            return d
+          }
+        })
+
+        out.coordinates = this.dimensions.reduce(
+          (coords, d) => {
+            if (d !== 'x' && d !== 'y') {
+              if (selector.hasOwnProperty(d)) {
+                coords[d] = Array.isArray(selector[d])
+                  ? selector[d]
+                  : [selector[d]]
+              } else {
+                coords[d] = this.coordinates[d]
+              }
+            }
+
+            return coords
+          },
+          { lat, lon }
+        )
       } else {
         out.dimensions = ['lat', 'lon']
         out.coordinates = { lat, lon }

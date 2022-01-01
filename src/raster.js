@@ -4,6 +4,7 @@ import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
+import { useSetLoading } from './loading'
 
 const Raster = (props) => {
   const {
@@ -11,6 +12,7 @@ const Raster = (props) => {
     opacity = 1,
     clim,
     colormap,
+    index = 0,
     regionOptions = {},
     selector = {},
     uniforms = {},
@@ -22,19 +24,20 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
+  const { setLoading } = useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
 
   camera.current = { center: center, zoom: zoom }
 
-  const queryRegion = async (r) => {
+  const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
 
     regionOptions.setData({ value: null })
 
-    const data = await tiles.current.queryRegion(r)
+    const data = await tiles.current.queryRegion(r, s)
 
     // Invoke callback as long as a more recent query has not already been initiated
     if (lastQueried.current === queryStart) {
@@ -45,6 +48,10 @@ const Raster = (props) => {
   useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
+      setLoading: (value) => {
+        props.setLoading && props.setLoading(value)
+        setLoading(value)
+      },
       invalidate: () => {
         map.triggerRepaint()
       },
@@ -67,8 +74,9 @@ const Raster = (props) => {
         depth: 1,
       })
       map.off('render', callback)
+      map.triggerRepaint()
     }
-  }, [])
+  }, [index])
 
   useEffect(() => {
     tiles.current.updateSelector({ selector })
@@ -84,9 +92,15 @@ const Raster = (props) => {
 
   useEffect(() => {
     if (region && regionOptions?.setData) {
-      queryRegion(region)
+      queryRegion(region, regionOptions.selector || selector)
     }
-  }, [regionOptions?.setData, region, regionDataInvalidated])
+  }, [
+    regionOptions?.setData,
+    region,
+    regionDataInvalidated,
+    ...Object.values(regionOptions?.selector || {}),
+    ...Object.values(selector),
+  ])
 
   return null
 }
