@@ -112,13 +112,9 @@ export const createTiles = (regl, opts) => {
         const tileHeight = image.getTileHeight();
         // Assumption
         const tileSize = tileWidth;
-        // Review: How do we want
         const imageCount = await tiff.getImageCount();
         const levels = Array.from(Array(imageCount).keys());
-        // you'll have square the factor number of tiles.
-        // Zoom level 1 has 4 tiles, so we split the height in 2 and width in 2.
-        // Zoom level 2 has 16 tiles so we split the height in 4 and width in 4.
-        // Zoom level 3 has 64 tiles so we split the height in 8 and the width in 8.
+        // The square of the factor number of tiles for a given zoom
         const factors = levels.map(z => Math.pow(2, z));
 
         this.maxZoom = imageCount - 1;
@@ -131,7 +127,7 @@ export const createTiles = (regl, opts) => {
         if (mode === 'texture') {
           this.count = 6
         }
-        // in future versions this might have a selector for different bands
+        // Review: What's the right way to set dimensions? In the future we may have a selector for different variables, like zarr stores have for the time dimension or additional variables.
         this.dimensions = ['x', 'y'];
         this.shape = [tileWidth, tileHeight];
         this.chunks = this.shape;
