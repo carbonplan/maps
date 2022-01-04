@@ -310,24 +310,42 @@ export const createTiles = (regl, opts) => {
                   tileIndex[0],
                   tileIndex[1]
                 )
-                if (tile.hasPopulatedBuffer(this.selector) || tile.loading) {
+
+                if (tile.hasPopulatedBuffer(this.selector)) {
                   resolve(false)
                   return
                 }
 
-                if (tile.hasLoadedChunks(chunks)) {
-                  tile.populateBuffersSync(this.selector)
-                  this.invalidate()
-                  resolve(false)
-                } else {
-                  // Set loading=true if any tile data is not yet fetched
-                  this.setLoading(true)
-                  tile
-                    .populateBuffers(chunks, this.selector)
-                    .then((dataUpdated) => {
+                if (tile.loading) {
+                  // If tile is already loading, wait for ready state and populate buffers if possible
+                  tile.ready().then(() => {
+                    if (
+                      tile.hasLoadedChunks(chunks) &&
+                      !tile.hasPopulatedBuffer(this.selector)
+                    ) {
+                      tile.populateBuffersSync(this.selector)
                       this.invalidate()
-                      resolve(dataUpdated)
-                    })
+                      resolve(false)
+                    } else {
+                      resolve(false)
+                    }
+                  })
+                } else {
+                  // Otherwise, immediately kick off fetch or populate buffers.
+                  if (tile.hasLoadedChunks(chunks)) {
+                    tile.populateBuffersSync(this.selector)
+                    this.invalidate()
+                    resolve(false)
+                  } else {
+                    // Set loading=true if any tile data is not yet fetched
+                    this.setLoading(true)
+                    tile
+                      .populateBuffers(chunks, this.selector)
+                      .then((dataUpdated) => {
+                        this.invalidate()
+                        resolve(dataUpdated)
+                      })
+                  }
                 }
               }
             })
