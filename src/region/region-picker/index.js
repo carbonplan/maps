@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
@@ -36,6 +36,13 @@ function RegionPicker({
   const { setRegion } = useRegionContext()
 
   const [center, setCenter] = useState(initialCenter.current)
+
+  useEffect(() => {
+    return () => {
+      // Clear region when unmounted
+      setRegion(null)
+    }
+  }, [])
 
   const handleCircle = useCallback((circle) => {
     if (!circle) return
