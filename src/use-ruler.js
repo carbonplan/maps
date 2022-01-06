@@ -5,10 +5,6 @@ import { scaleOrdinal } from 'd3-scale'
 import { select } from 'd3-selection'
 
 import { useMapbox } from './mapbox'
-// ruler modes
-const OFF = 0 // show nothing
-const AXES = 1 // show axes only
-const GRID = 2 // show axes and grid
 
 const TICK_SEPARATION = 150 // target distance between ticks
 const TICK_SIZE = 6 // tick length
