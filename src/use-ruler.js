@@ -10,7 +10,12 @@ const TICK_SEPARATION = 150 // target distance between ticks
 const TICK_SIZE = 6 // tick length
 const TICK_MARGIN = 2 // distance between gridlines and tick text
 
-function useRuler(showAxes, showGrid, fontFamily, gridColor) {
+function useRuler({
+  showAxes = true,
+  showGrid = false,
+  fontFamily,
+  gridColor,
+}) {
   const { map } = useMapbox()
 
   useEffect(() => {
