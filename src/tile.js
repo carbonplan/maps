@@ -19,7 +19,6 @@ class Tile {
     this.key = key
     this.tileCoordinates = keyToTile(key)
 
-    this.loading = false
     this.shape = shape
     this.chunks = chunks
     this.dimensions = dimensions
@@ -28,6 +27,8 @@ class Tile {
 
     this._bufferCache = null
     this._buffers = {}
+
+    this._loading = {}
 
     bands.forEach((k) => {
       this._buffers[k] = initializeBuffer()
@@ -63,7 +64,6 @@ class Tile {
   }
 
   async loadChunks(chunks) {
-    this.loading = true
     this._resetReady()
     const updated = await Promise.all(
       chunks.map(
@@ -73,8 +73,10 @@ class Tile {
             if (this.chunkedData[key]) {
               resolve(false)
             } else {
+              this._loading[key] = true
               this._loader(chunk, (err, data) => {
                 this.chunkedData[key] = data
+                this._loading[key] = false
                 resolve(true)
               })
             }
@@ -82,7 +84,6 @@ class Tile {
       )
     )
     this._setReady(true)
-    this.loading = false
 
     return updated.some(Boolean)
   }
@@ -158,6 +159,14 @@ class Tile {
 
   isBufferPopulated() {
     return !!this._bufferCache
+  }
+
+  isLoading() {
+    return Object.keys(this._loading).some((key) => this._loading[key])
+  }
+
+  isLoadingChunks(chunks) {
+    return chunks.every((chunk) => this._loading[chunk.join('.')])
   }
 
   hasLoadedChunks(chunks) {
