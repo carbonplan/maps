@@ -316,9 +316,6 @@ export const createTiles = (regl, opts) => {
                   return
                 }
 
-                if (tile.key === '0,0,1') {
-                }
-
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks, wait for ready state and populate buffers if possible
                   tile.ready().then(() => {
