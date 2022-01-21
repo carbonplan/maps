@@ -24,7 +24,7 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
-  const { setLoading } = useSetLoading()
+  const { setLoading, loading } = useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
@@ -48,10 +48,7 @@ const Raster = (props) => {
   useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
-      setLoading: (value) => {
-        props.setLoading && props.setLoading(value)
-        setLoading(value)
-      },
+      setLoading,
       invalidate: () => {
         map.triggerRepaint()
       },
@@ -60,6 +57,12 @@ const Raster = (props) => {
       },
     })
   }, [])
+
+  useEffect(() => {
+    if (props.setLoading) {
+      props.setLoading(loading)
+    }
+  }, [!!props.setLoading, loading])
 
   useEffect(() => {
     const callback = () => {

@@ -4,7 +4,7 @@ import React, {
   useContext,
   useEffect,
   useReducer,
-  useRef,
+  useState,
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -15,42 +15,53 @@ export const useLoadingContext = () => {
 }
 
 export const useSetLoading = () => {
-  const { values, dispatch } = useLoadingContext()
-  const key = useRef(uuidv4())
+  const { dispatch } = useLoadingContext()
+  const [ids, setIds] = useState(new Set())
 
   useEffect(() => {
     return () => {
-      dispatch({ id: key.current, type: 'delete' })
+      dispatch({ ids, type: 'unset all' })
     }
   }, [])
 
-  const setLoading = useCallback(
-    (value) => {
-      dispatch({ id: key.current, value, type: 'set' })
-    },
-    [key.current]
-  )
+  const setLoading = useCallback(() => {
+    const id = uuidv4()
+    setIds((prev) => {
+      prev.add(id)
+      return prev
+    })
+    dispatch({ id, type: 'set' })
+    const unsetLoading = () => {
+      dispatch({ id, type: 'unset' })
+      setIds((prev) => {
+        prev.delete(id)
+        return prev
+      })
+    }
+    return unsetLoading
+  }, [])
 
-  return { setLoading, loading: !!values[key.current] }
+  return { setLoading, loading: ids.size > 0 }
 }
 
 const reducer = (state, action) => {
   switch (action.type) {
     case 'set':
-      return { ...state, [action.id]: action.value }
-    case 'delete':
-      const { [action.id]: removed, ...remaining } = state
-      return remaining
+      return [...state, action.id]
+    case 'unset':
+      return state.filter((el) => el !== action.id)
+    case 'unset all':
+      return state.filter((el) => !action.ids.has(el))
     default:
       throw new Error(`Unexpected action: ${action.type}`)
   }
 }
 
 export const LoadingProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, {})
+  const [state, dispatch] = useReducer(reducer, [])
 
   return (
-    <LoadingContext.Provider value={{ values: state, dispatch }}>
+    <LoadingContext.Provider value={{ value: state.length > 0, dispatch }}>
       {children}
     </LoadingContext.Provider>
   )

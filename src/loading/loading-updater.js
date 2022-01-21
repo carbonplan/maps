@@ -3,12 +3,11 @@ import React, { useEffect } from 'react'
 import { useLoadingContext } from './context'
 
 export const LoadingUpdater = ({ setLoading }) => {
-  const { values } = useLoadingContext()
-  const loading = Object.keys(values).some((key) => values[key])
+  const { value } = useLoadingContext()
 
   useEffect(() => {
-    setLoading(loading)
-  }, [loading])
+    setLoading(value)
+  }, [value])
 
   return null
 }
