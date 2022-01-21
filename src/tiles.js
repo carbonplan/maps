@@ -316,8 +316,8 @@ export const createTiles = (regl, opts) => {
                   return
                 }
 
-                if (tile.loading) {
-                  // If tile is already loading, wait for ready state and populate buffers if possible
+                if (tile.isLoadingChunks(chunks)) {
+                  // If tile is already loading all chunks, wait for ready state and populate buffers if possible
                   tile.ready().then(() => {
                     if (
                       tile.hasLoadedChunks(chunks) &&
@@ -337,7 +337,7 @@ export const createTiles = (regl, opts) => {
                     this.invalidate()
                     resolve(false)
                   } else {
-                    // Set loading=true if any tile data is not yet fetched
+                    // Set loading=true if any tile chunk is not yet loaded
                     this.setLoading(true)
                     tile
                       .populateBuffers(chunks, this.selector)
@@ -355,7 +355,9 @@ export const createTiles = (regl, opts) => {
           invalidateRegion()
         }
 
-        if (Object.keys(this.active).every((key) => !this.tiles[key].loading)) {
+        if (
+          Object.keys(this.active).every((key) => !this.tiles[key].isLoading())
+        ) {
           // Set loading=false only when all active tiles are done loading
           this.setLoading(false)
         }
