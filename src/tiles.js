@@ -38,6 +38,7 @@ export const createTiles = (regl, opts) => {
     fillValue = -9999,
     mode = 'texture',
     setLoading,
+    clearLoading,
     invalidate,
     invalidateRegion,
   }) {
@@ -54,6 +55,7 @@ export const createTiles = (regl, opts) => {
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this._loading = false
     this.setLoading = setLoading
+    this.clearLoading = clearLoading
 
     this.colormap = regl.texture({
       data: colormap,
@@ -97,7 +99,7 @@ export const createTiles = (regl, opts) => {
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
     this.initialized = new Promise((resolve) => {
-      const unsetLoading = this.setLoading(true)
+      const loadingID = this.setLoading(true)
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
@@ -159,7 +161,7 @@ export const createTiles = (regl, opts) => {
           })
 
           resolve(true)
-          unsetLoading()
+          this.clearLoading(loadingID)
           this.invalidate()
         })
       })
@@ -312,7 +314,7 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks, wait for ready state and populate buffers if possible
-                  const unsetLoading = this.setLoading(true)
+                  const loadingID = this.setLoading(true)
                   tile.ready().then(() => {
                     if (
                       tile.hasLoadedChunks(chunks) &&
@@ -324,7 +326,7 @@ export const createTiles = (regl, opts) => {
                     } else {
                       resolve(false)
                     }
-                    unsetLoading()
+                    clearLoading(loadingID)
                   })
                 } else {
                   // Otherwise, immediately kick off fetch or populate buffers.
@@ -333,13 +335,13 @@ export const createTiles = (regl, opts) => {
                     this.invalidate()
                     resolve(false)
                   } else {
-                    const unsetLoading = this.setLoading(true)
+                    const loadingID = this.setLoading(true)
                     tile
                       .populateBuffers(chunks, this.selector)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
-                        unsetLoading()
+                        this.clearLoading(loadingID)
                       })
                   }
                 }

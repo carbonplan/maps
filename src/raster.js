@@ -24,7 +24,7 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
-  const { setLoading, loading } = useSetLoading()
+  const { setLoading, clearLoading, loading } = useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
@@ -49,6 +49,7 @@ const Raster = (props) => {
     tiles.current = createTiles(regl, {
       ...props,
       setLoading,
+      clearLoading,
       invalidate: () => {
         map.triggerRepaint()
       },

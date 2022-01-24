@@ -20,7 +20,7 @@ export const useSetLoading = () => {
 
   useEffect(() => {
     return () => {
-      dispatch({ ids, type: 'unset all' })
+      dispatch({ ids, type: 'clear all' })
     }
   }, [])
 
@@ -31,26 +31,27 @@ export const useSetLoading = () => {
       return prev
     })
     dispatch({ id, type: 'set' })
-    const unsetLoading = () => {
-      dispatch({ id, type: 'unset' })
-      setIds((prev) => {
-        prev.delete(id)
-        return prev
-      })
-    }
-    return unsetLoading
+    return id
   }, [])
 
-  return { setLoading, loading: ids.size > 0 }
+  const clearLoading = useCallback((id) => {
+    dispatch({ id, type: 'clear' })
+    setIds((prev) => {
+      prev.delete(id)
+      return prev
+    })
+  }, [])
+
+  return { setLoading, clearLoading, loading: ids.size > 0 }
 }
 
 const reducer = (state, action) => {
   switch (action.type) {
     case 'set':
       return [...state, action.id]
-    case 'unset':
+    case 'clear':
       return state.filter((el) => el !== action.id)
-    case 'unset all':
+    case 'clear all':
       return state.filter((el) => !action.ids.has(el))
     default:
       throw new Error(`Unexpected action: ${action.type}`)
