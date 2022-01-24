@@ -38,6 +38,7 @@ export const createTiles = (regl, opts) => {
     fillValue = -9999,
     mode = 'texture',
     setLoading,
+    clearLoading,
     invalidate,
     invalidateRegion,
   }) {
@@ -53,7 +54,9 @@ export const createTiles = (regl, opts) => {
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this._loading = false
-    this._setLoading = setLoading
+    this.setLoading = setLoading
+    this.clearLoading = clearLoading
+
     this.colormap = regl.texture({
       data: colormap,
       format: 'rgb',
@@ -96,6 +99,7 @@ export const createTiles = (regl, opts) => {
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
     this.initialized = new Promise((resolve) => {
+      const loadingID = this.setLoading(true)
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
@@ -157,6 +161,7 @@ export const createTiles = (regl, opts) => {
           })
 
           resolve(true)
+          this.clearLoading(loadingID)
           this.invalidate()
         })
       })
@@ -268,15 +273,6 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
-    this.setLoading = (value) => {
-      if (!this._setLoading || value === this._loading) {
-        return
-      } else {
-        this._loading = value
-        this._setLoading(value)
-      }
-    }
-
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level)
@@ -318,6 +314,7 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks, wait for ready state and populate buffers if possible
+                  const loadingID = this.setLoading(true)
                   tile.ready().then(() => {
                     if (
                       tile.hasLoadedChunks(chunks) &&
@@ -329,6 +326,7 @@ export const createTiles = (regl, opts) => {
                     } else {
                       resolve(false)
                     }
+                    clearLoading(loadingID)
                   })
                 } else {
                   // Otherwise, immediately kick off fetch or populate buffers.
@@ -337,13 +335,13 @@ export const createTiles = (regl, opts) => {
                     this.invalidate()
                     resolve(false)
                   } else {
-                    // Set loading=true if any tile chunk is not yet loaded
-                    this.setLoading(true)
+                    const loadingID = this.setLoading(true)
                     tile
                       .populateBuffers(chunks, this.selector)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
+                        this.clearLoading(loadingID)
                       })
                   }
                 }
@@ -353,13 +351,6 @@ export const createTiles = (regl, opts) => {
       ).then((results) => {
         if (results.some(Boolean)) {
           invalidateRegion()
-        }
-
-        if (
-          Object.keys(this.active).every((key) => !this.tiles[key].isLoading())
-        ) {
-          // Set loading=false only when all active tiles are done loading
-          this.setLoading(false)
         }
       })
     }
