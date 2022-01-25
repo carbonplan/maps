@@ -289,6 +289,10 @@ export const createTiles = (regl, opts) => {
         size: this.size,
       })
 
+      if (this.size && Object.keys(this.active).length === 0) {
+        this.clearLoading(null, { forceClear: true })
+      }
+
       Promise.all(
         Object.keys(this.active).map(
           (key) =>

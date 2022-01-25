@@ -42,29 +42,35 @@ export const useSetLoading = () => {
     return id
   }, [])
 
-  const clearLoading = useCallback((id) => {
-    setInitializingIds((prevInitializing) => {
-      if (prevInitializing.has(id)) {
-        dispatch({ id, type: 'clear', key: 'initializing' })
-        prevInitializing.delete(id)
-      }
-      setFetchingIds((prevFetching) => {
-        if (prevFetching.has(id)) {
-          dispatch({ id, type: 'clear', key: 'fetching' })
-          prevFetching.delete(id)
-          if (
-            loading.current &&
-            prevInitializing.size === 0 &&
-            prevFetching.size === 0
-          ) {
-            dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
-            loading.current = false
-          }
+  const clearLoading = useCallback((id, { forceClear } = {}) => {
+    if (id) {
+      setInitializingIds((prevInitializing) => {
+        if (prevInitializing.has(id)) {
+          dispatch({ id, type: 'clear', key: 'initializing' })
+          prevInitializing.delete(id)
         }
-        return prevFetching
+        setFetchingIds((prevFetching) => {
+          if (prevFetching.has(id)) {
+            dispatch({ id, type: 'clear', key: 'fetching' })
+            prevFetching.delete(id)
+            if (
+              loading.current &&
+              prevInitializing.size === 0 &&
+              prevFetching.size === 0
+            ) {
+              dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
+              loading.current = false
+            }
+          }
+          return prevFetching
+        })
+        return prevInitializing
       })
-      return prevInitializing
-    })
+    }
+    if (forceClear && loading.current) {
+      dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
+      loading.current = false
+    }
   }, [])
 
   return {
