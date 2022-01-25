@@ -326,7 +326,7 @@ export const createTiles = (regl, opts) => {
                     } else {
                       resolve(false)
                     }
-                    clearLoading(loadingID)
+                    this.clearLoading(loadingID)
                   })
                 } else {
                   // Otherwise, immediately kick off fetch or populate buffers.
