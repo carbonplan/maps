@@ -24,7 +24,8 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
-  const { setLoading, clearLoading, loading } = useSetLoading()
+  const { setLoading, clearLoading, loading, fetching, initializing } =
+    useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
@@ -64,6 +65,16 @@ const Raster = (props) => {
       props.setLoading(loading)
     }
   }, [!!props.setLoading, loading])
+  useEffect(() => {
+    if (props.setInitializing) {
+      props.setInitializing(initializing)
+    }
+  }, [!!props.setInitializing, initializing])
+  useEffect(() => {
+    if (props.setFetching) {
+      props.setFetching(fetching)
+    }
+  }, [!!props.setFetching, fetching])
 
   useEffect(() => {
     const callback = () => {

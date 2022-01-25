@@ -99,7 +99,7 @@ export const createTiles = (regl, opts) => {
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
     this.initialized = new Promise((resolve) => {
-      const loadingID = this.setLoading(true)
+      const loadingID = this.setLoading('initializing')
       zarr().openGroup(source, (err, loaders, metadata) => {
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
@@ -314,7 +314,7 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks, wait for ready state and populate buffers if possible
-                  const loadingID = this.setLoading(true)
+                  const loadingID = this.setLoading()
                   tile.ready().then(() => {
                     if (
                       tile.hasLoadedChunks(chunks) &&
@@ -335,7 +335,7 @@ export const createTiles = (regl, opts) => {
                     this.invalidate()
                     resolve(false)
                   } else {
-                    const loadingID = this.setLoading(true)
+                    const loadingID = this.setLoading()
                     tile
                       .populateBuffers(chunks, this.selector)
                       .then((dataUpdated) => {
