@@ -18,7 +18,12 @@ const Map = ({
   extensions,
   glyphs,
   children,
+  /** Tracks *any* pending requests made by containing `Raster` layers */
   setLoading,
+  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
+  setMetadataLoading,
+  /** Tracks any requests of new chunks by containing `Raster` layers */
+  setChunkLoading,
 }) => {
   return (
     <div
@@ -52,7 +57,11 @@ const Map = ({
           }}
         >
           <LoadingProvider>
-            {setLoading && <LoadingUpdater setLoading={setLoading} />}
+            <LoadingUpdater
+              setLoading={setLoading}
+              setMetadataLoading={setMetadataLoading}
+              setChunkLoading={setChunkLoading}
+            />
             <RegionProvider>{children}</RegionProvider>
           </LoadingProvider>
         </Regl>
