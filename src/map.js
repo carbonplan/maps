@@ -18,8 +18,11 @@ const Map = ({
   extensions,
   glyphs,
   children,
+  /** Tracks *any* pending requests made by containing `Raster` layers */
   setLoading,
+  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
   setMetadataLoading,
+  /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
 }) => {
   return (
