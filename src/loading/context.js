@@ -20,9 +20,10 @@ export const useSetLoading = () => {
 
   useEffect(() => {
     return () => {
-      dispatch({ ids: metadataIds, type: 'clear all', key: 'metadata' })
-      dispatch({ ids: chunkIds, type: 'clear all', key: 'chunk' })
-      dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
+      const loaders = [{ id: loadingId.current, key: 'loading' }]
+      metadataIds.forEach((id) => loaders.push({ id, key: 'metadata' }))
+      chunkIds.forEach((id) => loaders.push({ id, key: 'chunk' }))
+      dispatch({ loaders, type: 'clear' })
     }
   }, [])
 
@@ -40,33 +41,40 @@ export const useSetLoading = () => {
       return prev
     })
 
+    const loaders = [{ id, key }]
+
     if (!loading.current) {
-      dispatch({ id: loadingId.current, type: 'set', key: 'loading' })
+      loaders.push({ id: loadingId.current, key: 'loading' })
       loading.current = true
     }
-    dispatch({ id, type: 'set', key })
+    dispatch({ loaders, type: 'set' })
     return id
   }, [])
 
   const clearLoading = useCallback((id, { forceClear } = {}) => {
     if (id) {
+      const loaders = []
+
       setMetadataIds((prevMetadata) => {
         if (prevMetadata.has(id)) {
-          dispatch({ id, type: 'clear', key: 'metadata' })
+          loaders.push({ id, key: 'metadata' })
           prevMetadata.delete(id)
         }
         setChunkIds((prevChunk) => {
           if (prevChunk.has(id)) {
-            dispatch({ id, type: 'clear', key: 'chunk' })
+            loaders.push({ id, key: 'chunk' })
             prevChunk.delete(id)
             if (
               loading.current &&
               prevMetadata.size === 0 &&
               prevChunk.size === 0
             ) {
-              dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
+              loaders.push({ id: loadingId.current, key: 'loading' })
               loading.current = false
             }
+          }
+          if (loaders.length > 0) {
+            dispatch({ loaders, type: 'clear' })
           }
           return prevChunk
         })
@@ -74,7 +82,10 @@ export const useSetLoading = () => {
       })
     }
     if (forceClear && loading.current) {
-      dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
+      dispatch({
+        loaders: { id: loadingId.current, key: 'loading' },
+        type: 'clear',
+      })
       loading.current = false
     }
   }, [])
@@ -91,20 +102,17 @@ export const useSetLoading = () => {
 const reducer = (state, action) => {
   switch (action.type) {
     case 'set':
-      return {
-        ...state,
-        [action.key]: [...state[action.key], action.id],
-      }
+      action.loaders.forEach(({ id, key }) => {
+        state[key].add(id)
+      })
+
+      return { ...state }
     case 'clear':
-      return {
-        ...state,
-        [action.key]: state[action.key].filter((el) => el !== action.id),
-      }
-    case 'clear all':
-      return {
-        ...state,
-        [action.key]: state[action.key].filter((el) => !action.ids.has(el)),
-      }
+      action.loaders.forEach(({ id, key }) => {
+        state[key].delete(id)
+      })
+
+      return { ...state }
     default:
       throw new Error(`Unexpected action: ${action.type}`)
   }
@@ -112,9 +120,9 @@ const reducer = (state, action) => {
 
 export const LoadingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, {
-    loading: [],
-    metadata: [],
-    chunk: [],
+    loading: new Set(),
+    metadata: new Set(),
+    chunk: new Set(),
   })
 
   return (
@@ -133,8 +141,8 @@ export const useLoadingContext = () => {
   const { loading, metadata, chunk } = useContext(LoadingContext)
 
   return {
-    loading: loading.length > 0,
-    metadataLoading: metadata.length > 0,
-    chunkLoading: chunk.length > 0,
+    loading: loading.size > 0,
+    metadataLoading: metadata.size > 0,
+    chunkLoading: chunk.size > 0,
   }
 }
