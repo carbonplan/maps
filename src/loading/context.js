@@ -27,6 +27,16 @@ export const useSetLoading = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (loading.current && metadataIds.size === 0 && chunkIds.size === 0) {
+      dispatch({
+        loaders: [{ id: loadingId.current, key: 'loading' }],
+        type: 'clear',
+      })
+      loading.current = false
+    }
+  }, [metadataIds.size, chunkIds.size, loading.current])
+
   const setLoading = useCallback((key = 'chunk') => {
     if (!['chunk', 'metadata'].includes(key)) {
       throw new Error(
@@ -53,34 +63,24 @@ export const useSetLoading = () => {
 
   const clearLoading = useCallback((id, { forceClear } = {}) => {
     if (id) {
-      const loaders = []
-
       setMetadataIds((prevMetadata) => {
-        if (prevMetadata.has(id)) {
-          loaders.push({ id, key: 'metadata' })
-          prevMetadata.delete(id)
-        }
-        setChunkIds((prevChunk) => {
-          if (prevChunk.has(id)) {
-            loaders.push({ id, key: 'chunk' })
-            prevChunk.delete(id)
-            if (
-              loading.current &&
-              prevMetadata.size === 0 &&
-              prevChunk.size === 0
-            ) {
-              loaders.push({ id: loadingId.current, key: 'loading' })
-              loading.current = false
-            }
-          }
-          if (loaders.length > 0) {
-            dispatch({ loaders, type: 'clear' })
-          }
-          return prevChunk
-        })
+        prevMetadata.delete(id)
         return prevMetadata
       })
+      setChunkIds((prevChunk) => {
+        prevChunk.delete(id)
+        return prevChunk
+      })
+
+      dispatch({
+        loaders: [
+          { id, key: 'metadata' },
+          { id, key: 'chunk' },
+        ],
+        type: 'clear',
+      })
     }
+
     if (forceClear && loading.current) {
       dispatch({
         loaders: { id: loadingId.current, key: 'loading' },
