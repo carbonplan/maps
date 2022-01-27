@@ -15,20 +15,26 @@ export const useSetLoading = () => {
   const loadingId = useRef(uuidv4())
   const loading = useRef(false)
   const { dispatch } = useContext(LoadingContext)
-  const [initializingIds, setInitializingIds] = useState(new Set())
-  const [fetchingIds, setFetchingIds] = useState(new Set())
+  const [metadataIds, setMetadataIds] = useState(new Set())
+  const [chunkIds, setChunkIds] = useState(new Set())
 
   useEffect(() => {
     return () => {
-      dispatch({ ids: initializingIds, type: 'clear all', key: 'initializing' })
-      dispatch({ ids: fetchingIds, type: 'clear all', key: 'fetching' })
+      dispatch({ ids: metadataIds, type: 'clear all', key: 'metadata' })
+      dispatch({ ids: chunkIds, type: 'clear all', key: 'chunk' })
       dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
     }
   }, [])
 
-  const setLoading = useCallback((key = 'fetching') => {
+  const setLoading = useCallback((key = 'chunk') => {
+    if (!['chunk', 'metadata'].includes(key)) {
+      throw new Error(
+        `Unexpected loading key: ${key}. Expected one of: 'chunk', 'metadata'.`
+      )
+    }
+
     const id = uuidv4()
-    const setter = key === 'initializing' ? setInitializingIds : setFetchingIds
+    const setter = key === 'metadata' ? setMetadataIds : setChunkIds
     setter((prev) => {
       prev.add(id)
       return prev
@@ -44,27 +50,27 @@ export const useSetLoading = () => {
 
   const clearLoading = useCallback((id, { forceClear } = {}) => {
     if (id) {
-      setInitializingIds((prevInitializing) => {
-        if (prevInitializing.has(id)) {
-          dispatch({ id, type: 'clear', key: 'initializing' })
-          prevInitializing.delete(id)
+      setMetadataIds((prevMetadata) => {
+        if (prevMetadata.has(id)) {
+          dispatch({ id, type: 'clear', key: 'metadata' })
+          prevMetadata.delete(id)
         }
-        setFetchingIds((prevFetching) => {
-          if (prevFetching.has(id)) {
-            dispatch({ id, type: 'clear', key: 'fetching' })
-            prevFetching.delete(id)
+        setChunkIds((prevChunk) => {
+          if (prevChunk.has(id)) {
+            dispatch({ id, type: 'clear', key: 'chunk' })
+            prevChunk.delete(id)
             if (
               loading.current &&
-              prevInitializing.size === 0 &&
-              prevFetching.size === 0
+              prevMetadata.size === 0 &&
+              prevChunk.size === 0
             ) {
               dispatch({ id: loadingId.current, type: 'clear', key: 'loading' })
               loading.current = false
             }
           }
-          return prevFetching
+          return prevChunk
         })
-        return prevInitializing
+        return prevMetadata
       })
     }
     if (forceClear && loading.current) {
@@ -77,8 +83,8 @@ export const useSetLoading = () => {
     setLoading,
     clearLoading,
     loading: loading.current,
-    initializing: initializingIds.size > 0,
-    fetching: fetchingIds.size > 0,
+    metadataLoading: metadataIds.size > 0,
+    chunkLoading: chunkIds.size > 0,
   }
 }
 
@@ -107,8 +113,8 @@ const reducer = (state, action) => {
 export const LoadingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, {
     loading: [],
-    initializing: [],
-    fetching: [],
+    metadata: [],
+    chunk: [],
   })
 
   return (
@@ -124,11 +130,11 @@ export const LoadingProvider = ({ children }) => {
 }
 
 export const useLoadingContext = () => {
-  const { loading, initializing, fetching } = useContext(LoadingContext)
+  const { loading, metadata, chunk } = useContext(LoadingContext)
 
   return {
     loading: loading.length > 0,
-    initializing: initializing.length > 0,
-    fetching: fetching.length > 0,
+    metadataLoading: metadata.length > 0,
+    chunkLoading: chunk.length > 0,
   }
 }

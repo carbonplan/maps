@@ -19,8 +19,8 @@ const Map = ({
   glyphs,
   children,
   setLoading,
-  setInitializing,
-  setFetching,
+  setMetadataLoading,
+  setChunkLoading,
 }) => {
   return (
     <div
@@ -56,8 +56,8 @@ const Map = ({
           <LoadingProvider>
             <LoadingUpdater
               setLoading={setLoading}
-              setInitializing={setInitializing}
-              setFetching={setFetching}
+              setMetadataLoading={setMetadataLoading}
+              setChunkLoading={setChunkLoading}
             />
             <RegionProvider>{children}</RegionProvider>
           </LoadingProvider>

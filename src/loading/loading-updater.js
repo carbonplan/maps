@@ -4,10 +4,10 @@ import { useLoadingContext } from './context'
 
 export const LoadingUpdater = ({
   setLoading,
-  setInitializing,
-  setFetching,
+  setMetadataLoading,
+  setChunkLoading,
 }) => {
-  const { loading, initializing, fetching } = useLoadingContext()
+  const { loading, metadataLoading, chunkLoading } = useLoadingContext()
 
   useEffect(() => {
     if (setLoading) {
@@ -16,16 +16,16 @@ export const LoadingUpdater = ({
   }, [!!setLoading, loading])
 
   useEffect(() => {
-    if (setInitializing) {
-      setInitializing(initializing)
+    if (setMetadataLoading) {
+      setMetadataLoading(metadataLoading)
     }
-  }, [!!setInitializing, initializing])
+  }, [!!setMetadataLoading, metadataLoading])
 
   useEffect(() => {
-    if (setFetching) {
-      setFetching(fetching)
+    if (setChunkLoading) {
+      setChunkLoading(chunkLoading)
     }
-  }, [!!setFetching, fetching])
+  }, [!!setChunkLoading, chunkLoading])
 
   return null
 }

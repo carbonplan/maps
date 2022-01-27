@@ -24,7 +24,7 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
-  const { setLoading, clearLoading, loading, fetching, initializing } =
+  const { setLoading, clearLoading, loading, chunkLoading, metadataLoading } =
     useSetLoading()
   const tiles = useRef()
   const camera = useRef()
@@ -66,15 +66,15 @@ const Raster = (props) => {
     }
   }, [!!props.setLoading, loading])
   useEffect(() => {
-    if (props.setInitializing) {
-      props.setInitializing(initializing)
+    if (props.setMetadataLoading) {
+      props.setMetadataLoading(metadataLoading)
     }
-  }, [!!props.setInitializing, initializing])
+  }, [!!props.setMetadataLoading, metadataLoading])
   useEffect(() => {
-    if (props.setFetching) {
-      props.setFetching(fetching)
+    if (props.setChunkLoading) {
+      props.setChunkLoading(chunkLoading)
     }
-  }, [!!props.setFetching, fetching])
+  }, [!!props.setChunkLoading, chunkLoading])
 
   useEffect(() => {
     const callback = () => {
