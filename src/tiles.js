@@ -318,7 +318,6 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks, wait for ready state and populate buffers if possible
-                  const loadingID = this.setLoading('chunk')
                   tile.ready().then(() => {
                     if (
                       tile.hasLoadedChunks(chunks) &&
@@ -330,7 +329,6 @@ export const createTiles = (regl, opts) => {
                     } else {
                       resolve(false)
                     }
-                    this.clearLoading(loadingID)
                   })
                 } else {
                   // Otherwise, immediately kick off fetch or populate buffers.
@@ -365,7 +363,7 @@ export const createTiles = (regl, opts) => {
       const tiles = getTilesOfRegion(region, this.level)
 
       await Promise.all(
-        tiles.map((key) => {
+        tiles.map(async (key) => {
           const tileIndex = keyToTile(key)
           const chunks = getChunks(
             selector,
@@ -377,7 +375,11 @@ export const createTiles = (regl, opts) => {
             tileIndex[1]
           )
 
-          return this.tiles[key].loadChunks(chunks)
+          if (!this.tiles[key].hasLoadedChunks(chunks)) {
+            const loadingID = this.setLoading('chunk')
+            await this.tiles[key].loadChunks(chunks)
+            this.clearLoading(loadingID)
+          }
         })
       )
 
