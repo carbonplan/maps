@@ -9,12 +9,14 @@ const createMockChunk = (chunk) =>
     [5, 1, 1]
   )
 
-const assertPending = async (tile, value) => {
+const assertPending = async (tile, chunks, value) => {
   let pending = true
-  tile.ready().then(() => {
+  tile.chunksLoaded(chunks).then(() => {
     pending = false
   })
-  await Promise.resolve()
+
+  // simulate nested promises
+  await Promise.all([Promise.all([Promise.resolve()])])
 
   expect(pending).toEqual(value)
 }
@@ -257,6 +259,58 @@ describe('Tile', () => {
       })
     })
 
+    describe('chunksLoaded()', () => {
+      const chunk1 = [0, 0, 0]
+      const chunk2 = [1, 0, 0]
+      let tile
+      let resolvers
+
+      beforeEach(() => {
+        resolvers = []
+        const loader = jest.fn().mockImplementation((chunk, cb) =>
+          new Promise((resolve) => {
+            resolvers.push(resolve)
+          }).then(() => {
+            cb(
+              null, // error
+              createMockChunk(chunk)
+            )
+          })
+        )
+        tile = new Tile({ ...defaults, loader })
+      })
+
+      it('always resolves for an empty array of chunks', async () => {
+        await assertPending(tile, [], false)
+      })
+
+      it('resolves after first set of chunks are loaded', async () => {
+        const promise = tile.loadChunks([chunk1])
+        await assertPending(tile, [chunk1], true)
+
+        resolvers[0]()
+        await promise
+
+        await assertPending(tile, [chunk1], false)
+      })
+
+      it('reenters pending state when new chunks are loaded', async () => {
+        const promise1 = tile.loadChunks([chunk1])
+        resolvers[0]()
+        await promise1
+
+        await assertPending(tile, [chunk1], false)
+
+        const promise2 = tile.loadChunks([chunk2])
+        await assertPending(tile, [chunk1, chunk2], true)
+
+        resolvers[1]()
+        await promise2
+
+        await assertPending(tile, [chunk1, chunk2], false)
+      })
+    })
+
     describe('isBufferPopulated()', () => {
       it('returns false initially', () => {
         const tile = new Tile(defaults)
@@ -309,41 +363,6 @@ describe('Tile', () => {
         tile.populateBuffersSync({ year: 1 })
 
         expect(tile.hasPopulatedBuffer({ year: 2 })).toBe(false)
-      })
-    })
-
-    describe('ready()', () => {
-      it('is pending initially', async () => {
-        const tile = new Tile(defaults)
-
-        await assertPending(tile, true)
-      })
-
-      it('resolves after first set of chunks are loaded', async () => {
-        const tile = new Tile(defaults)
-        await tile.loadChunks([[0, 0, 0]])
-
-        await assertPending(tile, false)
-      })
-
-      it('reenters pending state when new chunks are loaded', async () => {
-        const tile = new Tile(defaults)
-        await tile.loadChunks([[0, 0, 0]])
-
-        await assertPending(tile, false)
-
-        tile.loadChunks([[1, 0, 0]])
-        await assertPending(tile, true)
-      })
-
-      it('resolves again', async () => {
-        const tile = new Tile(defaults)
-        await tile.loadChunks([[0, 0, 0]])
-
-        await assertPending(tile, false)
-
-        await tile.loadChunks([[1, 0, 0]])
-        await assertPending(tile, false)
       })
     })
 
