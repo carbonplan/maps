@@ -19,6 +19,7 @@ import {
   getBands,
   setObjectValues,
   getChunks,
+  getSelectorHash,
 } from './utils'
 import Tile from './tile'
 
@@ -310,6 +311,7 @@ export const createTiles = (regl, opts) => {
                   tileIndex[0],
                   tileIndex[1]
                 )
+                const initialHash = getSelectorHash(this.selector)
 
                 if (tile.hasPopulatedBuffer(this.selector)) {
                   resolve(false)
@@ -317,12 +319,10 @@ export const createTiles = (regl, opts) => {
                 }
 
                 if (tile.isLoadingChunks(chunks)) {
-                  // If tile is already loading all chunks, wait for ready state and populate buffers if possible
-                  tile.ready().then(() => {
-                    if (
-                      tile.hasLoadedChunks(chunks) &&
-                      !tile.hasPopulatedBuffer(this.selector)
-                    ) {
+                  // If tile is already loading all chunks...
+                  tile.chunksLoaded(chunks).then(() => {
+                    // ...wait for ready state and populate buffers if selector is still relevant.
+                    if (initialHash === getSelectorHash(this.selector)) {
                       tile.populateBuffersSync(this.selector)
                       this.invalidate()
                       resolve(false)
