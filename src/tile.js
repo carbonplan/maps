@@ -29,6 +29,7 @@ class Tile {
     this._buffers = {}
 
     this._loading = {}
+    this._ready = {}
 
     bands.forEach((k) => {
       this._buffers[k] = initializeBuffer()
@@ -36,27 +37,7 @@ class Tile {
 
     this.chunkedData = {}
 
-    this._data = {
-      chunkKeys: [],
-      value: null,
-    }
     this._loader = loader
-    this._ready = false
-    this._resetReady()
-  }
-
-  ready() {
-    return this._ready
-  }
-
-  _setReady() {
-    this._resolver(true)
-  }
-
-  _resetReady() {
-    this._ready = new Promise((resolve) => {
-      this._resolver = resolve
-    })
   }
 
   getBuffers() {
@@ -64,7 +45,6 @@ class Tile {
   }
 
   async loadChunks(chunks) {
-    this._resetReady()
     const updated = await Promise.all(
       chunks.map(
         (chunk) =>
@@ -74,16 +54,18 @@ class Tile {
               resolve(false)
             } else {
               this._loading[key] = true
-              this._loader(chunk, (err, data) => {
-                this.chunkedData[key] = data
-                this._loading[key] = false
-                resolve(true)
+              this._ready[key] = new Promise((innerResolve) => {
+                this._loader(chunk, (err, data) => {
+                  this.chunkedData[key] = data
+                  this._loading[key] = false
+                  innerResolve(true)
+                  resolve(true)
+                })
               })
             }
           })
       )
     )
-    this._setReady(true)
 
     return updated.some(Boolean)
   }
@@ -167,6 +149,12 @@ class Tile {
 
   isLoadingChunks(chunks) {
     return chunks.every((chunk) => this._loading[chunk.join('.')])
+  }
+
+  async chunksLoaded(chunks) {
+    await Promise.all(chunks.map((chunk) => this._ready[chunk.join('.')]))
+
+    return true
   }
 
   hasLoadedChunks(chunks) {
