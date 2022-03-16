@@ -83,7 +83,7 @@ export const useSetLoading = () => {
 
     if (forceClear && loading.current) {
       dispatch({
-        loaders: { id: loadingId.current, key: 'loading' },
+        loaders: [{ id: loadingId.current, key: 'loading' }],
         type: 'clear',
       })
       loading.current = false
