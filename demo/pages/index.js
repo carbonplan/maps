@@ -6,7 +6,7 @@ import { useColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
 
-const bucket = 'https://storage.googleapis.com/carbonplan-share/'
+const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
 
 const Index = () => {
   const { theme } = useThemeUI()
@@ -43,7 +43,7 @@ const Index = () => {
         <Map zoom={2} center={[0, 0]} debug={false}>
           <Line
             color={theme.rawColors.primary}
-            source={bucket + 'maps-demo/land'}
+            source={bucket + 'v1/demo/land'}
             variable={'land'}
           />
           {showRegionPicker && (
@@ -61,14 +61,13 @@ const Index = () => {
             display={display}
             opacity={opacity}
             mode={'texture'}
-            source={bucket + 'maps-demo/4d/tavg-prec-month'}
+            source={bucket + 'v2/demo/4d/tavg-prec-month'}
             variable={'climate'}
             selector={{ month, band }}
-            setRegionData={setRegionData}
+            regionOptions={{ setData: setRegionData }}
           />
           <RegionControls
             band={band}
-            month={month}
             regionData={regionData}
             showRegionPicker={showRegionPicker}
             setShowRegionPicker={setShowRegionPicker}

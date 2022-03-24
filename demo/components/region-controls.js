@@ -2,19 +2,13 @@ import { Box, IconButton } from 'theme-ui'
 import { useRecenterRegion } from '@carbonplan/maps'
 import { XCircle } from '@carbonplan/icons'
 
-const AverageDisplay = ({ band, month, data: { loading, value } }) => {
-  if (loading) {
+const AverageDisplay = ({ band, data: { value } }) => {
+  if (!value || !value.climate) {
     return 'loading...'
   }
 
-  if (!value.climate[band] || !value.climate[band][month]) {
-    throw new Error('Value not present')
-  }
-
-  const activeData = value.climate[band][month]
-
   let result
-  const filteredData = activeData.filter((d) => d !== -3.3999999521443642e38)
+  const filteredData = value.climate.filter((d) => d !== -3.3999999521443642e38)
   if (filteredData.length === 0) {
     result = 'no data in region'
   } else {
