@@ -43,7 +43,7 @@ const Index = () => {
         <Map zoom={2} center={[0, 0]} debug={false}>
           <Line
             color={theme.rawColors.primary}
-            source={bucket + 'v2/demo/land'}
+            source={bucket + 'basemaps/land'}
             variable={'land'}
           />
           {showRegionPicker && (
