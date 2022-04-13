@@ -42,6 +42,7 @@ export const createTiles = (regl, opts) => {
     clearLoading,
     invalidate,
     invalidateRegion,
+    setMetadata,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -102,6 +103,7 @@ export const createTiles = (regl, opts) => {
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
       zarr().openGroup(source, (err, loaders, metadata) => {
+        if (setMetadata) setMetadata(metadata)
         const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
         this.maxZoom = maxZoom
         const position = getPositions(tileSize, mode)
