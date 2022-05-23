@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, useThemeUI } from 'theme-ui'
 import { Dimmer, Meta } from '@carbonplan/components'
-import { Map, Raster, Line, RegionPicker } from '@carbonplan/maps'
+import { Map, Raster, Fill, Line, RegionPicker } from '@carbonplan/maps'
 import { useColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
@@ -43,6 +43,11 @@ const Index = () => {
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Map zoom={2} center={[0, 0]} debug={debug}>
+          <Fill
+            color={theme.rawColors.background}
+            source={bucket + 'basemaps/ocean'}
+            variable={'ocean'}
+          />
           <Line
             color={theme.rawColors.primary}
             source={bucket + 'basemaps/land'}
