@@ -46,7 +46,6 @@ const Mapbox = ({
       })
       if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)
-      if (debug) map.current.showTileBoundaries = true
       map.current.touchZoomRotate.disableRotation()
       map.current.touchPitch.disable()
       map.current.on('styledata', () => {
@@ -63,6 +62,10 @@ const Mapbox = ({
       }
     }
   }, [])
+
+  useEffect(() => {
+    map.current.showTileBoundaries = debug
+  }, [debug])
 
   return (
     <MapboxContext.Provider
