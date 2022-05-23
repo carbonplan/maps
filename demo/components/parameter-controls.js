@@ -1,4 +1,4 @@
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { useCallback } from 'react'
 import { Slider, Badge, Toggle, Select, Link } from '@carbonplan/components'
 import { colormaps } from '@carbonplan/colormaps'
@@ -24,9 +24,10 @@ const DEFAULT_COLORMAPS = {
 }
 
 const ParameterControls = ({ getters, setters }) => {
-  const { display, opacity, clim, month, band, colormapName } = getters
+  const { display, debug, opacity, clim, month, band, colormapName } = getters
   const {
     setDisplay,
+    setDebug,
     setOpacity,
     setClim,
     setMonth,
@@ -44,12 +45,31 @@ const ParameterControls = ({ getters, setters }) => {
   return (
     <>
       <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
-        <Box sx={{ ...sx.label, mt: [0] }}>Display</Box>
-        <Toggle
-          sx={{ float: 'right', mt: [2] }}
-          value={display}
-          onClick={() => setDisplay((prev) => !prev)}
-        />
+        <Flex
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 4,
+          }}
+        >
+          <Box>
+            <Box sx={{ ...sx.label, mt: [0] }}>Tile boundaries</Box>
+            <Toggle
+              sx={{ float: 'right', mt: [2] }}
+              value={debug}
+              onClick={() => setDebug((prev) => !prev)}
+            />
+          </Box>
+
+          <Box>
+            <Box sx={{ ...sx.label, mt: [0] }}>Display</Box>
+            <Toggle
+              sx={{ display: 'block', float: 'right', mt: [2] }}
+              value={display}
+              onClick={() => setDisplay((prev) => !prev)}
+            />
+          </Box>
+        </Flex>
       </Box>
       <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
         <Box sx={{ ...sx.label, mt: [0] }}>Opacity</Box>

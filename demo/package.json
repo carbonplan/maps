@@ -15,7 +15,7 @@
     "@carbonplan/colormaps": "^2.0.0",
     "@carbonplan/components": "^10.0.0",
     "@carbonplan/icons": "^1.0.0",
-    "@carbonplan/maps": "^2.1.1",
+    "@carbonplan/maps": "^2.1.2",
     "@carbonplan/theme": "^7.0.0",
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",

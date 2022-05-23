@@ -11,6 +11,7 @@ const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
 const Index = () => {
   const { theme } = useThemeUI()
   const [display, setDisplay] = useState(true)
+  const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
   const [month, setMonth] = useState(1)
@@ -20,9 +21,10 @@ const Index = () => {
   const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
 
-  const getters = { display, opacity, clim, month, band, colormapName }
+  const getters = { display, debug, opacity, clim, month, band, colormapName }
   const setters = {
     setDisplay,
+    setDebug,
     setOpacity,
     setClim,
     setMonth,
@@ -40,7 +42,7 @@ const Index = () => {
         title={'@carbonplan/maps'}
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Map zoom={2} center={[0, 0]} debug={false}>
+        <Map zoom={2} center={[0, 0]} debug={debug}>
           <Line
             color={theme.rawColors.primary}
             source={bucket + 'basemaps/land'}
