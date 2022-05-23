@@ -6,10 +6,6 @@ export const project = (map, coordinates, options = {}) => {
   const ll = mapboxgl.LngLat.convert(coordinates)
 
   let result = map.project(ll)
-  if (result.x < 0) {
-    // Explicitly force Mapbox to project coordinates with positive longitude
-    result = map.project({ lat: ll.lat, lng: ll.lng + 360 })
-  }
 
   // When present, use referencePoint to find closest renderable point
   const { referencePoint } = options
@@ -29,9 +25,6 @@ export const project = (map, coordinates, options = {}) => {
   return result
 }
 
-// TODO: Ensure that transformation always creates a contiguous circle.
-// `map.project` may return points in non-adjacent tile if that tile is
-// rendered > 1 time on map.
 export function getPathMaker(map, options) {
   const transform = geoTransform({
     point: function (lng, lat) {
