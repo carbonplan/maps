@@ -21,6 +21,7 @@
     "@carbonplan/emoji": "^1.0.0",
     "@carbonplan/icons": "^1.1.0",
     "@carbonplan/layouts": "^2.0.0",
+    "@carbonplan/maps": "^2.1.2",
     "@carbonplan/prism": "^1.0.4",
     "@carbonplan/theme": "^7.0.0",
     "@emotion/react": "^11.7.1",

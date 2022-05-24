@@ -1,6 +1,6 @@
 import { MDXProvider } from '@mdx-js/react'
 import { NavSection } from '@carbonplan/layouts'
-import { Code,  Pre } from '@carbonplan/prism'
+import { Code, Pre } from '@carbonplan/prism'
 import { contents } from './contents'
 
 const components = {
@@ -14,9 +14,7 @@ const Section = ({ children, name }) => {
       <NavSection
         name={name}
         menu={{ contents, index: false, prefix: '/maps' }}
-        title={`${
-          name === 'intro' ? 'Maps' : name[0].toUpperCase() + name.slice(1)
-        } – CarbonPlan`}
+        title={`${name[0].toUpperCase() + name.slice(1)} – CarbonPlan`}
         description={'TK'}
       >
         {children}

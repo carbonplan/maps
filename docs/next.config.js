@@ -13,7 +13,7 @@ module.exports = withMDX({
     return [
       {
         source: '/maps',
-        destination: '/maps/intro',
+        destination: '/maps/overview',
         permanent: false,
       },
     ]
