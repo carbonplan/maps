@@ -3,6 +3,9 @@ repos:
     rev: 'v2.6.1'
     hooks:
       - id: prettier
+        additional_dependencies:
+          - 'prettier@2.5.1'
+          - '@carbonplan/prettier@1.2.0'
         language_version: system
         files: "\\.(\
           css|less|scss\
@@ -18,6 +21,9 @@ repos:
     rev: 'v2.6.1'
     hooks:
       - id: prettier
+        additional_dependencies:
+          - 'prettier@2.5.1'
+          - '@carbonplan/prettier@1.2.0'
         language_version: system
         name: prettier-markdown
         entry: prettier --write --parser mdx
@@ -25,6 +31,3 @@ repos:
           |md|markdown|mdown|mkdn\
           |mdx\
           )$"
-        additional_dependencies:
-          - 'prettier@2.5.1'
-          - '@carbonplan/prettier@1.2.0'
