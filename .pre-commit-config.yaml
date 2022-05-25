@@ -26,5 +26,5 @@ repos:
           |mdx\
           )$"
         additional_dependencies:
-          - prettier
-          - '@carbonplan/prettier'
+          - 'prettier@2.5.1'
+          - '@carbonplan/prettier@1.2.0'
