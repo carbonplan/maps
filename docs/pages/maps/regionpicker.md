@@ -23,4 +23,6 @@ The `RegionPicker` component renders a moveable and resizeable circle over the m
 
 </Table>
 
-export default ({ children }) => <Section name='regionpicker'>{children}</Section>
+export default ({ children }) => (
+  <Section name='regionpicker'>{children}</Section>
+)
