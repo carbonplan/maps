@@ -1,5 +1,6 @@
 import Section from '../../components/section'
 import Table from '../../components/Table'
+import LoadingDemo from '../../components/examples/loading-demo'
 
 # Map
 
@@ -29,6 +30,8 @@ The `Map` component is responsible for initializing the `mapbox-gl-js` instance 
 
 ## Loading
 
-TK
+You may use any combination of the loading callback props to track the loading state of raster layers rendered as children of a `Map`. The last value passed to each of the three callbacks, `setLoading`, `setMetadataLoading`, and `setChunkLoading` are overlaid on the map below.
+
+<LoadingDemo />
 
 export default ({ children }) => <Section name='map'>{children}</Section>
