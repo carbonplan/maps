@@ -25,3 +25,6 @@ repos:
           |md|markdown|mdown|mkdn\
           |mdx\
           )$"
+        additional_dependencies:
+          - prettier
+          - '@carbonplan/prettier'
