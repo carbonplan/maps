@@ -6,6 +6,7 @@ const Table = ({ children }) => {
       sx={{
         '& table': {
           borderCollapse: 'collapse',
+          width: '100%',
         },
         '& tr': {
           verticalAlign: 'baseline',
