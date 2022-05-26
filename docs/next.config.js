@@ -27,5 +27,5 @@ module.exports = withMDX({
     )
     return config
   },
-  assetPrefix: isDev ? '' : 'https://design.carbonplan.org',
+  assetPrefix: isDev ? '' : 'https://maps.docs.carbonplan.org',
 })
