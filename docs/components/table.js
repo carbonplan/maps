@@ -13,6 +13,7 @@ const Table = ({ children }) => {
         },
         '& th': {
           verticalAlign: 'baseline',
+          textAlign: 'left',
           textTransform: 'uppercase',
           letterSpacing: 'smallcaps',
           fontFamily: 'heading',
