@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
+import { v4 as uuidv4 } from 'uuid'
 
 import { useRegionContext } from '../context'
 import { useMapbox } from '../../mapbox'
@@ -29,6 +30,7 @@ function RegionPicker({
   maxRadius,
 }) {
   const { map } = useMapbox()
+  const id = useRef(uuidv4())
   const initialCenter = useRef(map.getCenter())
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
@@ -57,6 +59,7 @@ function RegionPicker({
 
   return (
     <CirclePicker
+      id={id.current}
       map={map}
       center={initialCenter.current}
       radius={initialRadius.current}

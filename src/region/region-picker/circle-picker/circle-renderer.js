@@ -21,6 +21,7 @@ const abbreviations = {
 }
 
 export default function CircleRenderer({
+  id,
   map,
   onIdle = (circle) => {},
   onDrag = (circle) => {},
@@ -35,13 +36,13 @@ export default function CircleRenderer({
   let centerXY = project(map, center)
   let radius = initialRadius
 
-  const svg = select('#circle-picker').style('pointer-events', 'none')
-  const svgCircle = select('#circle').style('pointer-events', 'all')
-  const svgCircleCutout = select('#circle-cutout')
-  const svgHandle = select('#handle').style('pointer-events', 'all')
-  const svgGuideline = select('#radius-guideline')
-  const svgRadiusTextContainer = select('#radius-text-container')
-  const svgRadiusText = select('#radius-text').attr('fill-opacity', 0)
+  const svg = select(`#circle-picker-${id}`).style('pointer-events', 'none')
+  const svgCircle = select(`#circle-${id}`).style('pointer-events', 'all')
+  const svgCircleCutout = select(`#circle-cutout-${id}`)
+  const svgHandle = select(`#handle-${id}`).style('pointer-events', 'all')
+  const svgGuideline = select(`#radius-guideline-${id}`)
+  const svgRadiusTextContainer = select(`#radius-text-container-${id}`)
+  const svgRadiusText = select(`#radius-text-${id}`).attr('fill-opacity', 0)
 
   let guidelineAngle = 90
   if (!SHOW_RADIUS_GUIDELINE) {

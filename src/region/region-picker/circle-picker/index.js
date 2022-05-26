@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useMapbox } from '../../../mapbox'
 import CircleRenderer from './circle-renderer'
 
-const RegionPicker = ({
+const CirclePicker = ({
+  id,
   backgroundColor,
   center,
   color,
@@ -20,6 +21,7 @@ const RegionPicker = ({
 
   useEffect(() => {
     const renderer = CircleRenderer({
+      id,
       map,
       onIdle,
       onDrag,
@@ -40,7 +42,7 @@ const RegionPicker = ({
 
   return (
     <svg
-      id='circle-picker'
+      id={`circle-picker-${id}`}
       style={{
         position: 'absolute',
         top: 0,
@@ -50,13 +52,13 @@ const RegionPicker = ({
       }}
     >
       <defs>
-        <clipPath id='circle-clip'>
-          <path id='circle-cutout' />
+        <clipPath id={`circle-clip-${id}`}>
+          <path id={`circle-cutout-${id}`} />
         </clipPath>
       </defs>
 
       <path
-        id='circle'
+        id={`circle-${id}`}
         stroke={color}
         strokeWidth={1}
         fill='transparent'
@@ -67,21 +69,21 @@ const RegionPicker = ({
         y='0'
         width='100%'
         height='100%'
-        clipPath='url(#circle-clip)'
+        clipPath={`url(#circle-clip-${id})`}
         fill={backgroundColor}
         fillOpacity={0.8}
       />
-      <circle id='handle' r={8} fill={color} cursor='ew-resize' />
+      <circle id={`handle-${id}`} r={8} fill={color} cursor='ew-resize' />
       <line
-        id='radius-guideline'
+        id={`radius-guideline-${id}`}
         stroke={color}
         strokeOpacity={0}
         strokeWidth={1}
         strokeDasharray='3,2'
       />
-      <g id='radius-text-container'>
+      <g id={`radius-text-container-${id}`}>
         <text
-          id='radius-text'
+          id={`radius-text-${id}`}
           textAnchor='middle'
           fontFamily={fontFamily}
           fontSize={fontSize}
@@ -92,4 +94,4 @@ const RegionPicker = ({
   )
 }
 
-export default RegionPicker
+export default CirclePicker
