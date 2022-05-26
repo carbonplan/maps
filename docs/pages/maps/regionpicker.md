@@ -1,5 +1,5 @@
 import Section from '../../components/section'
-import Table from '../../components/Table'
+import Table from '../../components/table'
 import RegionDemo from '../../components/examples/region-demo'
 
 # RegionPicker
