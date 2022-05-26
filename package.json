@@ -31,6 +31,7 @@
     "dst",
     "mapbox.css"
   ],
+  "prettier": "@carbonplan/prettier",
   "homepage": "https://github.com/carbonplan/maps#readme",
   "dependencies": {
     "@turf/turf": "^6.5.0",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
+    "@carbonplan/prettier": "^1.2.0",
     "babel-jest": "^27.3.1",
     "jest": "^27.3.1",
     "microbundle": "^0.13.0",
