@@ -1,7 +1,7 @@
 import Section from '../../components/section'
 import MapDemo2d from '../../components/examples/map-demo-2d'
 
-# Introduction
+# Intro
 
 ```bash
 npm install @carbonplan/maps

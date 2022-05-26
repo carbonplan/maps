@@ -9,15 +9,6 @@ const withMDX = require('@next/mdx')({
 
 module.exports = withMDX({
   pageExtensions: ['js', 'jsx', 'mdx', 'md'],
-  async redirects() {
-    return [
-      {
-        source: '/maps',
-        destination: '/maps/overview',
-        permanent: false,
-      },
-    ]
-  },
   webpack: (config, options) => {
     if (options.isServer) {
       config.externals = ['react', 'theme-ui', ...config.externals]
