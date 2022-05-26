@@ -90,4 +90,6 @@ You could instead choose to include all data from all months in the regional que
 }
 ```
 
-export default ({ children }) => (<Section name='regionpicker'>{children}</Section>)
+export default ({ children }) => (
+  <Section name='regionpicker'>{children}</Section>
+)
