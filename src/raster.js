@@ -45,13 +45,6 @@ const Raster = (props) => {
       regionOptions.setData({ value: data })
     }
   }
-  const selectorValue = useMemo(
-    () =>
-      MONTHS.filter(
-        (m, i) => MONTHS.indexOf(range[0]) <= i && i <= MONTHS.indexOf(range[1])
-      ),
-    [range]
-  )
 
   useEffect(() => {
     tiles.current = createTiles(regl, {
