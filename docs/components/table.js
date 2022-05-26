@@ -33,7 +33,7 @@ const Table = ({ children }) => {
           pt: [3, 3, 3, '20px'],
           pb: [3, 3, 3, '20px'],
         },
-        '& td:first-child': {
+        '& td:first-of-type': {
           pr: [3, 3, 3, '20px'],
         },
       }}
