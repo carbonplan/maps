@@ -1,4 +1,4 @@
-import {Box} from 'theme-ui'
+import { Box } from 'theme-ui'
 import Section from '../../components/section'
 
 # Examples
@@ -10,12 +10,12 @@ In March 2022, we worked with a research team led by Julianne DeAngelo, Steve Da
 The map was built using `@carbonplan/maps` and leveraged the ability to load multiple input layers (via array-based `selector` value) and user-specified variables (via custom `uniforms`) onto the GPU, where the technoeconomic model was implemented.
 
 <Box
-as='iframe'
-src='https://carbonplan.org/research/seaweed-farming/embed'
-sx={{
+  as='iframe'
+  src='https://carbonplan.org/research/seaweed-farming/embed'
+  sx={{
     display: 'block',
     width: '100%',
-    height: ['300px','300px','300px','400px'],
+    height: ['300px', '300px', '300px', '400px'],
     maxWidth: '1024px',
     my: [7],
     border: 'none',
