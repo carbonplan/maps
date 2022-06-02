@@ -1,0 +1,223 @@
+{
+  "src/map.tsx": {
+    "description": "",
+    "displayName": "Map",
+    "methods": [],
+    "props": {
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`id` used on `div` container node of `mapboxgl.Map`"
+      },
+      "tabIndex": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`tabIndex` used on `div` container node of `mapboxgl.Map`"
+      },
+      "className": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`className` used on `div` container node of `mapboxgl.Map`"
+      },
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string | number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": {
+                  "name": "union",
+                  "raw": "string | number",
+                  "elements": [{ "name": "string" }, { "name": "number" }],
+                  "required": true
+                }
+              }
+            ]
+          }
+        },
+        "description": "`style` object used on `div` container node of `mapboxgl.Map`"
+      },
+      "zoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`zoom` parameter passed to `mapboxgl.Map`"
+      },
+      "minZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`minZoom` parameter passed to `mapboxgl.Map`"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`maxZoom` parameter passed to `mapboxgl.Map`"
+      },
+      "maxBounds": {
+        "required": false,
+        "tsType": { "name": "LngLatBoundsLike" },
+        "description": "`maxbounds` parameter passed to `mapboxgl.Map`"
+      },
+      "center": {
+        "required": false,
+        "tsType": { "name": "LngLatLike" },
+        "description": "`center` parameter passed to `mapboxgl.Map`"
+      },
+      "debug": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": "`debug` parameter passed to `mapboxgl.Map`"
+      },
+      "glyphs": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`glyphs` parameter passed to `mapboxgl.Map`"
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "description": "@carbonplan/maps JSX elements or regular components"
+      },
+      "setLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks *any* pending requests made by containing `Raster` layers"
+      },
+      "setMetadataLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers"
+      },
+      "setChunkLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks any requests of new chunks by containing `Raster` layers"
+      }
+    }
+  },
+  "src/mapbox.tsx": {
+    "description": "",
+    "displayName": "Mapbox",
+    "methods": [],
+    "props": {
+      "zoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "minZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "maxBounds": {
+        "required": false,
+        "tsType": { "name": "LngLatBoundsLike" },
+        "description": ""
+      },
+      "center": {
+        "required": false,
+        "tsType": { "name": "LngLatLike" },
+        "description": ""
+      },
+      "debug": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": ""
+      },
+      "glyphs": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": ""
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "description": ""
+      },
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "string", "required": true }
+              }
+            ]
+          }
+        },
+        "description": ""
+      }
+    }
+  },
+  "src/regl.tsx": {
+    "description": "",
+    "displayName": "Regl",
+    "methods": [],
+    "props": {
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string | number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": {
+                  "name": "union",
+                  "raw": "string | number",
+                  "elements": [{ "name": "string" }, { "name": "number" }],
+                  "required": true
+                }
+              }
+            ]
+          }
+        },
+        "description": ""
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "description": ""
+      }
+    }
+  }
+}

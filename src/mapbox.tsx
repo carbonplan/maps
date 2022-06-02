@@ -23,9 +23,11 @@ type Props = {
   center?: LngLatLike
   debug?: boolean
   glyphs?: string
+  children?: React.Node
+  style?: { [key: string]: string }
 }
 
-const Mapbox: React.FC<Props> = ({
+const Mapbox = ({
   glyphs,
   style,
   center,
@@ -35,7 +37,7 @@ const Mapbox: React.FC<Props> = ({
   maxBounds,
   debug,
   children,
-}) => {
+}: Props) => {
   const map = useRef()
   const [ready, setReady] = useState()
 

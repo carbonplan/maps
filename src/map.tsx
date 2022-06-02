@@ -6,17 +6,30 @@ import { LoadingProvider, LoadingUpdater } from './loading'
 import type { LngLatLike, LngLatBoundsLike } from 'mapbox-gl'
 
 type Props = {
+  /** `id` used on `div` container node of `mapboxgl.Map` */
   id?: string
+  /** `tabIndex` used on `div` container node of `mapboxgl.Map` */
   tabIndex?: number
+  /** `className` used on `div` container node of `mapboxgl.Map` */
   className?: string
-  style?: { [key: string]: string }
+  /** `style` object used on `div` container node of `mapboxgl.Map` */
+  style?: { [key: string]: string | number }
+  /** `zoom` parameter passed to `mapboxgl.Map` */
   zoom?: number
+  /** `minZoom` parameter passed to `mapboxgl.Map` */
   minZoom?: number
+  /** `maxZoom` parameter passed to `mapboxgl.Map` */
   maxZoom?: number
+  /** `maxbounds` parameter passed to `mapboxgl.Map` */
   maxBounds?: LngLatBoundsLike
+  /** `center` parameter passed to `mapboxgl.Map` */
   center?: LngLatLike
+  /** `debug` parameter passed to `mapboxgl.Map` */
   debug?: boolean
+  /** `glyphs` parameter passed to `mapboxgl.Map` */
   glyphs?: string
+  /** @carbonplan/maps JSX elements or regular components */
+  children?: React.Node
   /** Tracks *any* pending requests made by containing `Raster` layers */
   setLoading?: (loading: boolean) => void
   /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
@@ -24,7 +37,8 @@ type Props = {
   /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading?: (loading: boolean) => void
 }
-const Map: React.FC<Props> = ({
+
+const Map = ({
   id,
   tabIndex,
   className,
@@ -40,7 +54,7 @@ const Map: React.FC<Props> = ({
   setLoading,
   setMetadataLoading,
   setChunkLoading,
-}) => {
+}: Props) => {
   return (
     <div
       id={id}

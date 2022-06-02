@@ -15,10 +15,11 @@ export const useRegl = () => {
 }
 
 type Props = {
-  style?: { [key: string]: string }
+  style?: { [key: string]: string | number }
+  children?: React.Node
 }
 
-const Regl: React.FC<Props> = ({ style, children }) => {
+const Regl = ({ style, children }: Props) => {
   const regl = useRef()
   const [ready, setReady] = useState(false)
 

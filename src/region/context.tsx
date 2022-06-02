@@ -16,7 +16,11 @@ export const useRegion = () => {
   return { region }
 }
 
-export const RegionProvider: React.FC<{}> = ({ children }) => {
+type Props = {
+  children?: React.Node
+}
+
+export const RegionProvider = ({ children }: Props) => {
   const [region, setRegion] = useState(null)
 
   return (

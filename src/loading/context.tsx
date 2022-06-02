@@ -121,7 +121,10 @@ const reducer = (state, action) => {
   }
 }
 
-export const LoadingProvider: React.FC<{}> = ({ children }) => {
+type Props = {
+  children?: React.Node
+}
+export const LoadingProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(reducer, {
     loading: new Set(),
     metadata: new Set(),
