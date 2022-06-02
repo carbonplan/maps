@@ -186,6 +186,235 @@
       }
     }
   },
+  "src/raster.tsx": {
+    "description": "",
+    "displayName": "Raster",
+    "methods": [],
+    "props": {
+      "display": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": "Boolean expressing whether contents should be drawn to canvas or not"
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Number value for alpha value used when painting to canvas"
+      },
+      "clim": {
+        "required": true,
+        "tsType": {
+          "name": "tuple",
+          "raw": "[number, number]",
+          "elements": [{ "name": "number" }, { "name": "number" }]
+        },
+        "description": "Array of limits for the color range, `[min, max]`"
+      },
+      "colormap": {
+        "required": true,
+        "tsType": {
+          "name": "Array",
+          "elements": [
+            {
+              "name": "tuple",
+              "raw": "[number, number, number]",
+              "elements": [
+                { "name": "number" },
+                { "name": "number" },
+                { "name": "number" }
+              ]
+            }
+          ],
+          "raw": "RGB[]"
+        },
+        "description": "Array of vec3 arrays, each representing an RGB value to sample from"
+      },
+      "index": {
+        "required": false,
+        "tsType": { "name": "any" },
+        "description": "Index used to trigger redraws"
+      },
+      "regionOptions": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{\n  setData: ({ value: any }) => void\n  selector?: { [key: string]: any }\n}",
+          "signature": {
+            "properties": [
+              {
+                "key": "setData",
+                "value": {
+                  "name": "signature",
+                  "type": "function",
+                  "raw": "({ value: any }) => void",
+                  "signature": {
+                    "arguments": [{ "name": "" }],
+                    "return": { "name": "void" }
+                  },
+                  "required": true
+                }
+              },
+              {
+                "key": "selector",
+                "value": {
+                  "name": "signature",
+                  "type": "object",
+                  "raw": "{ [key: string]: any }",
+                  "signature": {
+                    "properties": [
+                      {
+                        "key": { "name": "string" },
+                        "value": { "name": "any", "required": true }
+                      }
+                    ]
+                  },
+                  "required": false
+                }
+              }
+            ]
+          }
+        },
+        "description": "Object containing a `setData` callback and an optional `selector` object (falls back to `Raster`-level selector if not provided)"
+      },
+      "selector": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: any }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "any", "required": true }
+              }
+            ]
+          }
+        },
+        "description": "_(N/A for 2D datasets)_ Object to index into non-spatial dimensions, maps variable name (string) to value (any) or array of values"
+      },
+      "uniforms": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "number", "required": true }
+              }
+            ]
+          }
+        },
+        "description": "Object mapping custom uniform names (string) to values (float) for use in fragment shader"
+      },
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to Zarr group"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of array containing variable to be mapped"
+      },
+      "frag": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Fragment shader to use in place of default"
+      },
+      "fillValue": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Value to map to null"
+      },
+      "mode": {
+        "required": false,
+        "tsType": {
+          "name": "union",
+          "raw": "'grid' | 'dotgrid' | 'texture'",
+          "elements": [
+            { "name": "literal", "value": "'grid'" },
+            { "name": "literal", "value": "'dotgrid'" },
+            { "name": "literal", "value": "'texture'" }
+          ]
+        },
+        "description": "Display mode"
+      },
+      "setMetadata": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(value: { [key: string]: any }) => void",
+          "signature": {
+            "arguments": [
+              {
+                "name": "value",
+                "type": {
+                  "name": "signature",
+                  "type": "object",
+                  "raw": "{ [key: string]: any }",
+                  "signature": {
+                    "properties": [
+                      {
+                        "key": { "name": "string" },
+                        "value": { "name": "any", "required": true }
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback that is invoked with `.zmetadata` value once fetched"
+      },
+      "setLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track *any* pending requests"
+      },
+      "setMetadataLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track any metadata and coordinate requests made on initialization"
+      },
+      "setChunkLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track any requests of new chunks"
+      }
+    }
+  },
   "src/regl.tsx": {
     "description": "",
     "displayName": "Regl",
