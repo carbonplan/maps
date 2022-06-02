@@ -16,7 +16,7 @@ export const useRegion = () => {
   return { region }
 }
 
-export const RegionProvider = ({ children }) => {
+export const RegionProvider: React.FC<{}> = ({ children }) => {
   const [region, setRegion] = useState(null)
 
   return (

@@ -6,7 +6,7 @@ import React, {
   useContext,
   useRef,
 } from 'react'
-import _regl from 'regl'
+import * as _regl from 'regl'
 
 export const ReglContext = createContext(null)
 
@@ -14,7 +14,11 @@ export const useRegl = () => {
   return useContext(ReglContext)
 }
 
-const Regl = ({ style, extensions, children }) => {
+type Props = {
+  style?: { [key: string]: string }
+}
+
+const Regl: React.FC<Props> = ({ style, children }) => {
   const regl = useRef()
   const [ready, setReady] = useState(false)
 

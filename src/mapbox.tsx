@@ -6,7 +6,8 @@ import React, {
   useEffect,
   useContext,
 } from 'react'
-import mapboxgl from 'mapbox-gl'
+import * as mapboxgl from 'mapbox-gl'
+import type { LngLatLike, LngLatBoundsLike } from 'mapbox-gl'
 
 export const MapboxContext = createContext(null)
 
@@ -14,7 +15,17 @@ export const useMapbox = () => {
   return useContext(MapboxContext)
 }
 
-const Mapbox = ({
+type Props = {
+  zoom?: number
+  minZoom?: number
+  maxZoom?: number
+  maxBounds?: LngLatBoundsLike
+  center?: LngLatLike
+  debug?: boolean
+  glyphs?: string
+}
+
+const Mapbox: React.FC<Props> = ({
   glyphs,
   style,
   center,
@@ -29,9 +40,11 @@ const Mapbox = ({
   const [ready, setReady] = useState()
 
   const ref = useCallback((node) => {
-    const mapboxStyle = { version: 8, sources: {}, layers: [] }
-    if (glyphs) {
-      mapboxStyle.glyphs = glyphs
+    const mapboxStyle = {
+      version: 8,
+      sources: {},
+      layers: [],
+      ...(glyphs ? { glyphs } : {}),
     }
     if (node !== null) {
       map.current = new mapboxgl.Map({

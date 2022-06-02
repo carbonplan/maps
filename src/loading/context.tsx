@@ -61,34 +61,37 @@ export const useSetLoading = () => {
     return id
   }, [])
 
-  const clearLoading = useCallback((id, { forceClear } = {}) => {
-    if (id) {
-      setMetadataIds((prevMetadata) => {
-        prevMetadata.delete(id)
-        return prevMetadata
-      })
-      setChunkIds((prevChunk) => {
-        prevChunk.delete(id)
-        return prevChunk
-      })
+  const clearLoading = useCallback(
+    (id, { forceClear } = { forceClear: false }) => {
+      if (id) {
+        setMetadataIds((prevMetadata) => {
+          prevMetadata.delete(id)
+          return prevMetadata
+        })
+        setChunkIds((prevChunk) => {
+          prevChunk.delete(id)
+          return prevChunk
+        })
 
-      dispatch({
-        loaders: [
-          { id, key: 'metadata' },
-          { id, key: 'chunk' },
-        ],
-        type: 'clear',
-      })
-    }
+        dispatch({
+          loaders: [
+            { id, key: 'metadata' },
+            { id, key: 'chunk' },
+          ],
+          type: 'clear',
+        })
+      }
 
-    if (forceClear && loading.current) {
-      dispatch({
-        loaders: [{ id: loadingId.current, key: 'loading' }],
-        type: 'clear',
-      })
-      loading.current = false
-    }
-  }, [])
+      if (forceClear && loading.current) {
+        dispatch({
+          loaders: [{ id: loadingId.current, key: 'loading' }],
+          type: 'clear',
+        })
+        loading.current = false
+      }
+    },
+    []
+  )
 
   return {
     setLoading,
@@ -118,7 +121,7 @@ const reducer = (state, action) => {
   }
 }
 
-export const LoadingProvider = ({ children }) => {
+export const LoadingProvider: React.FC<{}> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, {
     loading: new Set(),
     metadata: new Set(),

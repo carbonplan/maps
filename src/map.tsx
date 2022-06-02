@@ -1,10 +1,30 @@
-import React from 'react'
+import * as React from 'react'
 import Mapbox from './mapbox'
 import Regl from './regl'
 import { RegionProvider } from './region/context'
 import { LoadingProvider, LoadingUpdater } from './loading'
+import type { LngLatLike, LngLatBoundsLike } from 'mapbox-gl'
 
-const Map = ({
+type Props = {
+  id?: string
+  tabIndex?: number
+  className?: string
+  style?: { [key: string]: string }
+  zoom?: number
+  minZoom?: number
+  maxZoom?: number
+  maxBounds?: LngLatBoundsLike
+  center?: LngLatLike
+  debug?: boolean
+  glyphs?: string
+  /** Tracks *any* pending requests made by containing `Raster` layers */
+  setLoading?: (loading: boolean) => void
+  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
+  setMetadataLoading?: (loading: boolean) => void
+  /** Tracks any requests of new chunks by containing `Raster` layers */
+  setChunkLoading?: (loading: boolean) => void
+}
+const Map: React.FC<Props> = ({
   id,
   tabIndex,
   className,
@@ -15,14 +35,10 @@ const Map = ({
   maxBounds,
   center,
   debug,
-  extensions,
   glyphs,
   children,
-  /** Tracks *any* pending requests made by containing `Raster` layers */
   setLoading,
-  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
   setMetadataLoading,
-  /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
 }) => {
   return (
@@ -49,7 +65,6 @@ const Map = ({
         style={{ position: 'absolute' }}
       >
         <Regl
-          extensions={extensions}
           style={{
             position: 'absolute',
             pointerEvents: 'none',
