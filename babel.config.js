@@ -1,4 +1,10 @@
-var value = {}
+var value = {
+  presets: [
+    '@babel/preset-env',
+    '@babel/preset-react',
+    '@babel/preset-typescript',
+  ],
+}
 
 if (process.env.NODE_ENV === 'test') {
   value = {
@@ -13,13 +19,6 @@ if (process.env.NODE_ENV === 'test') {
       ],
     ],
   }
-} else if (process.env.NODE_ENV === 'docs') {
-  value = {
-    presets: [
-      '@babel/preset-env',
-      '@babel/preset-react',
-      '@babel/preset-typescript',
-    ],
-  }
 }
+
 module.exports = value

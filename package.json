@@ -55,8 +55,6 @@
     "zarr-js": "^2.2.0"
   },
   "peerDependencies": {
-    "@types/react": "^16.14.0 || ^17.0.2",
-    "@types/react-dom": "^16.14.0 || ^17.0.2",
     "react": "^16.14.0 || ^17.0.2",
     "react-dom": "^16.14.0 || ^17.0.2"
   },
