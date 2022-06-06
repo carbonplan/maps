@@ -1,9 +1,31 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 
-const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
+type Props = {
+  /** URL pointing to vector tileset */
+  source: string
+  /** Name of `source-layer` */
+  variable: string
+  /** Fill color */
+  color: string
+  /** Key that triggers addition of source to `mapbox-gl-js` map */
+  id?: string
+  /** Maximum zoom for layer (defaults to 5) */
+  maxZoom?: number
+  /** Fill opacity (defaults to 1) */
+  opacity?: number
+}
+
+const Fill = ({
+  source,
+  variable,
+  color,
+  id,
+  maxZoom = 5,
+  opacity = 1,
+}: Props) => {
   const { map } = useMapbox()
   const removed = useRef(false)
 
@@ -17,8 +39,8 @@ const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   }, [])
 
   useEffect(() => {
-    sourceIdRef.current = id || uuidv4()
-    const { current: sourceId } = sourceIdRef
+    const sourceId = id || uuidv4()
+    sourceIdRef.current = sourceId
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'vector',
@@ -31,8 +53,8 @@ const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
   }, [id])
 
   useEffect(() => {
-    layerIdRef.current = uuidv4()
-    const { current: layerId } = layerIdRef
+    const layerId = uuidv4()
+    layerIdRef.current = layerId
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {
       map.addLayer({
@@ -65,7 +87,7 @@ const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
     updatePaintProperty(map, layerIdRef, 'fill-opacity', opacity)
   }, [opacity])
 
-  return null
+  return <></>
 }
 
 export default Fill

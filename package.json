@@ -9,7 +9,7 @@
     "watch": "microbundle watch src/index.ts -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
     "test": "NODE_ENV=test jest --watch",
     "test:ci": "NODE_ENV=test jest --ci --reporters='default'",
-    "build-docs": "NODE_ENV=docs react-docgen src/*.tsx --out docs/components/component-props.json --resolver findExportedComponentDefinition && prettier --write docs/components/component-props.json",
+    "build-docs": "NODE_ENV=docs react-docgen ./src/ --out docs/components/component-props.json --extension tsx --resolver findExportedComponentDefinition && prettier --write docs/components/component-props.json",
     "format": "prettier --write 'src/**/*.js'"
   },
   "repository": {

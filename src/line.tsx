@@ -1,7 +1,26 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
 import { v4 as uuidv4 } from 'uuid'
+
+type Props = {
+  /** URL pointing to vector tileset */
+  source: string
+  /** Name of `source-layer` */
+  variable: string
+  /** Line color */
+  color: string
+  /** Key that triggers addition of source to `mapbox-gl-js` map */
+  id?: string
+  /** Maximum zoom for layer (defaults to 5) */
+  maxZoom?: number
+  /** Line width (defaults to 0.5) */
+  width?: number
+  /** Line blur (defaults to 0.4) */
+  blur?: number
+  /** Line opacity (defaults to 1) */
+  opacity?: number
+}
 
 const Line = ({
   source,
@@ -12,7 +31,7 @@ const Line = ({
   opacity = 1,
   blur = 0.4,
   width = 0.5,
-}) => {
+}: Props) => {
   const { map } = useMapbox()
   const removed = useRef(false)
 
@@ -26,8 +45,8 @@ const Line = ({
   }, [])
 
   useEffect(() => {
-    sourceIdRef.current = id || uuidv4()
-    const { current: sourceId } = sourceIdRef
+    const sourceId = id || uuidv4()
+    sourceIdRef.current = sourceId
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'vector',
@@ -84,7 +103,7 @@ const Line = ({
     updatePaintProperty(map, layerIdRef, 'line-blur', blur)
   }, [blur])
 
-  return null
+  return <></>
 }
 
 export default Line

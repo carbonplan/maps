@@ -1,5 +1,5 @@
 import Section from '../../components/section'
-import Table from '../../components/table'
+import PropsTable from '../../components/props-table'
 
 # Line
 
@@ -7,20 +7,6 @@ The `Line` component renders a Mapbox map layer of `type: 'line'` using vector t
 
 ## Props
 
-<Table>
-
-| Prop             | Description                                                | Default |
-| ---------------- | ---------------------------------------------------------- | ------- |
-| source           | URL pointing to vector tileset                             |         |
-| variable         | Name of `source-layer`                                     |         |
-| color            | Line color                                                 |         |
-| _optional props_ |                                                            |         |
-| opacity          | Line opacity                                               | 1       |
-| width            | Line width                                                 | 0.5     |
-| blur             | Line blur                                                  | 0.4     |
-| maxZoom          | Maximum zoom for layer                                     | 5       |
-| id               | Key that triggers addition of source to `mapbox-gl-js` map |         |
-
-</Table>
+<PropsTable name='Line' />
 
 export default ({ children }) => <Section name='line'>{children}</Section>

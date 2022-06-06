@@ -1,4 +1,106 @@
 {
+  "src/fill.tsx": {
+    "description": "",
+    "displayName": "Fill",
+    "methods": [],
+    "props": {
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to vector tileset"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of `source-layer`"
+      },
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Fill color"
+      },
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Key that triggers addition of source to `mapbox-gl-js` map"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum zoom for layer (defaults to 5)",
+        "defaultValue": { "value": "5", "computed": false }
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Fill opacity (defaults to 1)",
+        "defaultValue": { "value": "1", "computed": false }
+      }
+    }
+  },
+  "src/line.tsx": {
+    "description": "",
+    "displayName": "Line",
+    "methods": [],
+    "props": {
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to vector tileset"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of `source-layer`"
+      },
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Line color"
+      },
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Key that triggers addition of source to `mapbox-gl-js` map"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum zoom for layer (defaults to 5)",
+        "defaultValue": { "value": "5", "computed": false }
+      },
+      "width": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line width (defaults to 0.5)",
+        "defaultValue": { "value": "0.5", "computed": false }
+      },
+      "blur": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line blur (defaults to 0.4)",
+        "defaultValue": { "value": "0.4", "computed": false }
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line opacity (defaults to 1)",
+        "defaultValue": { "value": "1", "computed": false }
+      }
+    }
+  },
+  "src/loading/context.tsx": {
+    "description": "",
+    "displayName": "LoadingProvider",
+    "methods": [],
+    "props": {
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      }
+    }
+  },
   "src/map.tsx": {
     "description": "",
     "displayName": "Map",
@@ -78,7 +180,7 @@
       },
       "children": {
         "required": false,
-        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
         "description": "@carbonplan/maps JSX elements or regular components"
       },
       "setLoading": {
@@ -164,7 +266,7 @@
       },
       "children": {
         "required": false,
-        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
         "description": ""
       },
       "style": {
@@ -415,6 +517,78 @@
       }
     }
   },
+  "src/region/context.tsx": {
+    "description": "",
+    "displayName": "RegionProvider",
+    "methods": [],
+    "props": {
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      }
+    }
+  },
+  "src/region/region-picker/circle-picker/index.js": {
+    "description": "",
+    "displayName": "CirclePicker",
+    "methods": []
+  },
+  "src/region/region-picker/index.tsx": {
+    "description": "",
+    "displayName": "RegionPicker",
+    "methods": [],
+    "props": {
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Color of circle border, radius guideline, and label"
+      },
+      "backgroundColor": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Color rendered over area of map not covered by circle (with opacity 0.8)"
+      },
+      "fontFamily": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Font family used to render circle radius label"
+      },
+      "fontSize": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Font size used to render circle radius label"
+      },
+      "units": {
+        "required": false,
+        "tsType": {
+          "name": "union",
+          "raw": "'meters' | 'kilometers'",
+          "elements": [
+            { "name": "literal", "value": "'meters'" },
+            { "name": "literal", "value": "'kilometers'" }
+          ]
+        },
+        "description": "Units used to render circle radius label",
+        "defaultValue": { "value": "'kilometers'", "computed": false }
+      },
+      "initialRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Radius (in `units`) used to initialize circle"
+      },
+      "minRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Minimum radius (in `units`) allowed"
+      },
+      "maxRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum radius (in `units`) allowed"
+      }
+    }
+  },
   "src/regl.tsx": {
     "description": "",
     "displayName": "Regl",
@@ -444,7 +618,7 @@
       },
       "children": {
         "required": false,
-        "tsType": { "name": "ReactNode", "raw": "React.Node" },
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
         "description": ""
       }
     }
