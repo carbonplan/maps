@@ -8,19 +8,23 @@ import React, {
 } from 'react'
 import * as _regl from 'regl'
 
-export const ReglContext = createContext(null)
+export const ReglContext = createContext<{ regl?: _regl.Regl } | null>(null)
 
-export const useRegl = () => {
-  return useContext(ReglContext)
+export const useRegl = (): { regl: _regl.Regl } => {
+  const value = useContext(ReglContext)
+  if (value && value.regl) {
+    return { regl: value.regl }
+  }
+  throw new Error('Invoked useRegl before initializing context')
 }
 
 type Props = {
   style?: { [key: string]: string | number }
-  children?: React.Node
+  children?: React.ReactNode
 }
 
 const Regl = ({ style, children }: Props) => {
-  const regl = useRef()
+  const regl = useRef<_regl.Regl>()
   const [ready, setReady] = useState(false)
 
   const ref = useCallback((node) => {

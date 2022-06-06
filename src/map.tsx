@@ -29,7 +29,7 @@ type Props = {
   /** `glyphs` parameter passed to `mapboxgl.Map` */
   glyphs?: string
   /** @carbonplan/maps JSX elements or regular components */
-  children?: React.Node
+  children?: React.ReactNode
   /** Tracks *any* pending requests made by containing `Raster` layers */
   setLoading?: (loading: boolean) => void
   /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */

@@ -9,10 +9,15 @@ import React, {
 import * as mapboxgl from 'mapbox-gl'
 import type { LngLatLike, LngLatBoundsLike } from 'mapbox-gl'
 
-export const MapboxContext = createContext(null)
+export const MapboxContext = createContext<{ map?: mapboxgl.Map } | null>(null)
 
-export const useMapbox = () => {
-  return useContext(MapboxContext)
+export const useMapbox = (): { map: mapboxgl.Map } => {
+  const value = useContext(MapboxContext)
+
+  if (value && value.map) {
+    return { map: value.map }
+  }
+  throw new Error('Invoked useMapbox before initializing context')
 }
 
 type Props = {
@@ -23,7 +28,7 @@ type Props = {
   center?: LngLatLike
   debug?: boolean
   glyphs?: string
-  children?: React.Node
+  children?: React.ReactNode
   style?: { [key: string]: string }
 }
 
@@ -38,8 +43,8 @@ const Mapbox = ({
   debug,
   children,
 }: Props) => {
-  const map = useRef()
-  const [ready, setReady] = useState()
+  const map = useRef<mapboxgl.Map>()
+  const [ready, setReady] = useState<boolean>(false)
 
   const ref = useCallback((node) => {
     const mapboxStyle = {
@@ -79,15 +84,13 @@ const Mapbox = ({
   }, [])
 
   useEffect(() => {
-    map.current.showTileBoundaries = debug
+    if (map.current) {
+      map.current.showTileBoundaries = !!debug
+    }
   }, [debug])
 
   return (
-    <MapboxContext.Provider
-      value={{
-        map: map.current,
-      }}
-    >
+    <MapboxContext.Provider value={{ map: map.current }}>
       <div
         style={{
           top: '0px',

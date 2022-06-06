@@ -67,9 +67,9 @@ const Raster = (props: Props) => {
   const { region } = useRegion()
   const { setLoading, clearLoading, loading, chunkLoading, metadataLoading } =
     useSetLoading()
-  const tiles = useRef()
-  const camera = useRef()
-  const lastQueried = useRef()
+  const tiles = useRef<any>()
+  const camera = useRef<{ center?: [number, number]; zoom?: number }>()
+  const lastQueried = useRef<number>()
 
   camera.current = { center: center, zoom: zoom }
 
@@ -118,6 +118,10 @@ const Raster = (props: Props) => {
   }, [!!props.setChunkLoading, chunkLoading])
 
   useEffect(() => {
+    if (!map) {
+      return
+    }
+
     const callback = () => {
       tiles.current.updateCamera(camera.current)
       tiles.current.draw()

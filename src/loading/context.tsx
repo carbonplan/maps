@@ -9,7 +9,26 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-const LoadingContext = createContext({})
+type Loader = {
+  id: string
+  key: string
+}
+type Context = {
+  loading: Set<Loader>
+  metadata: Set<Loader>
+  chunk: Set<Loader>
+  dispatch: (action: { loaders: Loader[]; type: 'set' | 'clear' }) => void
+}
+
+const initialState = {
+  loading: new Set([]),
+  metadata: new Set([]),
+  chunk: new Set([]),
+}
+const LoadingContext = createContext<Context>({
+  ...initialState,
+  dispatch: () => {},
+})
 
 export const useSetLoading = () => {
   const loadingId = useRef(uuidv4())
@@ -122,14 +141,10 @@ const reducer = (state, action) => {
 }
 
 type Props = {
-  children?: React.Node
+  children?: React.ReactNode
 }
 export const LoadingProvider = ({ children }: Props) => {
-  const [state, dispatch] = useReducer(reducer, {
-    loading: new Set(),
-    metadata: new Set(),
-    chunk: new Set(),
-  })
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   return (
     <LoadingContext.Provider
