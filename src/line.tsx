@@ -51,10 +51,8 @@ const Line = ({
       map.addSource(sourceId, {
         type: 'vector',
         tiles: [`${source}/{z}/{x}/{y}.pbf`],
+        maxzoom: maxZoom,
       })
-      if (maxZoom) {
-        map.getSource(sourceId).maxzoom = maxZoom
-      }
     }
   }, [id])
 
