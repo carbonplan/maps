@@ -1,5 +1,6 @@
 import { Box } from 'theme-ui'
 import { Table } from '@carbonplan/components'
+import Markdown from 'markdown-to-jsx'
 import componentProps from './component-props.json'
 
 const sx = {
@@ -16,10 +17,8 @@ const getRows = (keys, props) => {
     const { tsType, description } = props[key]
     return [
       key,
-      description,
-      <Box as='span' variant='styles.inlineCode'>
-        {tsType.raw ?? tsType.name}
-      </Box>,
+      <Markdown>{description}</Markdown>,
+      <Markdown>{`\`${tsType.raw ?? tsType.name}\``}</Markdown>,
     ]
   })
 }
