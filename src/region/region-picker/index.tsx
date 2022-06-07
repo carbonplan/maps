@@ -3,11 +3,18 @@ import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
 import { v4 as uuidv4 } from 'uuid'
+import type { Circle } from '../types'
+import type { Map } from 'mapbox-gl'
 
 import { useRegionContext } from '../context'
 import { useMapbox } from '../../mapbox'
 
-function getInitialRadius(map, units, minRadius, maxRadius) {
+function getInitialRadius(
+  map: Map,
+  units: 'meters' | 'kilometers',
+  minRadius?: number,
+  maxRadius?: number
+) {
   const bounds = map.getBounds().toArray()
   const dist = distance(bounds[0], bounds[1], { units })
   let radius = Math.round(dist / 15)
@@ -65,7 +72,7 @@ function RegionPicker({
     }
   }, [])
 
-  const handleCircle = useCallback((circle) => {
+  const handleCircle = useCallback((circle: Circle) => {
     if (!circle) return
     setRegion(circle)
     setCenter(circle.properties.center)

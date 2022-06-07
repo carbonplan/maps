@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./dst/",
     "sourceMap": true,
     "strictNullChecks": true,
     "module": "ESNext",
@@ -8,7 +8,8 @@
     "target": "ESNext",
     "allowJs": true,
     "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true
   },
   "include": ["./src/"]
 }

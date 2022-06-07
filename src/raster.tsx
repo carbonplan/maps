@@ -5,6 +5,7 @@ import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
 import { useSetLoading } from './loading'
+import type { Circle } from './region/types'
 
 type RGB = [number, number, number]
 type Props = {
@@ -20,7 +21,9 @@ type Props = {
   index?: any
   /** Object containing a `setData` callback and an optional `selector` object (falls back to `Raster`-level selector if not provided) */
   regionOptions?: {
-    setData: ({ value: any }) => void
+    setData: (result: {
+      value: null | number[] | { [key: string]: any }
+    }) => void
     selector?: { [key: string]: any }
   }
   /** _(N/A for 2D datasets)_ Object to index into non-spatial dimensions, maps variable name (string) to value (any) or array of values */
@@ -73,7 +76,7 @@ const Raster = (props: Props) => {
 
   camera.current = { center: center, zoom: zoom }
 
-  const queryRegion = async (r, s) => {
+  const queryRegion = async (r: Circle, s: { [key: string]: any }) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
 

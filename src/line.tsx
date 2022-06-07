@@ -35,8 +35,8 @@ const Line = ({
   const { map } = useMapbox()
   const removed = useRef(false)
 
-  const sourceIdRef = useRef()
-  const layerIdRef = useRef()
+  const sourceIdRef = useRef<string>()
+  const layerIdRef = useRef<string>()
 
   useEffect(() => {
     map.on('remove', () => {

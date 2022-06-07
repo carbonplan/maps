@@ -27,7 +27,7 @@ const Regl = ({ style, children }: Props) => {
   const regl = useRef<_regl.Regl>()
   const [ready, setReady] = useState(false)
 
-  const ref = useCallback((node) => {
+  const ref = useCallback((node: HTMLDivElement) => {
     if (node !== null) {
       regl.current = _regl({
         container: node,

@@ -9,15 +9,17 @@ import React, {
 } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-type Loader = {
-  id: string
-  key: string
+type Key = 'metadata' | 'loading' | 'chunk'
+type Loader = { id: string; key: Key }
+type Action = { loaders: Loader[]; type: 'set' | 'clear' }
+type State = {
+  loading: Set<string>
+  metadata: Set<string>
+  chunk: Set<string>
 }
-type Context = {
-  loading: Set<Loader>
-  metadata: Set<Loader>
-  chunk: Set<Loader>
-  dispatch: (action: { loaders: Loader[]; type: 'set' | 'clear' }) => void
+
+type Context = State & {
+  dispatch: (action: Action) => State | void
 }
 
 const initialState = {
@@ -34,12 +36,12 @@ export const useSetLoading = () => {
   const loadingId = useRef(uuidv4())
   const loading = useRef(false)
   const { dispatch } = useContext(LoadingContext)
-  const [metadataIds, setMetadataIds] = useState(new Set())
-  const [chunkIds, setChunkIds] = useState(new Set())
+  const [metadataIds, setMetadataIds] = useState<Set<string>>(new Set([]))
+  const [chunkIds, setChunkIds] = useState<Set<string>>(new Set([]))
 
   useEffect(() => {
     return () => {
-      const loaders = [{ id: loadingId.current, key: 'loading' }]
+      const loaders: Loader[] = [{ id: loadingId.current, key: 'loading' }]
       metadataIds.forEach((id) => loaders.push({ id, key: 'metadata' }))
       chunkIds.forEach((id) => loaders.push({ id, key: 'chunk' }))
       dispatch({ loaders, type: 'clear' })
@@ -56,7 +58,7 @@ export const useSetLoading = () => {
     }
   }, [metadataIds.size, chunkIds.size, loading.current])
 
-  const setLoading = useCallback((key = 'chunk') => {
+  const setLoading = useCallback((key: Key = 'chunk') => {
     if (!['chunk', 'metadata'].includes(key)) {
       throw new Error(
         `Unexpected loading key: ${key}. Expected one of: 'chunk', 'metadata'.`
@@ -81,7 +83,7 @@ export const useSetLoading = () => {
   }, [])
 
   const clearLoading = useCallback(
-    (id, { forceClear } = { forceClear: false }) => {
+    (id: string, { forceClear } = { forceClear: false }) => {
       if (id) {
         setMetadataIds((prevMetadata) => {
           prevMetadata.delete(id)
@@ -121,7 +123,7 @@ export const useSetLoading = () => {
   }
 }
 
-const reducer = (state, action) => {
+const reducer = (state: State, action: Action) => {
   switch (action.type) {
     case 'set':
       action.loaders.forEach(({ id, key }) => {

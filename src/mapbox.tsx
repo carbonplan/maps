@@ -46,7 +46,7 @@ const Mapbox = ({
   const map = useRef<mapboxgl.Map>()
   const [ready, setReady] = useState<boolean>(false)
 
-  const ref = useCallback((node) => {
+  const ref = useCallback((node: HTMLDivElement) => {
     const mapboxStyle = {
       version: 8,
       sources: {},

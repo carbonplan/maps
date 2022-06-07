@@ -44,6 +44,7 @@
     "@types/mapbox-gl": "^2.7.2",
     "@types/react": "^18.0.10",
     "@types/react-dom": "^18.0.5",
+    "@types/uuid": "^8.3.4",
     "d3-array": "^2.12.1",
     "d3-axis": "^2.1.0",
     "d3-geo": "^2.0.2",
