@@ -69,6 +69,7 @@ const Index = () => {
             opacity={opacity}
             mode={'texture'}
             source={bucket + 'v2/demo/4d/tavg-prec-month'}
+            fillValue={9.969209968386869e36}
             variable={'climate'}
             selector={{ month, band }}
             regionOptions={{ setData: setRegionData }}
