@@ -21,6 +21,7 @@ import {
   getChunks,
   getSelectorHash,
 } from './utils'
+import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
 
 export const createTiles = (regl, opts) => {
@@ -36,7 +37,7 @@ export const createTiles = (regl, opts) => {
     selector = {},
     uniforms: customUniforms = {},
     frag: customFrag,
-    fillValue = -9999,
+    fillValue,
     mode = 'texture',
     setLoading,
     clearLoading,
@@ -90,11 +91,6 @@ export const createTiles = (regl, opts) => {
 
     if (mode === 'texture') {
       primitive = 'triangles'
-      const emptyTexture = ndarray(
-        new Float32Array(Array(1).fill(fillValue)),
-        [1, 1]
-      )
-      initialize = () => regl.texture(emptyTexture)
       this.bands.forEach((k) => (uniforms[k] = regl.prop(k)))
     }
 
@@ -115,14 +111,26 @@ export const createTiles = (regl, opts) => {
         if (mode === 'texture') {
           this.count = 6
         }
-        this.dimensions =
-          metadata.metadata[`${levels[0]}/${variable}/.zattrs`][
-            '_ARRAY_DIMENSIONS'
-          ]
-        this.shape =
-          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['shape']
-        this.chunks =
-          metadata.metadata[`${levels[0]}/${variable}/.zarray`]['chunks']
+
+        const attrs = metadata.metadata[`${levels[0]}/${variable}/.zattrs`]
+        const array = metadata.metadata[`${levels[0]}/${variable}/.zarray`]
+
+        this.dimensions = attrs['_ARRAY_DIMENSIONS']
+        this.shape = array['shape']
+        this.chunks = array['chunks']
+
+        this.fillValue =
+          fillValue ??
+          array['fill_value'] ??
+          DEFAULT_FILL_VALUES[array['dtype']]
+
+        if (mode === 'texture') {
+          const emptyTexture = ndarray(
+            new Float32Array(Array(1).fill(this.fillValue)),
+            [1, 1]
+          )
+          initialize = () => regl.texture(emptyTexture)
+        }
 
         this.ndim = this.dimensions.length
 
