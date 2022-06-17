@@ -4,17 +4,28 @@ import { axisBottom, axisLeft } from 'd3-axis'
 import { scaleOrdinal } from 'd3-scale'
 import { select } from 'd3-selection'
 
+import type { AxisScale } from 'd3-axis'
+import type { Selection } from 'd3-selection'
+
 import { useMapbox } from './mapbox'
 
 const TICK_SEPARATION = 150 // target distance between ticks
 const TICK_SIZE = 6 // tick length
 const TICK_MARGIN = 2 // distance between gridlines and tick text
 
+type S = Selection<SVGElement, any, any, any>
+type A = AxisScale<number>
+
 function useRuler({
   showAxes = true,
   showGrid = false,
   fontFamily,
   gridColor,
+}: {
+  showAxes: boolean
+  showGrid: boolean
+  fontFamily: string
+  gridColor: string
 }) {
   const { map } = useMapbox()
 
@@ -23,8 +34,8 @@ function useRuler({
       return
     }
 
-    let rulerContainer = null
-    let setRulerTicks = null
+    let rulerContainer: S
+    let setRulerTicks: () => void
 
     function addRuler() {
       const mapContainer = map.getContainer()
@@ -50,13 +61,13 @@ function useRuler({
         .style('font-size', '14px')
         .style('font-family', fontFamily)
 
-      const xAxis = (g, x) =>
+      const xAxis = (g: S, x: A) =>
         g
           .call(
             axisBottom(x)
               .tickValues(x.domain())
               .tickFormat((d) => `${d}°`)
-              .tickSize(TICK_SIZE)
+              .tickSize(TICK_SIZE) as any
           )
           .call((g) => g.select('.domain').remove())
 
@@ -68,13 +79,13 @@ function useRuler({
         .style('font-size', '14px')
         .style('font-family', fontFamily)
 
-      const yAxis = (g, y) =>
+      const yAxis = (g: S, y: A) =>
         g
           .call(
             axisLeft(y)
               .tickValues(y.domain())
               .tickFormat((d) => `${d}°`)
-              .tickSize(TICK_SIZE)
+              .tickSize(TICK_SIZE) as any
           )
           .call((g) => g.select('.domain').remove())
 
@@ -88,8 +99,8 @@ function useRuler({
               .style('stroke-dasharray', '3,2')
               .style('stroke-opacity', 0.8),
 
-            grid: (g, x, y) => {
-              const xTickHeight = gx.node().getBoundingClientRect().height
+            grid: (g: S, x: A, y: A) => {
+              const xTickHeight = gx.node()?.getBoundingClientRect().height ?? 0
               const yTickNodes = gy.selectAll('.tick').nodes()
               return g
                 .call((g) =>
@@ -106,10 +117,10 @@ function useRuler({
                       (update) => update,
                       (exit) => exit.remove()
                     )
-                    .attr('x1', (d) => 0.5 + x(d))
-                    .attr('x2', (d) => 0.5 + x(d))
+                    .attr('x1', (d) => 0.5 + (x(d) as number))
+                    .attr('x2', (d) => 0.5 + (x(d) as number))
                 )
-                .call((g) =>
+                .call((g: S) =>
                   g
                     .selectAll('.y')
                     .data(y.domain())
@@ -118,11 +129,12 @@ function useRuler({
                       (update) => update,
                       (exit) => exit.remove()
                     )
-                    .attr('y1', (d) => 0.5 + y(d))
-                    .attr('y2', (d) => 0.5 + y(d))
+                    .attr('y1', (d) => 0.5 + (y(d) as number))
+                    .attr('y2', (d) => 0.5 + (y(d) as number))
                     .attr('x2', (d, i) => {
-                      const yTickWidth = yTickNodes[i]
-                        ? yTickNodes[i].getBoundingClientRect().width
+                      const node = yTickNodes[i] as Element
+                      const yTickWidth = node
+                        ? node.getBoundingClientRect().width
                         : 0
                       return width - yTickWidth - TICK_MARGIN
                     })
@@ -140,17 +152,18 @@ function useRuler({
 
         const xDomain = ticks(b.getWest(), b.getEast(), numXTicks)
         const xRange = xDomain.map((lng) => map.project([lng, 0]).x)
-        const x = scaleOrdinal().domain(xDomain).range(xRange)
+        const x = scaleOrdinal().domain(xDomain.map(String)).range(xRange)
 
         const yDomain = ticks(b.getNorth(), b.getSouth(), numYTicks)
         const yRange = yDomain.map((lat) => map.project([0, lat]).y)
-        const y = scaleOrdinal().domain(yDomain).range(yRange)
+        const y = scaleOrdinal().domain(yDomain.map(String)).range(yRange)
 
         if (showAxes) {
           gx.call(xAxis, x)
           gy.call(yAxis, y)
         }
-        if (showGrid) {
+
+        if (showGrid && gGrid) {
           gGrid.call(grid, x, y)
         }
       }

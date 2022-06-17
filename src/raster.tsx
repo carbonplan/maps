@@ -6,6 +6,7 @@ import { createTiles } from './tiles'
 import { useRegion } from './region/context'
 import { useSetLoading } from './loading'
 import type { Circle } from './region/types'
+import type { LngLat } from 'mapbox-gl'
 
 type RGB = [number, number, number]
 type Props = {
@@ -71,7 +72,7 @@ const Raster = (props: Props) => {
   const { setLoading, clearLoading, loading, chunkLoading, metadataLoading } =
     useSetLoading()
   const tiles = useRef<any>()
-  const camera = useRef<{ center?: [number, number]; zoom?: number }>()
+  const camera = useRef<{ center?: LngLat; zoom?: number }>()
   const lastQueried = useRef<number>()
 
   camera.current = { center: center, zoom: zoom }
