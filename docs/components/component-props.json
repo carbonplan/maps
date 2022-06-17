@@ -1,0 +1,671 @@
+{
+  "src/fill.tsx": {
+    "description": "",
+    "displayName": "Fill",
+    "methods": [],
+    "props": {
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to vector tileset"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of `source-layer`"
+      },
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Fill color"
+      },
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Key that triggers addition of source to `mapbox-gl-js` map"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum zoom for layer (defaults to 5)",
+        "defaultValue": { "value": "5", "computed": false }
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Fill opacity (defaults to 1)",
+        "defaultValue": { "value": "1", "computed": false }
+      }
+    }
+  },
+  "src/line.tsx": {
+    "description": "",
+    "displayName": "Line",
+    "methods": [],
+    "props": {
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to vector tileset"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of `source-layer`"
+      },
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Line color"
+      },
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Key that triggers addition of source to `mapbox-gl-js` map"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum zoom for layer (defaults to 5)",
+        "defaultValue": { "value": "5", "computed": false }
+      },
+      "width": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line width (defaults to 0.5)",
+        "defaultValue": { "value": "0.5", "computed": false }
+      },
+      "blur": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line blur (defaults to 0.4)",
+        "defaultValue": { "value": "0.4", "computed": false }
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Line opacity (defaults to 1)",
+        "defaultValue": { "value": "1", "computed": false }
+      }
+    }
+  },
+  "src/loading/context.tsx": {
+    "description": "",
+    "displayName": "LoadingProvider",
+    "methods": [],
+    "props": {
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      }
+    }
+  },
+  "src/map.tsx": {
+    "description": "",
+    "displayName": "Map",
+    "methods": [],
+    "props": {
+      "id": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`id` used on `div` container node of `mapboxgl.Map`"
+      },
+      "tabIndex": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`tabIndex` used on `div` container node of `mapboxgl.Map`"
+      },
+      "className": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`className` used on `div` container node of `mapboxgl.Map`"
+      },
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string | number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": {
+                  "name": "union",
+                  "raw": "string | number",
+                  "elements": [{ "name": "string" }, { "name": "number" }],
+                  "required": true
+                }
+              }
+            ]
+          }
+        },
+        "description": "`style` object used on `div` container node of `mapboxgl.Map`"
+      },
+      "zoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`zoom` parameter passed to `mapboxgl.Map`"
+      },
+      "minZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`minZoom` parameter passed to `mapboxgl.Map`"
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "`maxZoom` parameter passed to `mapboxgl.Map`"
+      },
+      "maxBounds": {
+        "required": false,
+        "tsType": { "name": "LngLatBoundsLike" },
+        "description": "`maxbounds` parameter passed to `mapboxgl.Map`"
+      },
+      "center": {
+        "required": false,
+        "tsType": { "name": "LngLatLike" },
+        "description": "`center` parameter passed to `mapboxgl.Map`"
+      },
+      "debug": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": "`debug` parameter passed to `mapboxgl.Map`"
+      },
+      "glyphs": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "`glyphs` parameter passed to `mapboxgl.Map`"
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": "@carbonplan/maps JSX elements or regular components"
+      },
+      "setLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks *any* pending requests made by containing `Raster` layers"
+      },
+      "setMetadataLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers"
+      },
+      "setChunkLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Tracks any requests of new chunks by containing `Raster` layers"
+      }
+    }
+  },
+  "src/mapbox.tsx": {
+    "description": "",
+    "displayName": "Mapbox",
+    "methods": [],
+    "props": {
+      "zoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "minZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "maxZoom": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": ""
+      },
+      "maxBounds": {
+        "required": false,
+        "tsType": { "name": "LngLatBoundsLike" },
+        "description": ""
+      },
+      "center": {
+        "required": false,
+        "tsType": { "name": "LngLatLike" },
+        "description": ""
+      },
+      "debug": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": ""
+      },
+      "glyphs": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": ""
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      },
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "string", "required": true }
+              }
+            ]
+          }
+        },
+        "description": ""
+      }
+    }
+  },
+  "src/raster.tsx": {
+    "description": "",
+    "displayName": "Raster",
+    "methods": [],
+    "props": {
+      "display": {
+        "required": false,
+        "tsType": { "name": "boolean" },
+        "description": "Boolean expressing whether contents should be drawn to canvas or not"
+      },
+      "opacity": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Number value for alpha value used when painting to canvas"
+      },
+      "clim": {
+        "required": true,
+        "tsType": {
+          "name": "tuple",
+          "raw": "[number, number]",
+          "elements": [{ "name": "number" }, { "name": "number" }]
+        },
+        "description": "Array of limits for the color range, `[min, max]`"
+      },
+      "colormap": {
+        "required": true,
+        "tsType": {
+          "name": "Array",
+          "elements": [
+            {
+              "name": "tuple",
+              "raw": "[number, number, number]",
+              "elements": [
+                { "name": "number" },
+                { "name": "number" },
+                { "name": "number" }
+              ]
+            }
+          ],
+          "raw": "RGB[]"
+        },
+        "description": "Array of vec3 arrays, each representing an RGB value to sample from"
+      },
+      "index": {
+        "required": false,
+        "tsType": { "name": "any" },
+        "description": "Index used to trigger redraws"
+      },
+      "regionOptions": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{\n  setData: (result: {\n    value: null | number[] | { [key: string]: any }\n  }) => void\n  selector?: { [key: string]: any }\n}",
+          "signature": {
+            "properties": [
+              {
+                "key": "setData",
+                "value": {
+                  "name": "signature",
+                  "type": "function",
+                  "raw": "(result: {\n  value: null | number[] | { [key: string]: any }\n}) => void",
+                  "signature": {
+                    "arguments": [
+                      {
+                        "name": "result",
+                        "type": {
+                          "name": "signature",
+                          "type": "object",
+                          "raw": "{\n  value: null | number[] | { [key: string]: any }\n}",
+                          "signature": {
+                            "properties": [
+                              {
+                                "key": "value",
+                                "value": {
+                                  "name": "union",
+                                  "raw": "null | number[] | { [key: string]: any }",
+                                  "elements": [
+                                    { "name": "null" },
+                                    {
+                                      "name": "Array",
+                                      "elements": [{ "name": "number" }],
+                                      "raw": "number[]"
+                                    },
+                                    {
+                                      "name": "signature",
+                                      "type": "object",
+                                      "raw": "{ [key: string]: any }",
+                                      "signature": {
+                                        "properties": [
+                                          {
+                                            "key": { "name": "string" },
+                                            "value": {
+                                              "name": "any",
+                                              "required": true
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ],
+                                  "required": true
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ],
+                    "return": { "name": "void" }
+                  },
+                  "required": true
+                }
+              },
+              {
+                "key": "selector",
+                "value": {
+                  "name": "signature",
+                  "type": "object",
+                  "raw": "{ [key: string]: any }",
+                  "signature": {
+                    "properties": [
+                      {
+                        "key": { "name": "string" },
+                        "value": { "name": "any", "required": true }
+                      }
+                    ]
+                  },
+                  "required": false
+                }
+              }
+            ]
+          }
+        },
+        "description": "Object containing a `setData` callback and an optional `selector` object (falls back to `Raster`-level selector if not provided)"
+      },
+      "selector": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: any }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "any", "required": true }
+              }
+            ]
+          }
+        },
+        "description": "_(N/A for 2D datasets)_ Object to index into non-spatial dimensions, maps variable name (string) to value (any) or array of values"
+      },
+      "uniforms": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": { "name": "number", "required": true }
+              }
+            ]
+          }
+        },
+        "description": "Object mapping custom uniform names (string) to values (float) for use in fragment shader"
+      },
+      "source": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "URL pointing to Zarr group"
+      },
+      "variable": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Name of array containing variable to be mapped"
+      },
+      "frag": {
+        "required": false,
+        "tsType": { "name": "string" },
+        "description": "Fragment shader to use in place of default"
+      },
+      "fillValue": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Value to map to null"
+      },
+      "mode": {
+        "required": false,
+        "tsType": {
+          "name": "union",
+          "raw": "'grid' | 'dotgrid' | 'texture'",
+          "elements": [
+            { "name": "literal", "value": "'grid'" },
+            { "name": "literal", "value": "'dotgrid'" },
+            { "name": "literal", "value": "'texture'" }
+          ]
+        },
+        "description": "Display mode"
+      },
+      "setMetadata": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(value: { [key: string]: any }) => void",
+          "signature": {
+            "arguments": [
+              {
+                "name": "value",
+                "type": {
+                  "name": "signature",
+                  "type": "object",
+                  "raw": "{ [key: string]: any }",
+                  "signature": {
+                    "properties": [
+                      {
+                        "key": { "name": "string" },
+                        "value": { "name": "any", "required": true }
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback that is invoked with `.zmetadata` value once fetched"
+      },
+      "setLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track *any* pending requests"
+      },
+      "setMetadataLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track any metadata and coordinate requests made on initialization"
+      },
+      "setChunkLoading": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "function",
+          "raw": "(loading: boolean) => void",
+          "signature": {
+            "arguments": [{ "name": "loading", "type": { "name": "boolean" } }],
+            "return": { "name": "void" }
+          }
+        },
+        "description": "Callback to track any requests of new chunks"
+      }
+    }
+  },
+  "src/region/context.tsx": {
+    "description": "",
+    "displayName": "RegionProvider",
+    "methods": [],
+    "props": {
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      }
+    }
+  },
+  "src/region/region-picker/circle-picker/index.js": {
+    "description": "",
+    "displayName": "CirclePicker",
+    "methods": []
+  },
+  "src/region/region-picker/index.tsx": {
+    "description": "",
+    "displayName": "RegionPicker",
+    "methods": [],
+    "props": {
+      "color": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Color of circle border, radius guideline, and label"
+      },
+      "backgroundColor": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Color rendered over area of map not covered by circle (with opacity 0.8)"
+      },
+      "fontFamily": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Font family used to render circle radius label"
+      },
+      "fontSize": {
+        "required": true,
+        "tsType": { "name": "string" },
+        "description": "Font size used to render circle radius label"
+      },
+      "units": {
+        "required": false,
+        "tsType": {
+          "name": "union",
+          "raw": "'meters' | 'kilometers'",
+          "elements": [
+            { "name": "literal", "value": "'meters'" },
+            { "name": "literal", "value": "'kilometers'" }
+          ]
+        },
+        "description": "Units used to render circle radius label",
+        "defaultValue": { "value": "'kilometers'", "computed": false }
+      },
+      "initialRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Radius (in `units`) used to initialize circle"
+      },
+      "minRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Minimum radius (in `units`) allowed"
+      },
+      "maxRadius": {
+        "required": false,
+        "tsType": { "name": "number" },
+        "description": "Maximum radius (in `units`) allowed"
+      }
+    }
+  },
+  "src/regl.tsx": {
+    "description": "",
+    "displayName": "Regl",
+    "methods": [],
+    "props": {
+      "style": {
+        "required": false,
+        "tsType": {
+          "name": "signature",
+          "type": "object",
+          "raw": "{ [key: string]: string | number }",
+          "signature": {
+            "properties": [
+              {
+                "key": { "name": "string" },
+                "value": {
+                  "name": "union",
+                  "raw": "string | number",
+                  "elements": [{ "name": "string" }, { "name": "number" }],
+                  "required": true
+                }
+              }
+            ]
+          }
+        },
+        "description": ""
+      },
+      "children": {
+        "required": false,
+        "tsType": { "name": "ReactReactNode", "raw": "React.ReactNode" },
+        "description": ""
+      }
+    }
+  }
+}

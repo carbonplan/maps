@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "./dst/",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "jsx": "react",
+    "target": "ESNext",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true
+  },
+  "include": ["./src/"]
+}

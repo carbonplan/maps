@@ -5,10 +5,11 @@
   "main": "dst/index.js",
   "module": "dst/index.esm.js",
   "scripts": {
-    "build": "rimraf dst && microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
-    "watch": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "build": "rimraf dst && microbundle src/index.ts -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch": "microbundle watch src/index.ts -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
     "test": "NODE_ENV=test jest --watch",
     "test:ci": "NODE_ENV=test jest --ci --reporters='default'",
+    "build-docs": "NODE_ENV=docs react-docgen ./src/ --out docs/components/component-props.json --extension tsx --resolver findExportedComponentDefinition && prettier --write docs/components/component-props.json",
     "format": "prettier --write 'src/**/*.js'"
   },
   "repository": {
@@ -35,6 +36,15 @@
   "homepage": "https://github.com/carbonplan/maps#readme",
   "dependencies": {
     "@turf/turf": "^6.5.0",
+    "@types/d3-array": "^3.0.3",
+    "@types/d3-axis": "^3.0.1",
+    "@types/d3-geo": "^3.0.2",
+    "@types/d3-scale": "^4.0.2",
+    "@types/d3-selection": "^3.0.2",
+    "@types/mapbox-gl": "^2.7.2",
+    "@types/react": "^18.0.10",
+    "@types/react-dom": "^18.0.5",
+    "@types/uuid": "^8.3.4",
     "d3-array": "^2.12.1",
     "d3-axis": "^2.1.0",
     "d3-geo": "^2.0.2",
@@ -53,11 +63,17 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
+    "@babel/preset-react": "^7.17.12",
+    "@babel/preset-typescript": "^7.17.12",
     "@carbonplan/prettier": "^1.2.0",
     "babel-jest": "^27.3.1",
     "jest": "^27.3.1",
     "microbundle": "^0.13.0",
     "prettier": "^2.2.1",
-    "rimraf": "3.0.2"
+    "react-docgen": "^5.4.1",
+    "rimraf": "3.0.2",
+    "source-map-loader": "^3.0.1",
+    "ts-loader": "^9.3.0",
+    "typescript": "^4.7.2"
   }
 }

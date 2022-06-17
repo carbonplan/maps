@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useMapbox } from './mapbox'
+import type { LngLat } from 'mapbox-gl'
 
 export const useControls = () => {
-  const [zoom, setZoom] = useState()
-  const [center, setCenter] = useState()
+  const [zoom, setZoom] = useState<number>()
+  const [center, setCenter] = useState<LngLat>()
   const { map } = useMapbox()
 
   useEffect(() => {

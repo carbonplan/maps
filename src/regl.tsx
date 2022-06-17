@@ -6,19 +6,28 @@ import React, {
   useContext,
   useRef,
 } from 'react'
-import _regl from 'regl'
+import * as _regl from 'regl'
 
-export const ReglContext = createContext(null)
+export const ReglContext = createContext<{ regl?: _regl.Regl } | null>(null)
 
-export const useRegl = () => {
-  return useContext(ReglContext)
+export const useRegl = (): { regl: _regl.Regl } => {
+  const value = useContext(ReglContext)
+  if (value && value.regl) {
+    return { regl: value.regl }
+  }
+  throw new Error('Invoked useRegl before initializing context')
 }
 
-const Regl = ({ style, extensions, children }) => {
-  const regl = useRef()
+type Props = {
+  style?: { [key: string]: string | number }
+  children?: React.ReactNode
+}
+
+const Regl = ({ style, children }: Props) => {
+  const regl = useRef<_regl.Regl>()
   const [ready, setReady] = useState(false)
 
-  const ref = useCallback((node) => {
+  const ref = useCallback((node: HTMLDivElement) => {
     if (node !== null) {
       regl.current = _regl({
         container: node,

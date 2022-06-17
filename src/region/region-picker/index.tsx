@@ -3,11 +3,18 @@ import CirclePicker from './circle-picker'
 import { UPDATE_STATS_ON_DRAG } from './constants'
 import { distance } from '@turf/turf'
 import { v4 as uuidv4 } from 'uuid'
+import type { Circle } from '../types'
+import type { Map } from 'mapbox-gl'
 
 import { useRegionContext } from '../context'
 import { useMapbox } from '../../mapbox'
 
-function getInitialRadius(map, units, minRadius, maxRadius) {
+function getInitialRadius(
+  map: Map,
+  units: 'meters' | 'kilometers',
+  minRadius?: number,
+  maxRadius?: number
+) {
   const bounds = map.getBounds().toArray()
   const dist = distance(bounds[0], bounds[1], { units })
   let radius = Math.round(dist / 15)
@@ -15,6 +22,25 @@ function getInitialRadius(map, units, minRadius, maxRadius) {
   radius = maxRadius ? Math.min(maxRadius, radius) : radius
 
   return radius
+}
+
+type Props = {
+  /** Color of circle border, radius guideline, and label */
+  color: string
+  /** Color rendered over area of map not covered by circle (with opacity 0.8) */
+  backgroundColor: string
+  /** Font family used to render circle radius label */
+  fontFamily: string
+  /** Font size used to render circle radius label */
+  fontSize: string
+  /** Units used to render circle radius label */
+  units?: 'meters' | 'kilometers'
+  /** Radius (in `units`) used to initialize circle */
+  initialRadius?: number
+  /** Minimum radius (in `units`) allowed */
+  minRadius?: number
+  /** Maximum radius (in `units`) allowed */
+  maxRadius?: number
 }
 
 // TODO:
@@ -28,7 +54,7 @@ function RegionPicker({
   initialRadius: initialRadiusProp,
   minRadius,
   maxRadius,
-}) {
+}: Props) {
   const { map } = useMapbox()
   const id = useRef(uuidv4())
   const initialCenter = useRef(map.getCenter())
@@ -46,7 +72,7 @@ function RegionPicker({
     }
   }, [])
 
-  const handleCircle = useCallback((circle) => {
+  const handleCircle = useCallback((circle: Circle) => {
     if (!circle) return
     setRegion(circle)
     setCenter(circle.properties.center)
@@ -60,7 +86,6 @@ function RegionPicker({
   return (
     <CirclePicker
       id={id.current}
-      map={map}
       center={initialCenter.current}
       radius={initialRadius.current}
       onDrag={UPDATE_STATS_ON_DRAG ? handleCircle : undefined}

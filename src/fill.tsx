@@ -1,23 +1,36 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useMapbox } from './mapbox'
 import { updatePaintProperty } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 
-const Line = ({
+type Props = {
+  /** URL pointing to vector tileset */
+  source: string
+  /** Name of `source-layer` */
+  variable: string
+  /** Fill color */
+  color: string
+  /** Key that triggers addition of source to `mapbox-gl-js` map */
+  id?: string
+  /** Maximum zoom for layer (defaults to 5) */
+  maxZoom?: number
+  /** Fill opacity (defaults to 1) */
+  opacity?: number
+}
+
+const Fill = ({
   source,
   variable,
   color,
   id,
   maxZoom = 5,
   opacity = 1,
-  blur = 0.4,
-  width = 0.5,
-}) => {
+}: Props) => {
   const { map } = useMapbox()
   const removed = useRef(false)
 
-  const sourceIdRef = useRef()
-  const layerIdRef = useRef()
+  const sourceIdRef = useRef<string>()
+  const layerIdRef = useRef<string>()
 
   useEffect(() => {
     map.on('remove', () => {
@@ -26,35 +39,31 @@ const Line = ({
   }, [])
 
   useEffect(() => {
-    sourceIdRef.current = id || uuidv4()
-    const { current: sourceId } = sourceIdRef
+    const sourceId = id || uuidv4()
+    sourceIdRef.current = sourceId
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'vector',
         tiles: [`${source}/{z}/{x}/{y}.pbf`],
+        maxzoom: maxZoom,
       })
-      if (maxZoom) {
-        map.getSource(sourceId).maxzoom = maxZoom
-      }
     }
   }, [id])
 
   useEffect(() => {
-    const layerId = layerIdRef.current || uuidv4()
+    const layerId = uuidv4()
     layerIdRef.current = layerId
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {
       map.addLayer({
         id: layerId,
-        type: 'line',
+        type: 'fill',
         source: sourceId,
         'source-layer': variable,
         layout: { visibility: 'visible' },
         paint: {
-          'line-blur': blur,
-          'line-color': color,
-          'line-opacity': opacity,
-          'line-width': width,
+          'fill-color': color,
+          'fill-opacity': opacity,
         },
       })
     }
@@ -69,22 +78,14 @@ const Line = ({
   }, [])
 
   useEffect(() => {
-    updatePaintProperty(map, layerIdRef, 'line-color', color)
+    updatePaintProperty(map, layerIdRef, 'fill-color', color)
   }, [color])
 
   useEffect(() => {
-    updatePaintProperty(map, layerIdRef, 'line-opacity', opacity)
+    updatePaintProperty(map, layerIdRef, 'fill-opacity', opacity)
   }, [opacity])
 
-  useEffect(() => {
-    updatePaintProperty(map, layerIdRef, 'line-width', width)
-  }, [width])
-
-  useEffect(() => {
-    updatePaintProperty(map, layerIdRef, 'line-blur', blur)
-  }, [blur])
-
-  return null
+  return <></>
 }
 
-export default Line
+export default Fill
