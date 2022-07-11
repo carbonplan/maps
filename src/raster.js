@@ -113,8 +113,7 @@ const Raster = (props) => {
     regionOptions?.setData,
     region,
     regionDataInvalidated,
-    ...Object.values(regionOptions?.selector || {}),
-    ...Object.values(selector),
+    ...Object.values(regionOptions?.selector || selector || {}),
   ])
 
   return null
