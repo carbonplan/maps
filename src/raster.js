@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useRegl } from './regl'
 import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
@@ -78,8 +78,10 @@ const Raster = (props) => {
 
   useEffect(() => {
     const callback = () => {
-      tiles.current.updateCamera(camera.current)
-      tiles.current.draw()
+      if (Object.values(camera.current).some(Boolean)) {
+        tiles.current.updateCamera(camera.current)
+        tiles.current.draw()
+      }
     }
     map.on('render', callback)
 
