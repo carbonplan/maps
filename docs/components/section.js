@@ -1,16 +1,17 @@
-import { MDXProvider } from '@mdx-js/react'
+import { MDXProvider, useMDXComponents } from '@mdx-js/react'
 import { NavSection } from '@carbonplan/layouts'
-import { Code, Pre } from '@carbonplan/prism'
+import { Code } from '@carbonplan/prism'
+import { useThemedStylesWithMdx } from '@theme-ui/mdx'
 import { contents } from './contents'
 
 const components = {
-  code: Code,
-  pre: Pre,
+  pre: Code,
 }
 
 const Section = ({ children, name }) => {
+  const styledComponents = useThemedStylesWithMdx(useMDXComponents(components))
   return (
-    <MDXProvider components={components}>
+    <MDXProvider components={styledComponents}>
       <NavSection
         name={name}
         menu={{ contents, prefix: '/maps' }}
