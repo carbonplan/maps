@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Box, useThemeUI } from 'theme-ui'
 import { Dimmer, Meta } from '@carbonplan/components'
 import { Map, Raster, Fill, Line, RegionPicker } from '@carbonplan/maps'
-import { useColormap } from '@carbonplan/colormaps'
+import { useThemedColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
 
@@ -17,7 +17,7 @@ const Index = () => {
   const [month, setMonth] = useState(1)
   const [band, setBand] = useState('tavg')
   const [colormapName, setColormapName] = useState('warm')
-  const colormap = useColormap(colormapName)
+  const colormap = useThemedColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
 
