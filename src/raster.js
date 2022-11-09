@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { useRegl } from './regl'
 import { useMapbox } from './mapbox'
 import { useControls } from './use-controls'
