@@ -165,6 +165,7 @@ const ParameterControls = ({ getters, setters }) => {
 
         <Box sx={{ ...sx.label, mt: [4] }}>Band</Box>
         <Select
+          sxSelect={{ bg: 'transparent' }}
           size='xs'
           onChange={handleBandChange}
           sx={{ mt: [1] }}
@@ -176,6 +177,7 @@ const ParameterControls = ({ getters, setters }) => {
 
         <Box sx={{ ...sx.label, mt: [4] }}>Colormap</Box>
         <Select
+          sxSelect={{ bg: 'transparent' }}
           size='xs'
           onChange={(e) => setColormapName(e.target.value)}
           sx={{ mt: [1] }}

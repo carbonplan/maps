@@ -78,8 +78,10 @@ const Raster = (props) => {
 
   useEffect(() => {
     const callback = () => {
-      tiles.current.updateCamera(camera.current)
-      tiles.current.draw()
+      if (Object.values(camera.current).some(Boolean)) {
+        tiles.current.updateCamera(camera.current)
+        tiles.current.draw()
+      }
     }
     map.on('render', callback)
 

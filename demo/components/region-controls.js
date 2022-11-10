@@ -8,7 +8,7 @@ const AverageDisplay = ({ band, data: { value } }) => {
   }
 
   let result
-  const filteredData = value.climate.filter((d) => d !== -3.3999999521443642e38)
+  const filteredData = value.climate.filter((d) => d !== 9.969209968386869e36)
   if (filteredData.length === 0) {
     result = 'no data in region'
   } else {
