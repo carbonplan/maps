@@ -102,7 +102,7 @@ class Tile {
       }
       const chunk = chunks[0]
       const chunkKey = chunk.join('.')
-      const data = this.chunkedData[chunkKey]
+      const data = this.chunkedData[chunkKey].step(1, -1, 1)
 
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
