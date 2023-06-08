@@ -68,21 +68,6 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
     return `
     ${declarations}
     #define PI 3.1415926535897932384626433832795
-    // float mercLat = uv.x * PI - PI / 2.0;
-    // float equirectangularLat = 2.0 * atan(exp(mercLat)) - PI / 2.0;
-    // float scaleY = 180.0 / (2.0 * 89.296875);
-    // float translateY = 90.0 - 89.296875;
-
-    // float equirectangularLat = log(tan((1.5707963267948966 + mercLat) / 2.0));
-    // float equirectangularY = scaleY * (equirectangularLat - radians(translateY)) / PI + 0.5;
-    // float equirectangularY = equirectangularLat / PI + 0.5;
-
-    vec2 mercator(float lon, float lat)
-    {
-      float lambda = radians(lon);
-      float phi = radians(lat);
-      return vec2(lambda, log(tan((1.5707963267948966 + phi) / 2.0)));
-    }
 
     vec2 mercatorInvert(float x, float y)
     {
@@ -90,43 +75,14 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       float phi = 2.0 * atan(exp(y)) - 1.5707963267948966;
       return vec2(degrees(lambda), degrees(phi));
     }
-    vec2 equirectangular(float lon, float lat)
-    {
-      float lambda = radians(lon);
-      float phi = radians(lat);
-      return vec2(cos(phi) * sin(lambda), sin(phi));
-    }
-    vec2 equirectangularInvert(float x, float y)
-    {
-      return vec2(degrees(x), degrees(y));
-    }
 
-    void main() {      
-      vec2 lookup = mercatorInvert(uv.x * 2.0 * PI - PI, uv.y * PI - PI / 2.0);
-      float scaleX = 360.0 / abs(178.59375 * 2.0);
-      float scaleY = 180.0 / abs(89.296875 * 2.0);
-      float translateX = 180.0 - 178.59375;
-      float translateY = 90.0 - 89.296875;
-      float rescaledX = scaleX * ((lookup.x - translateX) / 360.0 + 0.5);
-      float rescaledY = scaleY * ((lookup.y - translateY) / 180.0 + 0.5);
+    void main() {
+      // convert uv => [-1, 1] => radians
+      vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (uv.x * 2.0 - 1.0) * PI);
+      float rescaledX = lookup.x / 360.0 + 0.5;
+      float rescaledY = lookup.y / 180.0 + 0.5;
 
-      // float rescaledX = lookup.x / 360.0 + 0.5;
-      // float rescaledY = lookup.y / 180.0 + 0.5;
-
-      
-      float testX = rescaledX;
-      if (rescaledX > 0.75) {
-        testX = 0.75;
-      } else if (rescaledX > 0.5) {
-        testX = 0.5;
-      } else if (rescaledX > 0.25) {
-        testX = 0.25;
-      }
-      
-      vec2 coord = vec2(rescaledX, rescaledY);
-      
-      // vec2 lookup = mercator(uv.x * 360.0 - 180.0, uv.y * 180.0 - 90.0);
-      // vec2 coord = vec2(lookup.x / 2.0 / PI + 0.5, lookup.y / PI + 0.5);
+      vec2 coord = vec2(rescaledY, rescaledX);
 
       ${sh(`float ${vars[0]} = texture2D(${vars[0]}, coord).x;`, ['texture'])}
       ${sh(`float ${vars[0]} = ${vars[0]}v;`, ['grid', 'dotgrid'])}
@@ -142,7 +98,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
         discard;
       }
       float rescaled = (${vars[0]} - clim.x)/(clim.y - clim.x);
-      vec4 c = texture2D(colormap, vec2(rescaled, 1.0));  
+      vec4 c = texture2D(colormap, vec2(rescaled, 1.0));
       gl_FragColor = vec4(c.x, c.y, c.z, opacity);
       gl_FragColor.rgb *= gl_FragColor.a;
     }`
