@@ -58,6 +58,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform vec2 clim;
   uniform float fillValue;
   uniform float pixelRatio;
+  uniform float projection;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
@@ -77,14 +78,24 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
     }
 
     void main() {
-      // convert uv => [-1, 1] => radians
-      vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (uv.x * 2.0 - 1.0) * PI);
-      float rescaledX = lookup.x / 360.0 + 0.5;
-      float rescaledY = lookup.y / 180.0 + 0.5;
+      ${sh(
+        `
+      // By default (mercator projection), index into vars[0] using uv
+      vec2 coord = uv;
 
-      vec2 coord = vec2(rescaledY, rescaledX);
+      // Equirectangular
+      if (projection == 1.0) {
+        // convert uv => [-1, 1] => radians
+        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (uv.x * 2.0 - 1.0) * PI);
+        float rescaledX = lookup.x / 360.0 + 0.5;
+        float rescaledY = lookup.y / 180.0 + 0.5;
+        coord = vec2(rescaledY, rescaledX);
+      }
 
-      ${sh(`float ${vars[0]} = texture2D(${vars[0]}, coord).x;`, ['texture'])}
+      float ${vars[0]} = texture2D(${vars[0]}, coord).x;
+      `,
+        ['texture']
+      )}
       ${sh(`float ${vars[0]} = ${vars[0]}v;`, ['grid', 'dotgrid'])}
       ${sh(
         `

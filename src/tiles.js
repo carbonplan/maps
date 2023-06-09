@@ -57,6 +57,7 @@ export const createTiles = (regl, opts) => {
     this.variable = variable
     this.fillValue = fillValue
     this.projection = projection
+    this.projectionIndex = ['mercator', 'equirectangular'].indexOf(projection)
     this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
@@ -201,6 +202,7 @@ export const createTiles = (regl, opts) => {
         camera: regl.this('camera'),
         size: regl.this('size'),
         zoom: regl.this('zoom'),
+        projection: regl.this('projectionIndex'),
         globalLevel: regl.this('level'),
         level: regl.prop('level'),
         offset: regl.prop('offset'),
