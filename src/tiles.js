@@ -44,6 +44,8 @@ export const createTiles = (regl, opts) => {
     invalidate,
     invalidateRegion,
     setMetadata,
+    order,
+    projection = 'mercator',
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -54,6 +56,8 @@ export const createTiles = (regl, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
+    this.projection = projection
+    this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this._loading = false
@@ -160,6 +164,7 @@ export const createTiles = (regl, opts) => {
                     this.tiles[key] = new Tile({
                       key,
                       loader,
+                      order: this.order,
                       shape: this.shape,
                       chunks: this.chunks,
                       dimensions: this.dimensions,
@@ -286,8 +291,20 @@ export const createTiles = (regl, opts) => {
 
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
-      const tile = pointToTile(center.lng, center.lat, level)
-      const camera = pointToCamera(center.lng, center.lat, level)
+      const tile = pointToTile(
+        center.lng,
+        center.lat,
+        level,
+        this.order,
+        this.projection
+      )
+      const camera = pointToCamera(
+        center.lng,
+        center.lat,
+        level,
+        this.order,
+        this.projection
+      )
 
       this.level = level
       this.zoom = zoom
@@ -370,7 +387,12 @@ export const createTiles = (regl, opts) => {
     this.queryRegion = async (region, selector) => {
       await this.initialized
 
-      const tiles = getTilesOfRegion(region, this.level)
+      const tiles = getTilesOfRegion(
+        region,
+        this.level,
+        this.order,
+        this.projection
+      )
 
       await Promise.all(
         tiles.map(async (key) => {

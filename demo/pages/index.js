@@ -67,6 +67,8 @@ const Index = () => {
             clim={clim}
             display={display}
             opacity={opacity}
+            projection='equirectangular'
+            order={[1, -1]}
             mode={'texture'}
             source={
               'https://carbonplan-data-viewer.s3.amazonaws.com/demo/ScenarioMIP.CCCma.CanESM5.ssp245.r1i1p1f1.annual.GARD-SV.tasmax.pyramid.zarr'

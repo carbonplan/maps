@@ -24,20 +24,38 @@ export const tileToKey = (tile) => {
   return tile.join(',')
 }
 
-export const pointToTile = (lon, lat, z) => {
+export const pointToTile = (lon, lat, z, order, projection) => {
   const z2 = Math.pow(2, z)
-  let tile = pointToCamera(lon, lat, z)
+  let tile = pointToCamera(lon, lat, z, order, projection)
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
 
   return tile
 }
 
-export const pointToCamera = (lon, lat, z) => {
-  let sin = Math.sin(lat * d2r),
-    z2 = Math.pow(2, z),
-    x = z2 * (lon / 360 + 0.5),
-    y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
+export const pointToCamera = (lon, lat, z, order, projection) => {
+  let x, y
+  const sin = Math.sin(lat * d2r)
+  const z2 = Math.pow(2, z)
+
+  switch (projection) {
+    case 'mercator':
+      x = z2 * (lon / 360 + 0.5)
+      y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
+      break
+    case 'equirectangular':
+      x = z2 * (lon / 360 + 0.5)
+      y = z2 * (lat / 180 + 0.5)
+    default:
+      break
+  }
+
+  if (order[0] === -1) {
+    x = z2 - x
+  }
+  if (order[1] === -1) {
+    y = z2 - y
+  }
 
   x = x % z2
   y = Math.max(Math.min(y, z2), 0)
@@ -208,15 +226,21 @@ export const getAdjustedOffset = (offset, renderedKey) => {
   ]
 }
 
-export const getTilesOfRegion = (region, level) => {
+export const getTilesOfRegion = (region, level, order, projection) => {
   const { center, radius, units } = region.properties
-  const centralTile = pointToTile(center.lng, center.lat, level)
+  const centralTile = pointToTile(
+    center.lng,
+    center.lat,
+    level,
+    order,
+    projection
+  )
 
   const tiles = new Set([tileToKey(centralTile)])
 
   region.geometry.coordinates[0].forEach(([lng, lat]) => {
     // Add tile along edge of region
-    const edgeTile = pointToTile(lng, lat, level)
+    const edgeTile = pointToTile(lng, lat, level, order, projection)
     tiles.add(tileToKey(edgeTile))
 
     // Add any intermediate tiles if edge is > 1 tile away from center
@@ -238,7 +262,9 @@ export const getTilesOfRegion = (region, level) => {
         const intermediateTile = pointToTile(
           intermediatePoint.geometry.coordinates[0],
           intermediatePoint.geometry.coordinates[1],
-          level
+          level,
+          order,
+          projection
         )
         tiles.add(tileToKey(intermediateTile))
       }
@@ -368,9 +394,9 @@ export const getChunks = (
   y
 ) => {
   const chunkIndicesToUse = dimensions.map((dimension, i) => {
-    if (dimension === 'x') {
+    if (['x', 'lon'].includes(dimension)) {
       return [x]
-    } else if (dimension === 'y') {
+    } else if (['y', 'lat'].includes(dimension)) {
       return [y]
     }
 
