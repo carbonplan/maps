@@ -71,6 +71,7 @@ const Index = () => {
             source={bucket + 'v2/demo/4d/tavg-prec-month'}
             variable={'climate'}
             selector={{ month, band }}
+            benchmarkMode
             regionOptions={{ setData: setRegionData }}
           />
           <RegionControls

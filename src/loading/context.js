@@ -93,6 +93,9 @@ export const useSetLoading = () => {
   return {
     setLoading,
     clearLoading,
+    getLoading: () => {
+      return loading.current
+    },
     loading: loading.current,
     metadataLoading: metadataIds.size > 0,
     chunkLoading: chunkIds.size > 0,

@@ -41,6 +41,8 @@ export const createTiles = (regl, opts) => {
     mode = 'texture',
     setLoading,
     clearLoading,
+    getLoading,
+    fireIdle,
     invalidate,
     invalidateRegion,
     setMetadata,
@@ -59,6 +61,8 @@ export const createTiles = (regl, opts) => {
     this._loading = false
     this.setLoading = setLoading
     this.clearLoading = clearLoading
+    this.getLoading = getLoading
+    this.fireIdle = fireIdle
 
     this.colormap = regl.texture({
       data: colormap,
@@ -282,6 +286,9 @@ export const createTiles = (regl, opts) => {
 
     this.draw = () => {
       this.drawTiles(this.getProps())
+      if (!this.getLoading()) {
+        this.fireIdle()
+      }
     }
 
     this.updateCamera = ({ center, zoom }) => {
