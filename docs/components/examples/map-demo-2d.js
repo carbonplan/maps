@@ -3,7 +3,7 @@ import { Map, Raster, Fill, Line } from '@carbonplan/maps'
 import { useThemedColormap } from '@carbonplan/colormaps'
 import Zoom from './zoom'
 
-const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
+const bucket = 'https://carbonplan-maps.s3.us-west-2.amazonaws.com/'
 
 const MapDemo2d = () => {
   const { theme } = useThemeUI()
