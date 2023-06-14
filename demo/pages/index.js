@@ -6,7 +6,7 @@ import { useThemedColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
 
-const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
+const bucket = 'https://carbonplan-maps.s3-us-west-2.amazonaws.com/'
 
 const Index = () => {
   const { theme } = useThemeUI()
