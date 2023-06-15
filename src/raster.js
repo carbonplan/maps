@@ -5,7 +5,6 @@ import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
 import { useSetLoading } from './loading'
-import useBenchmark from './benchmark'
 
 const Raster = (props) => {
   const {
@@ -17,7 +16,6 @@ const Raster = (props) => {
     regionOptions = {},
     selector = {},
     uniforms = {},
-    benchmarkMode = false,
   } = props
   const { center, zoom } = useControls()
   const [regionDataInvalidated, setRegionDataInvalidated] = useState(
@@ -26,18 +24,11 @@ const Raster = (props) => {
   const { regl } = useRegl()
   const { map } = useMapbox()
   const { region } = useRegion()
-  const {
-    setLoading,
-    clearLoading,
-    getLoading,
-    loading,
-    chunkLoading,
-    metadataLoading,
-  } = useSetLoading()
+  const { setLoading, clearLoading, loading, chunkLoading, metadataLoading } =
+    useSetLoading()
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
-  const { fireIdle } = useBenchmark(benchmarkMode)
 
   camera.current = { center: center, zoom: zoom }
 
@@ -60,8 +51,6 @@ const Raster = (props) => {
       ...props,
       setLoading,
       clearLoading,
-      getLoading,
-      fireIdle,
       invalidate: () => {
         map.triggerRepaint()
       },
