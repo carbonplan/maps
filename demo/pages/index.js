@@ -42,7 +42,7 @@ const Index = () => {
         title={'@carbonplan/maps'}
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Map zoom={2} center={[0, 0]} debug={debug}>
+        <Map zoom={2} center={[0, 0]} debug={debug} benchmarkMode>
           <Fill
             color={theme.rawColors.background}
             source={bucket + 'basemaps/ocean'}
@@ -71,7 +71,6 @@ const Index = () => {
             source={bucket + 'v2/demo/4d/tavg-prec-month'}
             variable={'climate'}
             selector={{ month, band }}
-            benchmarkMode
             regionOptions={{ setData: setRegionData }}
           />
           <RegionControls
