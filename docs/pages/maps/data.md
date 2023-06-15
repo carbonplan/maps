@@ -32,7 +32,7 @@ Note the quadrupling of the number of chunks as zoom level increases. This is a 
 
 ## Multi-scale schema
 
-See an example `.zmetadata['.zattrs']` [value](https://storage.googleapis.com/carbonplan-maps/v2/demo/2d/tavg/.zmetadata) from a pyramid created for a demo:
+See an example `.zmetadata['.zattrs']` [value](https://carbonplan-maps.s3.us-west-2.amazonaws.com/v2/demo/2d/tavg/.zmetadata) from a pyramid created for a demo:
 
 ```json
 {

@@ -6,7 +6,7 @@ import { Code } from '@carbonplan/prism'
 import { Toggle } from '@carbonplan/components'
 import Zoom from './zoom'
 
-const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
+const bucket = 'https://carbonplan-maps.s3.us-west-2.amazonaws.com/'
 
 const formatData = (data) => {
   if (!data) {
