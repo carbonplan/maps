@@ -3,6 +3,7 @@ import Mapbox from './mapbox'
 import Regl from './regl'
 import { RegionProvider } from './region/context'
 import { LoadingProvider, LoadingUpdater } from './loading'
+import Benchmarker from './benchmarker'
 
 const Map = ({
   id,
@@ -24,6 +25,8 @@ const Map = ({
   setMetadataLoading,
   /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
+  /** Flag to enable access to window_.map for benchmarking purposes */
+  benchmarkMode,
 }) => {
   return (
     <div
@@ -63,6 +66,7 @@ const Map = ({
               setChunkLoading={setChunkLoading}
             />
             <RegionProvider>{children}</RegionProvider>
+            {benchmarkMode && <Benchmarker />}
           </LoadingProvider>
         </Regl>
       </Mapbox>
