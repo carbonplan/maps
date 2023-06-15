@@ -233,6 +233,8 @@ export const createTiles = (regl, opts) => {
       const adjustedActive = Object.keys(this.tiles)
         .filter((key) => this.active[key])
         .reduce((accum, key) => {
+          // Get optimum set of keys to render based on which have been fully loaded
+          // (potentially mixing levels of pyramid)
           const keysToRender = getKeysToRender(key, this.tiles, this.maxZoom)
           keysToRender.forEach((keyToRender) => {
             const offsets = this.active[key]

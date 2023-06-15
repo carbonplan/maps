@@ -94,6 +94,8 @@ const getOffsets = (length, tileSize, camera) => {
   return [-1 * Math.ceil(prev), Math.ceil(next)]
 }
 
+// Given a tile, return an object mapping sibling tiles (including itself) mapped to the different locations to render
+// For example, { '0.0.0':  [ [0,0,0], [1,0,0] ] }
 export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
   const [tileX, tileY, tileZ] = tile
   const { viewportHeight, viewportWidth } = viewport
@@ -209,6 +211,8 @@ export const getOverlappingAncestor = (key, renderedKeys) => {
   })
 }
 
+// Given a `renderedKey` for a tile to be rendered at some offset on the map,
+// return offset for rendering in context of map
 export const getAdjustedOffset = (offset, renderedKey) => {
   const [renderedX, renderedY, renderedLevel] = keyToTile(renderedKey)
   const [offsetX, offsetY, level] = offset
