@@ -10,7 +10,7 @@ const bucket = 'https://carbonplan-maps.s3.us-west-2.amazonaws.com/'
 
 const Index = () => {
   const { theme } = useThemeUI()
-  const [display, setDisplay] = useState(true)
+  const [display, setDisplay] = useState(false)
   const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
@@ -43,42 +43,45 @@ const Index = () => {
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Map zoom={2} center={[0, 0]} debug={debug} benchmarkMode>
-          <Fill
-            color={theme.rawColors.background}
-            source={bucket + 'basemaps/ocean'}
-            variable={'ocean'}
-          />
-          <Line
-            color={theme.rawColors.primary}
-            source={bucket + 'basemaps/land'}
-            variable={'land'}
-          />
-          {showRegionPicker && (
-            <RegionPicker
-              color={theme.colors.primary}
-              backgroundColor={theme.colors.background}
-              fontFamily={theme.fonts.mono}
-              fontSize={'14px'}
-              maxRadius={2000}
-            />
+          {display && (
+            <>
+              <Fill
+                color={theme.rawColors.background}
+                source={bucket + 'basemaps/ocean'}
+                variable={'ocean'}
+              />
+              <Line
+                color={theme.rawColors.primary}
+                source={bucket + 'basemaps/land'}
+                variable={'land'}
+              />
+              {showRegionPicker && (
+                <RegionPicker
+                  color={theme.colors.primary}
+                  backgroundColor={theme.colors.background}
+                  fontFamily={theme.fonts.mono}
+                  fontSize={'14px'}
+                  maxRadius={2000}
+                />
+              )}
+              <Raster
+                colormap={colormap}
+                clim={clim}
+                opacity={opacity}
+                mode={'texture'}
+                source={bucket + 'v2/demo/4d/tavg-prec-month'}
+                variable={'climate'}
+                selector={{ month, band }}
+                regionOptions={{ setData: setRegionData }}
+              />
+              <RegionControls
+                band={band}
+                regionData={regionData}
+                showRegionPicker={showRegionPicker}
+                setShowRegionPicker={setShowRegionPicker}
+              />
+            </>
           )}
-          <Raster
-            colormap={colormap}
-            clim={clim}
-            display={display}
-            opacity={opacity}
-            mode={'texture'}
-            source={bucket + 'v2/demo/4d/tavg-prec-month'}
-            variable={'climate'}
-            selector={{ month, band }}
-            regionOptions={{ setData: setRegionData }}
-          />
-          <RegionControls
-            band={band}
-            regionData={regionData}
-            showRegionPicker={showRegionPicker}
-            setShowRegionPicker={setShowRegionPicker}
-          />
         </Map>
         <ParameterControls getters={getters} setters={setters} />
         <Dimmer
