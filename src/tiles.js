@@ -240,7 +240,11 @@ export const createTiles = (regl, opts) => {
             const offsets = this.active[key]
 
             offsets.forEach((offset) => {
-              const adjustedOffset = getAdjustedOffset(offset, keyToRender)
+              const adjustedOffset = getAdjustedOffset(
+                offset,
+                keyToRender,
+                this.order
+              )
               if (!accum[keyToRender]) {
                 accum[keyToRender] = []
               }
@@ -319,6 +323,7 @@ export const createTiles = (regl, opts) => {
         zoom,
         camera: this.camera,
         size: this.size,
+        order: this.order,
       })
 
       if (this.size && Object.keys(this.active).length === 0) {

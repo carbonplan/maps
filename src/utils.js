@@ -96,7 +96,7 @@ const getOffsets = (length, tileSize, camera) => {
 
 // Given a tile, return an object mapping sibling tiles (including itself) mapped to the different locations to render
 // For example, { '0.0.0':  [ [0,0,0], [1,0,0] ] }
-export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
+export const getSiblings = (tile, { viewport, zoom, size, camera, order }) => {
   const [tileX, tileY, tileZ] = tile
   const { viewportHeight, viewportWidth } = viewport
   const [cameraX, cameraY] = camera
@@ -111,7 +111,7 @@ export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
   let offsets = []
   for (let x = deltaX[0]; x <= deltaX[1]; x++) {
     for (let y = deltaY[0]; y <= deltaY[1]; y++) {
-      offsets.push([tileX + x, tileY + y, tileZ])
+      offsets.push([tileX + order[0] * x, tileY + order[1] * y, tileZ])
     }
   }
 
