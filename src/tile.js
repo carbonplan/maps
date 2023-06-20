@@ -13,7 +13,6 @@ class Tile {
     chunks,
     dimensions,
     coordinates,
-    order,
     bands,
     initializeBuffer,
   }) {
@@ -25,7 +24,6 @@ class Tile {
     this.dimensions = dimensions
     this.coordinates = coordinates
     this.bands = bands
-    this.order = order
 
     this._bufferCache = null
     this._buffers = {}
@@ -104,19 +102,7 @@ class Tile {
       }
       const chunk = chunks[0]
       const chunkKey = chunk.join('.')
-      const data = this.chunkedData[chunkKey].step(
-        ...(this.order
-          ? this.dimensions.map((dimension) => {
-              if (['x', 'lon'].includes(dimension)) {
-                return this.order[0]
-              } else if (['y', 'lat'].includes(dimension)) {
-                return this.order[1]
-              } else {
-                return 1
-              }
-            })
-          : this.dimensions.map((d) => 1))
-      )
+      const data = this.chunkedData[chunkKey]
 
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)

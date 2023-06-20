@@ -24,16 +24,16 @@ export const tileToKey = (tile) => {
   return tile.join(',')
 }
 
-export const pointToTile = (lon, lat, z, order, projection) => {
+export const pointToTile = (lon, lat, z, projection) => {
   const z2 = Math.pow(2, z)
-  let tile = pointToCamera(lon, lat, z, order, projection)
+  let tile = pointToCamera(lon, lat, z, projection)
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
 
   return tile
 }
 
-export const pointToCamera = (lon, lat, z, order, projection) => {
+export const pointToCamera = (lon, lat, z, projection) => {
   let x, y
   const sin = Math.sin(lat * d2r)
   const z2 = Math.pow(2, z)
@@ -48,13 +48,6 @@ export const pointToCamera = (lon, lat, z, order, projection) => {
       y = z2 * (lat / 180 + 0.5)
     default:
       break
-  }
-
-  if (order[0] === -1) {
-    x = z2 - x
-  }
-  if (order[1] === -1) {
-    y = z2 - y
   }
 
   x = x % z2
@@ -96,7 +89,10 @@ const getOffsets = (length, tileSize, camera) => {
 
 // Given a tile, return an object mapping sibling tiles (including itself) mapped to the different locations to render
 // For example, { '0.0.0':  [ [0,0,0], [1,0,0] ] }
-export const getSiblings = (tile, { viewport, zoom, size, camera, order }) => {
+export const getSiblings = (
+  tile,
+  { viewport, zoom, size, camera, projection }
+) => {
   const [tileX, tileY, tileZ] = tile
   const { viewportHeight, viewportWidth } = viewport
   const [cameraX, cameraY] = camera
@@ -108,10 +104,11 @@ export const getSiblings = (tile, { viewport, zoom, size, camera, order }) => {
   const deltaX = getOffsets(viewportWidth, tileSize, cameraX)
   const deltaY = getOffsets(viewportHeight, tileSize, cameraY)
 
+  // offsets in units of tiles
   let offsets = []
   for (let x = deltaX[0]; x <= deltaX[1]; x++) {
     for (let y = deltaY[0]; y <= deltaY[1]; y++) {
-      offsets.push([tileX + order[0] * x, tileY + order[1] * y, tileZ])
+      offsets.push([tileX + x, tileY + y, tileZ])
     }
   }
 
@@ -230,21 +227,15 @@ export const getAdjustedOffset = (offset, renderedKey) => {
   ]
 }
 
-export const getTilesOfRegion = (region, level, order, projection) => {
+export const getTilesOfRegion = (region, level, projection) => {
   const { center, radius, units } = region.properties
-  const centralTile = pointToTile(
-    center.lng,
-    center.lat,
-    level,
-    order,
-    projection
-  )
+  const centralTile = pointToTile(center.lng, center.lat, level, projection)
 
   const tiles = new Set([tileToKey(centralTile)])
 
   region.geometry.coordinates[0].forEach(([lng, lat]) => {
     // Add tile along edge of region
-    const edgeTile = pointToTile(lng, lat, level, order, projection)
+    const edgeTile = pointToTile(lng, lat, level, projection)
     tiles.add(tileToKey(edgeTile))
 
     // Add any intermediate tiles if edge is > 1 tile away from center
@@ -267,7 +258,6 @@ export const getTilesOfRegion = (region, level, order, projection) => {
           intermediatePoint.geometry.coordinates[0],
           intermediatePoint.geometry.coordinates[1],
           level,
-          order,
           projection
         )
         tiles.add(tileToKey(intermediateTile))

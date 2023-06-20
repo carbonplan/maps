@@ -27,6 +27,7 @@ export const vert = (mode, vars) => {
   uniform float globalLevel;
   uniform float level;
   uniform vec2 offset;
+  uniform vec2 order;
   void main() {
     float scale = pixelRatio * 512.0 / size;
     float globalMag = pow(2.0, zoom - globalLevel);
@@ -35,8 +36,9 @@ export const vert = (mode, vars) => {
     float y = mag * (position.y + offset.y * size) - globalMag * camera.y * size ;
     x = (scale * x);
     y = (scale * y);
-    x = (2.0 * x / viewportWidth);
-    y = -(2.0 * y / viewportHeight);
+    x = order.x * (2.0 * x / viewportWidth);
+    y = order.y * -(2.0 * y / viewportHeight);
+
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
     ${sh(`gl_PointSize = 0.9 * scale * mag;`, ['grid', 'dotgrid'])}

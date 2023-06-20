@@ -165,7 +165,6 @@ export const createTiles = (regl, opts) => {
                     this.tiles[key] = new Tile({
                       key,
                       loader,
-                      order: this.order,
                       shape: this.shape,
                       chunks: this.chunks,
                       dimensions: this.dimensions,
@@ -206,6 +205,7 @@ export const createTiles = (regl, opts) => {
         globalLevel: regl.this('level'),
         level: regl.prop('level'),
         offset: regl.prop('offset'),
+        order: regl.prop('order'),
         clim: regl.this('clim'),
         opacity: regl.this('opacity'),
         fillValue: regl.this('fillValue'),
@@ -240,11 +240,7 @@ export const createTiles = (regl, opts) => {
             const offsets = this.active[key]
 
             offsets.forEach((offset) => {
-              const adjustedOffset = getAdjustedOffset(
-                offset,
-                keyToRender,
-                this.order
-              )
+              const adjustedOffset = getAdjustedOffset(offset, keyToRender)
               if (!accum[keyToRender]) {
                 accum[keyToRender] = []
               }
@@ -273,6 +269,7 @@ export const createTiles = (regl, opts) => {
           offsets.forEach((offset) => {
             accum.push({
               ...tile.getBuffers(),
+              order: this.order,
               level,
               offset,
             })
@@ -299,18 +296,11 @@ export const createTiles = (regl, opts) => {
 
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
-      const tile = pointToTile(
-        center.lng,
-        center.lat,
-        level,
-        this.order,
-        this.projection
-      )
+      const tile = pointToTile(center.lng, center.lat, level, this.projection)
       const camera = pointToCamera(
         center.lng,
         center.lat,
         level,
-        this.order,
         this.projection
       )
 
@@ -323,7 +313,7 @@ export const createTiles = (regl, opts) => {
         zoom,
         camera: this.camera,
         size: this.size,
-        order: this.order,
+        projection: this.projection,
       })
 
       if (this.size && Object.keys(this.active).length === 0) {
@@ -396,12 +386,7 @@ export const createTiles = (regl, opts) => {
     this.queryRegion = async (region, selector) => {
       await this.initialized
 
-      const tiles = getTilesOfRegion(
-        region,
-        this.level,
-        this.order,
-        this.projection
-      )
+      const tiles = getTilesOfRegion(region, this.level, this.projection)
 
       await Promise.all(
         tiles.map(async (key) => {
