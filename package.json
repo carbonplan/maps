@@ -40,6 +40,7 @@
     "d3-geo": "^2.0.2",
     "d3-scale": "^2.2.2",
     "d3-selection": "^2.0.0",
+    "glsl-geo-projection": "^1.0.1",
     "mapbox-gl": "^1.13.1",
     "ndarray": "^1.0.19",
     "regl": "^2.1.0",

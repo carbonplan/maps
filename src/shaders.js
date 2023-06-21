@@ -1,3 +1,5 @@
+import { mercator, mercatorInvert } from 'glsl-geo-projection'
+
 const _sh = (mode) => {
   return (value, which) => {
     if (which.includes(mode)) return value
@@ -14,6 +16,8 @@ export const vert = (mode, vars) => {
   #else
   precision mediump float;
   #endif
+  #define PI 3.1415926535897932384626433832795
+
   attribute vec2 position;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `attribute float ${d};`).join(''), ['grid', 'dotgrid'])}
@@ -28,20 +32,47 @@ export const vert = (mode, vars) => {
   uniform float level;
   uniform vec2 offset;
   uniform vec2 order;
+  varying float lat;
+  vec2 mercator(float lambda, float phi)
+  {
+    // float lambda = radians(lon);
+    // float phi = radians(lat);
+    return vec2(lambda, log(tan((1.5707963267948966 + phi) / 2.0)));
+  }
+
   void main() {
+    float numTiles = pow(2.0, level);
+    float sizeRad = PI / numTiles;
+    float stepRad = sizeRad / size;
+  
+    float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
+
+    // [-1, 1]
+    float posY = clamp(mercator(0.0, latRad).y, -1.0, 1.0);
+    // [0, 1]
+    // lat = (posY + 1.0) / 2.0;
+    // [0.5, 0, 0.5]
+    // lat = abs(lat - 0.5);
+    
+    // [0.5, 0, 0.5]
+    lat = abs(latRad / PI);
+
     float scale = pixelRatio * 512.0 / size;
     float globalMag = pow(2.0, zoom - globalLevel);
     float mag = pow(2.0, zoom - level);
-    float x = mag * (position.x + offset.x * size) - globalMag * camera.x * size ;
-    float y = mag * (position.y + offset.y * size) - globalMag * camera.y * size ;
-    x = (scale * x);
-    y = (scale * y);
-    x = order.x * (2.0 * x / viewportWidth);
-    y = order.y * -(2.0 * y / viewportHeight);
+
+    vec2 tileOffset = mag * (position + offset * size);
+    vec2 cameraOffset = globalMag * camera * size;
+    vec2 scaleFactor = vec2(order.x / viewportWidth, -1.0 * order.y / viewportHeight) * scale * 2.0;
+
+    float x = scaleFactor.x * (tileOffset.x - cameraOffset.x);
+    // float y = scaleFactor.y * (tileOffset.y - cameraOffset.y);
+    float y = mag * posY - scaleFactor.y * cameraOffset.y;
 
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
     ${sh(`gl_PointSize = 0.9 * scale * mag;`, ['grid', 'dotgrid'])}
+    // bottom: -1, top: 1
     gl_Position = vec4(x, y, 0.0, 1.0);
   }`
 }
@@ -61,6 +92,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float fillValue;
   uniform float pixelRatio;
   uniform float projection;
+  varying float lat;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
@@ -70,14 +102,8 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   if (!customFrag)
     return `
     ${declarations}
+    ${mercatorInvert}
     #define PI 3.1415926535897932384626433832795
-
-    vec2 mercatorInvert(float x, float y)
-    {
-      float lambda = x;
-      float phi = 2.0 * atan(exp(y)) - 1.5707963267948966;
-      return vec2(degrees(lambda), degrees(phi));
-    }
 
     void main() {
       ${sh(
@@ -112,7 +138,8 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       }
       float rescaled = (${vars[0]} - clim.x)/(clim.y - clim.x);
       vec4 c = texture2D(colormap, vec2(rescaled, 1.0));
-      gl_FragColor = vec4(c.x, c.y, c.z, opacity);
+      // gl_FragColor = vec4(c.x, c.y, c.z, opacity);
+      gl_FragColor = vec4(lat, 0.0, 0.0, 1.0);
       gl_FragColor.rgb *= gl_FragColor.a;
     }`
 
