@@ -40,22 +40,27 @@ export const vert = (mode, vars) => {
     return vec2(lambda, log(tan((1.5707963267948966 + phi) / 2.0)));
   }
 
+  float mercatorYFromLat(float phi)
+  {
+    return (PI - log(tan(PI / 4.0 - phi / 2.0))) / (2.0 * PI);
+  }
+
   void main() {
     float numTiles = pow(2.0, level);
     float sizeRad = PI / numTiles;
     float stepRad = sizeRad / size;
-  
+
     float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
 
-    // [-1, 1]
-    float posY = clamp(mercator(0.0, latRad).y, -1.0, 1.0);
     // [0, 1]
-    // lat = (posY + 1.0) / 2.0;
-    // [0.5, 0, 0.5]
-    // lat = abs(lat - 0.5);
+    float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
+    // float posY = clamp(mercator(0.0, latRad).y, 0.0, 1.0);
+
+    // [-1, 1]
+    posY = posY * 2.0 - 1.0;
     
     // [0.5, 0, 0.5]
-    lat = abs(latRad / PI);
+    lat = abs(2.0 * latRad / PI);
 
     float scale = pixelRatio * 512.0 / size;
     float globalMag = pow(2.0, zoom - globalLevel);
@@ -66,8 +71,8 @@ export const vert = (mode, vars) => {
     vec2 scaleFactor = vec2(order.x / viewportWidth, -1.0 * order.y / viewportHeight) * scale * 2.0;
 
     float x = scaleFactor.x * (tileOffset.x - cameraOffset.x);
-    // float y = scaleFactor.y * (tileOffset.y - cameraOffset.y);
-    float y = mag * posY - scaleFactor.y * cameraOffset.y;
+    float y = mag * posY + scaleFactor.y * cameraOffset.y;
+    // float y = mag * posY;
 
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
