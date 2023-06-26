@@ -54,13 +54,8 @@ export const vert = (mode, vars) => {
 
     // [0, 1]
     float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
-    // float posY = clamp(mercator(0.0, latRad).y, 0.0, 1.0);
-
     // [-1, 1]
     posY = posY * 2.0 - 1.0;
-    
-    // [0.5, 0, 0.5]
-    lat = abs(2.0 * latRad / PI);
 
     float scale = pixelRatio * 512.0 / size;
     float globalMag = pow(2.0, zoom - globalLevel);
@@ -71,8 +66,7 @@ export const vert = (mode, vars) => {
     vec2 scaleFactor = vec2(order.x / viewportWidth, -1.0 * order.y / viewportHeight) * scale * 2.0;
 
     float x = scaleFactor.x * (tileOffset.x - cameraOffset.x);
-    float y = mag * posY + scaleFactor.y * cameraOffset.y;
-    // float y = mag * posY;
+    float y = pow(2.0, zoom - 0.6812) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom - 0.6812);
 
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
@@ -97,7 +91,6 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float fillValue;
   uniform float pixelRatio;
   uniform float projection;
-  varying float lat;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
@@ -143,8 +136,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       }
       float rescaled = (${vars[0]} - clim.x)/(clim.y - clim.x);
       vec4 c = texture2D(colormap, vec2(rescaled, 1.0));
-      // gl_FragColor = vec4(c.x, c.y, c.z, opacity);
-      gl_FragColor = vec4(lat, 0.0, 0.0, 1.0);
+      gl_FragColor = vec4(c.x, c.y, c.z, opacity);
       gl_FragColor.rgb *= gl_FragColor.a;
     }`
 

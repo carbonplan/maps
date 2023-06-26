@@ -309,15 +309,13 @@ export const createTiles = (regl, opts) => {
       this.camera = [camera[0], camera[1]]
       console.log(this.camera)
 
-      // this.active = getSiblings(tile, {
-      //   viewport: this.viewport,
-      //   zoom,
-      //   camera: this.camera,
-      //   size: this.size,
-      //   projection: this.projection,
-      // })
-
-      this.active = { '0,1,1': [[0, 1, 1]] }
+      this.active = getSiblings(tile, {
+        viewport: this.viewport,
+        zoom,
+        camera: this.camera,
+        size: this.size,
+        projection: this.projection,
+      })
 
       if (this.size && Object.keys(this.active).length === 0) {
         this.clearLoading(null, { forceClear: true })
