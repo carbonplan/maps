@@ -32,7 +32,10 @@ export const vert = (mode, vars) => {
   uniform float level;
   uniform vec2 offset;
   uniform vec2 order;
+  uniform float projection;
   varying float lat;
+  varying float latBase;
+  varying float positionBase;
   vec2 mercator(float lambda, float phi)
   {
     // float lambda = radians(lon);
@@ -45,18 +48,16 @@ export const vert = (mode, vars) => {
     return (PI - log(tan(PI / 4.0 - phi / 2.0))) / (2.0 * PI);
   }
 
-  void main() {
-    float numTiles = pow(2.0, level);
-    float sizeRad = PI / numTiles;
-    float stepRad = sizeRad / size;
-
-    float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
-
+  float scaledYFromLat(float latRad, float zoom, vec2 scaleFactor, vec2 cameraOffset) {
     // [0, 1]
     float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
     // [-1, 1]
     posY = posY * 2.0 - 1.0;
 
+    return pow(2.0, zoom - 0.6812) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom - 0.6812);
+  }
+
+  void main() {
     float scale = pixelRatio * 512.0 / size;
     float globalMag = pow(2.0, zoom - globalLevel);
     float mag = pow(2.0, zoom - level);
@@ -66,7 +67,23 @@ export const vert = (mode, vars) => {
     vec2 scaleFactor = vec2(order.x / viewportWidth, -1.0 * order.y / viewportHeight) * scale * 2.0;
 
     float x = scaleFactor.x * (tileOffset.x - cameraOffset.x);
-    float y = pow(2.0, zoom - 0.6812) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom - 0.6812);
+
+    float y;
+    // Equirectangular
+    if (projection == 1.0) {
+      float numTiles = pow(2.0, level);
+      float sizeRad = PI / numTiles;
+      float stepRad = sizeRad / size;  
+      float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
+  
+      y = scaledYFromLat(latRad, zoom, scaleFactor, cameraOffset);
+      
+      // values when position.y = 0
+      latBase = order.y * (PI / 2.0 - (offset.y * sizeRad));
+      positionBase = scaledYFromLat(latBase, zoom, scaleFactor, cameraOffset);
+    } else {
+      y = scaleFactor.y * (tileOffset.y - cameraOffset.y);
+    }
 
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
@@ -89,8 +106,14 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform sampler2D colormap;
   uniform vec2 clim;
   uniform float fillValue;
-  uniform float pixelRatio;
   uniform float projection;
+  uniform float viewportHeight;
+  uniform float pixelRatio;
+  uniform float zoom;
+  uniform float level;
+  uniform vec2 order;
+  varying float latBase;
+  varying float positionBase;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
@@ -111,10 +134,17 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
 
       // Equirectangular
       if (projection == 1.0) {
-        // convert uv => [-1, 1] => radians
-        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (uv.x * 2.0 - 1.0) * PI);
+        float scale = pixelRatio * 512.0;
+        float mag = pow(2.0, zoom - level);
+        float y = positionBase - uv.x * mag * 2.0 * scale * order.y / viewportHeight;
+        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, y * PI);
         float rescaledX = lookup.x / 360.0 + 0.5;
-        float rescaledY = lookup.y / 180.0 + 0.5;
+        
+        float numTiles = pow(2.0, level);
+        float sizeRad = PI / numTiles;
+        
+        float rescaledY = (radians(lookup.y) - latBase) / sizeRad;
+
         coord = vec2(rescaledY, rescaledX);
       }
 
