@@ -35,7 +35,6 @@ export const vert = (mode, vars) => {
   uniform float projection;
   varying float lat;
   varying float latBase;
-  varying float positionBase;
   vec2 mercator(float lambda, float phi)
   {
     // float lambda = radians(lon);
@@ -46,15 +45,6 @@ export const vert = (mode, vars) => {
   float mercatorYFromLat(float phi)
   {
     return (PI - log(tan(PI / 4.0 - phi / 2.0))) / (2.0 * PI);
-  }
-
-  float scaledYFromLat(float latRad, float zoom, vec2 scaleFactor, vec2 cameraOffset) {
-    // [0, 1]
-    float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
-    // [-1, 1]
-    posY = posY * 2.0 - 1.0;
-
-    return pow(2.0, zoom) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom);
   }
 
   void main() {
@@ -76,11 +66,15 @@ export const vert = (mode, vars) => {
       float stepRad = sizeRad / size;  
       float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
   
-      y = scaledYFromLat(latRad, zoom, scaleFactor, cameraOffset);
+      // [0, 1]
+      float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
+      // [-1, 1]
+      posY = posY * 2.0 - 1.0;
+  
+      y = pow(2.0, zoom) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom);
       
       // values when position.y = 0
       latBase = order.y * (PI / 2.0 - (offset.y * sizeRad));
-      positionBase = scaledYFromLat(latBase, zoom, scaleFactor, cameraOffset);
     } else {
       y = scaleFactor.y * (tileOffset.y - cameraOffset.y);
     }
@@ -114,7 +108,6 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float centerY;
   uniform vec2 order;
   varying float latBase;
-  varying float positionBase;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
   ${sh(vars.map((d) => `varying float ${d}v;`).join(''), ['grid', 'dotgrid'])}
