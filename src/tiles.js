@@ -24,6 +24,15 @@ import {
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
 
+function mercatorYFromLat(lat) {
+  return (
+    (180 -
+      (180 / Math.PI) *
+        Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) /
+    360
+  )
+}
+
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
 
@@ -199,6 +208,7 @@ export const createTiles = (regl, opts) => {
         pixelRatio: regl.context('pixelRatio'),
         colormap: regl.this('colormap'),
         camera: regl.this('camera'),
+        centerY: regl.this('centerY'),
         size: regl.this('size'),
         zoom: regl.this('zoom'),
         projection: regl.this('projectionIndex'),
@@ -307,6 +317,8 @@ export const createTiles = (regl, opts) => {
       this.level = level
       this.zoom = zoom
       this.camera = [camera[0], camera[1]]
+      this.centerY = mercatorYFromLat(center.lat)
+      console.log(this.centerY, center.lat)
       console.log(this.camera)
 
       this.active = getSiblings(tile, {

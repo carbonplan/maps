@@ -111,6 +111,7 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float pixelRatio;
   uniform float zoom;
   uniform float level;
+  uniform float centerY;
   uniform vec2 order;
   varying float latBase;
   varying float positionBase;
@@ -131,19 +132,24 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
         `
       // By default (mercator projection), index into vars[0] using uv
       vec2 coord = uv;
+      float test = 0.0;
 
       // Equirectangular
       if (projection == 1.0) {
         float scale = pixelRatio * 512.0;
-        float mag = pow(2.0, zoom - level);
-        float y = positionBase - uv.x * mag * 2.0 * scale * order.y / viewportHeight;
-        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, y * PI);
+        float mag = pow(2.0, zoom);
+        float y = 2.0 * (gl_FragCoord.y - 0.5 * viewportHeight) / viewportHeight;
+        float mercatorY = y * viewportHeight / (mag * scale) - centerY + 0.5;
+
+        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, mercatorY * PI);        
         float rescaledX = lookup.x / 360.0 + 0.5;
-        
         float numTiles = pow(2.0, level);
         float sizeRad = PI / numTiles;
-        
         float rescaledY = (radians(lookup.y) - latBase) / sizeRad;
+
+        if (rescaledY > 1.0 || rescaledY < 0.0) {
+          discard;
+        }
 
         coord = vec2(rescaledY, rescaledX);
       }
