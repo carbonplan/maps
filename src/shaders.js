@@ -54,7 +54,7 @@ export const vert = (mode, vars) => {
     // [-1, 1]
     posY = posY * 2.0 - 1.0;
 
-    return pow(2.0, zoom - 0.6812) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom - 0.6812);
+    return pow(2.0, zoom) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom);
   }
 
   void main() {
@@ -138,8 +138,8 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       if (projection == 1.0) {
         float scale = pixelRatio * 512.0;
         float mag = pow(2.0, zoom);
-        float y = 2.0 * (gl_FragCoord.y - 0.5 * viewportHeight) / viewportHeight;
-        float mercatorY = y * viewportHeight / (mag * scale) - centerY + 0.5;
+        float y = gl_FragCoord.y * 2.0 - viewportHeight;
+        float mercatorY = (y - centerY) / (mag * scale);
 
         vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, mercatorY * PI);        
         float rescaledX = lookup.x / 360.0 + 0.5;
