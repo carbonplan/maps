@@ -131,10 +131,10 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       if (projection == 1.0) {
         float scale = pixelRatio * 512.0;
         float mag = pow(2.0, zoom);
-        float y = gl_FragCoord.y * 2.0 - viewportHeight;
-        float mercatorY = (y - centerY) / (mag * scale);
-
-        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, mercatorY * PI);        
+        float y = gl_FragCoord.y / viewportHeight; // 1 -> 0
+        float delta = 1.0 - centerY; // 0 -> 1 => 1 -> 0
+        float mercatorY = viewportHeight * (y - 0.5) / (scale * mag) + delta;
+        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (mercatorY * 2.0 - 1.0) * PI);
         float rescaledX = lookup.x / 360.0 + 0.5;
         float numTiles = pow(2.0, level);
         float sizeRad = PI / numTiles;
