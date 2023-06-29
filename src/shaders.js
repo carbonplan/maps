@@ -33,7 +33,6 @@ export const vert = (mode, vars) => {
   uniform vec2 offset;
   uniform vec2 order;
   uniform float projection;
-  varying float lat;
   varying float latBase;
   vec2 mercator(float lambda, float phi)
   {
