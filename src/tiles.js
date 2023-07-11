@@ -318,8 +318,6 @@ export const createTiles = (regl, opts) => {
       this.zoom = zoom
       this.camera = [camera[0], camera[1]]
       this.centerY = mercatorYFromLat(center.lat)
-      console.log(this.centerY, center.lat)
-      console.log(this.camera)
 
       this.active = getSiblings(tile, {
         viewport: this.viewport,

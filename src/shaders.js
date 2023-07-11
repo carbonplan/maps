@@ -64,14 +64,14 @@ export const vert = (mode, vars) => {
       float sizeRad = PI / numTiles;
       float stepRad = sizeRad / size;  
       float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
-  
+
       // [0, 1]
       float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
       // [-1, 1]
       posY = posY * 2.0 - 1.0;
   
-      y = pow(2.0, zoom) * posY + scaleFactor.y * cameraOffset.y - pow(2.0, zoom);
-      
+      y = pow(2.0, zoom + 1.0 - level) * posY - scaleFactor.y * cameraOffset.y;
+
       // values when position.y = 0
       latBase = order.y * (PI / 2.0 - (offset.y * sizeRad));
     } else {

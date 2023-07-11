@@ -38,23 +38,20 @@ export const pointToCamera = (lon, lat, z, projection) => {
   const sin = Math.sin(lat * d2r)
   const z2 = Math.pow(2, z)
 
-  x = z2 * (lon / 360 + 0.5)
-  y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
-
   switch (projection) {
     case 'mercator':
       x = z2 * (lon / 360 + 0.5)
       y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
+      y = Math.max(Math.min(y, z2), 0)
       break
     case 'equirectangular':
-    // x = z2 * (lon / 360 + 0.5)
-    // y = z2 * (lat / 180 + 0.5)
+      x = z2 * (lon / 360 + 0.5)
+      y = z2 * ((0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
     default:
       break
   }
 
   x = x % z2
-  y = Math.max(Math.min(y, z2), 0)
   if (x < 0) x = x + z2
   return [x, y, z]
 }
