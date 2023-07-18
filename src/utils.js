@@ -26,7 +26,23 @@ export const tileToKey = (tile) => {
 
 export const pointToTile = (lon, lat, z, projection) => {
   const z2 = Math.pow(2, z)
-  let tile = pointToCamera(lon, lat, z, projection)
+
+  let tile
+  switch (projection) {
+    case 'mercator':
+      tile = pointToCamera(lon, lat, z, projection)
+      break
+    case 'equirectangular':
+      let x = z2 * (lon / 360 + 0.5)
+      let y = z2 * (lat / 180 + 0.5)
+
+      x = x % z2
+      if (x < 0) x = x + z2
+      y = Math.max(Math.min(y, z2), 0)
+      tile = [x, y, z]
+    default:
+      break
+  }
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
 
