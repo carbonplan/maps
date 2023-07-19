@@ -20,18 +20,10 @@ import {
   setObjectValues,
   getChunks,
   getSelectorHash,
+  mercatorYFromLat,
 } from './utils'
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
-
-function mercatorYFromLat(lat) {
-  return (
-    (180 -
-      (180 / Math.PI) *
-        Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) /
-    360
-  )
-}
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -307,12 +299,7 @@ export const createTiles = (regl, opts) => {
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(center.lng, center.lat, level, this.projection)
-      const camera = pointToCamera(
-        center.lng,
-        center.lat,
-        level,
-        this.projection
-      )
+      const camera = pointToCamera(center.lng, center.lat, level)
 
       this.level = level
       this.zoom = zoom

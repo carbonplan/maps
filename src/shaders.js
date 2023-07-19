@@ -70,7 +70,7 @@ export const vert = (mode, vars) => {
       // [-1, 1]
       posY = posY * 2.0 - 1.0;
   
-      y = pow(2.0, zoom + 1.0 - level) * posY - scaleFactor.y * cameraOffset.y;
+      y = pow(2.0, zoom + 1.0 - level) * posY + scaleFactor.y * (cameraOffset.y - globalMag * size * pow(2.0, globalLevel) * 0.5);
 
       // values when position.y = 0
       latBase = order.y * (PI / 2.0 - (offset.y * sizeRad));
