@@ -311,6 +311,7 @@ export const createTiles = (regl, opts) => {
         zoom,
         camera: this.camera,
         size: this.size,
+        order: this.order,
         projection: this.projection,
       })
 
