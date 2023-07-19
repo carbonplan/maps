@@ -131,6 +131,11 @@ export const getSiblings = (
   const max = Math.pow(2, tileZ) - 1
   return offsets.reduce((accum, offset) => {
     const [x, y, z] = offset
+
+    // Do not attempt to wrap in y direction
+    if (y < 0 || y > max) {
+      return accum
+    }
     const tile = [clip(x, max), clip(y, max), z]
     const key = tileToKey(tile)
 
