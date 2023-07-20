@@ -78,21 +78,6 @@ export const zoomToLevel = (zoom, maxZoom) => {
   return Math.max(0, Math.floor(zoom))
 }
 
-const getOffsets = (length, tileSize, camera) => {
-  const siblingCount = (length - tileSize) / tileSize
-
-  // Do not add offset for very small fraction of tile
-  if (Math.abs(siblingCount) < 0.001) {
-    return [0, 0]
-  }
-
-  const cameraOffset = camera - Math.floor(camera)
-  const prev = siblingCount / 2 + 0.5 - cameraOffset
-  const next = siblingCount - prev
-
-  return [-1 * Math.ceil(prev), Math.ceil(next)]
-}
-
 export const mercatorYFromLat = (lat) => {
   return (
     (180 -
@@ -102,18 +87,48 @@ export const mercatorYFromLat = (lat) => {
   )
 }
 
-const getTileSize = (tile, { order }) => {
+const getOffsets = (length, tileSize, cameraOffset, order) => {
+  const siblingCount = (length - tileSize) / tileSize
+
+  // Do not add offset for very small fraction of tile
+  if (Math.abs(siblingCount) < 0.001) {
+    return [0, 0]
+  }
+
+  const prev = siblingCount / 2 + 0.5 - cameraOffset
+  const next = siblingCount - prev
+
+  let result = [-1 * Math.ceil(prev), Math.ceil(next)]
+  if (order === -1) {
+    result = [-1 * Math.ceil(next), Math.ceil(prev)]
+  }
+  return result
+}
+
+const getTileOffsets = (length, tileSize, camera, order) => {
+  const cameraOffset = camera - Math.floor(camera)
+
+  return getOffsets(length, tileSize, cameraOffset, order)
+}
+
+const getLatBasedOffsets = (tile, { zoom, length, order, camera }) => {
   const [x, y, z] = tile
   const z2 = Math.pow(2, z)
   const sizeDeg = 180 / z2
 
-  const lat0 = order[1] * (90 - y * sizeDeg)
-  const lat1 = lat0 - order[1] * sizeDeg
+  const lat0 = order * (90 - y * sizeDeg)
+  const lat1 = lat0 - order * sizeDeg
 
   const y0 = Math.max(Math.min(mercatorYFromLat(lat0), 1), 0)
   const y1 = Math.max(Math.min(mercatorYFromLat(lat1), 1), 0)
 
-  return Math.abs(y1 - y0)
+  const magnification = Math.pow(2, zoom - z)
+  const scale = window.devicePixelRatio * 512 * magnification
+  const tileSize = Math.abs(y1 - y0) * scale
+
+  const cameraOffset = camera - Math.pow(2, z) * y1
+
+  return getOffsets(length, tileSize, cameraOffset, order)
 }
 
 // Given a tile, return an object mapping sibling tiles (including itself) mapped to the different locations to render
@@ -128,16 +143,18 @@ export const getSiblings = (
 
   const magnification = Math.pow(2, zoom - tileZ)
   const scale = window.devicePixelRatio * 512 * magnification
-  const tileSize = size * scale * magnification
 
-  const deltaX = getOffsets(viewportWidth, scale, cameraX)
-  const deltaY = getOffsets(
-    viewportHeight,
+  const deltaX = getTileOffsets(viewportWidth, scale, cameraX, order[0])
+  const deltaY =
     projection === 'equirectangular'
-      ? getTileSize(tile, { order }) * scale
-      : scale,
-    cameraY
-  )
+      ? getLatBasedOffsets(tile, {
+          zoom,
+          length: viewportHeight,
+          order: order[1],
+          camera: cameraY,
+        })
+      : getTileOffsets(viewportHeight, scale, cameraY, order[1])
+
   // offsets in units of tiles
   let offsets = []
   for (let x = deltaX[0]; x <= deltaX[1]; x++) {
