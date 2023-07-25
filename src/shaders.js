@@ -67,10 +67,10 @@ export const vert = (mode, vars) => {
 
       // [0, 1]
       float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
-      // [-1, 1]
-      posY = posY * 2.0 - 1.0;
+      // [-0.5, 0.5]
+      posY = posY - 0.5;
   
-      y = pow(2.0, zoom + 1.0 - level) * posY + scaleFactor.y * (cameraOffset.y - globalMag * size * pow(2.0, globalLevel) * 0.5);
+      y = scaleFactor.y * (pow(2.0, zoom) * size * posY + cameraOffset.y - globalMag * size * pow(2.0, globalLevel) * 0.5);
 
       // values when position.y = 0
       latBase = order.y * (PI / 2.0 - (offset.y * sizeRad));
