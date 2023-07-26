@@ -422,14 +422,26 @@ export const createTiles = (regl, opts) => {
 
       tiles.map((key) => {
         const [x, y, z] = keyToTile(key)
+        const z2 = Math.pow(2, z)
+        const sizeDeg = 180 / z2
+        const stepDeg = sizeDeg / this.size
+
+        const lat0 = this.order[1] * (90 - y * sizeDeg)
+
         const { center, radius, units } = region.properties
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
-            const pointCoords = cameraToPoint(
+            const [mercLon, mercLat] = cameraToPoint(
               x + i / this.size,
               y + j / this.size,
               z
             )
+            const pointCoords = [
+              mercLon,
+              this.projection === 'equirectangular'
+                ? lat0 - this.order[1] * stepDeg * j
+                : mercLat,
+            ]
             const distanceToCenter = distance(
               [center.lng, center.lat],
               pointCoords,
@@ -462,9 +474,9 @@ export const createTiles = (regl, opts) => {
 
       if (this.ndim > 2) {
         out.dimensions = this.dimensions.map((d) => {
-          if (d === 'x') {
+          if (['x', 'lon'].includes(d)) {
             return 'lon'
-          } else if (d === 'y') {
+          } else if (['y', 'lat'].includes(d)) {
             return 'lat'
           } else {
             return d
@@ -473,7 +485,7 @@ export const createTiles = (regl, opts) => {
 
         out.coordinates = this.dimensions.reduce(
           (coords, d) => {
-            if (d !== 'x' && d !== 'y') {
+            if (!['x', 'lon', 'y', 'lat'].includes(d)) {
               if (selector.hasOwnProperty(d)) {
                 coords[d] = Array.isArray(selector[d])
                   ? selector[d]
