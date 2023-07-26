@@ -3,12 +3,12 @@ import { useRecenterRegion } from '@carbonplan/maps'
 import { XCircle } from '@carbonplan/icons'
 
 const AverageDisplay = ({ band, data: { value } }) => {
-  if (!value || !value.climate) {
+  if (!value || !value.tasmax) {
     return 'loading...'
   }
 
   let result
-  const filteredData = value.climate.filter((d) => d !== 9.969209968386869e36)
+  const filteredData = value.tasmax.filter((d) => d !== 9.969209968386869e36)
   if (filteredData.length === 0) {
     result = 'no data in region'
   } else {
