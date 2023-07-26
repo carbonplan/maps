@@ -1,4 +1,4 @@
-import { mercator, mercatorInvert } from 'glsl-geo-projection'
+import { mercatorInvert } from 'glsl-geo-projection'
 
 const _sh = (mode) => {
   return (value, which) => {
@@ -34,13 +34,6 @@ export const vert = (mode, vars) => {
   uniform vec2 order;
   uniform float projection;
   varying float latBase;
-  vec2 mercator(float lambda, float phi)
-  {
-    // float lambda = radians(lon);
-    // float phi = radians(lat);
-    return vec2(lambda, log(tan((1.5707963267948966 + phi) / 2.0)));
-  }
-
   float mercatorYFromLat(float phi)
   {
     return (PI - log(tan(PI / 4.0 - phi / 2.0))) / (2.0 * PI);
@@ -65,9 +58,9 @@ export const vert = (mode, vars) => {
       float stepRad = sizeRad / size;  
       float latRad = order.y * (PI / 2.0 - (offset.y * sizeRad + position.y * stepRad));
 
-      // [0, 1]
+      // (0 => 1)
       float posY = clamp(mercatorYFromLat(latRad), 0.0, 1.0);
-      // [-0.5, 0.5]
+      // (-0.5 => 0.5)
       posY = posY - 0.5;
   
       y = scaleFactor.y * (pow(2.0, zoom) * size * posY + cameraOffset.y - globalMag * size * pow(2.0, globalLevel) * 0.5);
@@ -81,7 +74,6 @@ export const vert = (mode, vars) => {
     ${sh(`uv = vec2(position.y, position.x) / size;`, ['texture'])}
     ${sh(vars.map((d) => `${d}v = ${d};`).join(''), ['grid', 'dotgrid'])}
     ${sh(`gl_PointSize = 0.9 * scale * mag;`, ['grid', 'dotgrid'])}
-    // bottom: -1, top: 1
     gl_Position = vec4(x, y, 0.0, 1.0);
   }`
 }
@@ -105,7 +97,6 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   uniform float zoom;
   uniform float level;
   uniform float centerY;
-  uniform vec2 order;
   varying float latBase;
   ${sh(`varying vec2 uv;`, ['texture'])}
   ${sh(vars.map((d) => `uniform sampler2D ${d};`).join(''), ['texture'])}
@@ -130,13 +121,16 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
       if (projection == 1.0) {
         float scale = pixelRatio * 512.0;
         float mag = pow(2.0, zoom);
-        float y = gl_FragCoord.y / viewportHeight; // 1 -> 0
-        float delta = 1.0 - centerY; // 0 -> 1 => 1 -> 0
+        float numTiles = pow(2.0, level);
+        float sizeRad = PI / numTiles;
+
+        // (1 => 0)
+        float y = gl_FragCoord.y / viewportHeight;
+        // (1 => 0)
+        float delta = 1.0 - centerY;
         float mercatorY = viewportHeight * (y - 0.5) / (scale * mag) + delta;
         vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (mercatorY * 2.0 - 1.0) * PI);
         float rescaledX = lookup.x / 360.0 + 0.5;
-        float numTiles = pow(2.0, level);
-        float sizeRad = PI / numTiles;
         float rescaledY = (radians(lookup.y) - latBase) / sizeRad;
 
         if (rescaledY > 1.0 || rescaledY < 0.0) {
