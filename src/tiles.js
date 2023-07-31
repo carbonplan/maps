@@ -1,4 +1,3 @@
-import zarr from 'zarr-js'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
 
@@ -15,7 +14,6 @@ import {
   getOverlappingAncestor,
   cameraToPoint,
   getTilesOfRegion,
-  getPyramidMetadata,
   getBands,
   setObjectValues,
   getChunks,
@@ -24,6 +22,7 @@ import {
 } from './utils'
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
+import initializeStore from './initialize-store'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -46,6 +45,7 @@ export const createTiles = (regl, opts) => {
     invalidateRegion,
     setMetadata,
     order,
+    version = 'v2',
     projection = 'mercator',
   }) {
     this.tiles = {}
@@ -104,55 +104,50 @@ export const createTiles = (regl, opts) => {
 
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
-      zarr().openGroup(source, (err, loaders, metadata) => {
-        if (setMetadata) setMetadata(metadata)
-        const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
-        this.maxZoom = maxZoom
-        const position = getPositions(tileSize, mode)
-        this.position = regl.buffer(position)
-        this.size = tileSize
-        if (mode === 'grid' || mode === 'dotgrid') {
-          this.count = position.length
-        }
-        if (mode === 'texture') {
-          this.count = 6
-        }
+      initializeStore(source, version, variable, Object.keys(selector)).then(
+        ({
+          metadata,
+          loaders,
+          dimensions,
+          shape,
+          chunks,
+          fill_value,
+          dtype,
+          coordinates,
+          levels,
+          maxZoom,
+          tileSize,
+        }) => {
+          if (setMetadata) setMetadata(metadata)
+          this.maxZoom = maxZoom
+          const position = getPositions(tileSize, mode)
+          this.position = regl.buffer(position)
+          this.size = tileSize
+          if (mode === 'grid' || mode === 'dotgrid') {
+            this.count = position.length
+          }
+          if (mode === 'texture') {
+            this.count = 6
+          }
 
-        const attrs = metadata.metadata[`${levels[0]}/${variable}/.zattrs`]
-        const array = metadata.metadata[`${levels[0]}/${variable}/.zarray`]
+          this.dimensions = dimensions
+          this.shape = shape
+          this.chunks = chunks
+          console.log('chunks here', chunks)
+          this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
 
-        this.dimensions = attrs['_ARRAY_DIMENSIONS']
-        this.shape = array['shape']
-        this.chunks = array['chunks']
+          if (mode === 'texture') {
+            const emptyTexture = ndarray(
+              new Float32Array(Array(1).fill(this.fillValue)),
+              [1, 1]
+            )
+            initialize = () => regl.texture(emptyTexture)
+          }
 
-        this.fillValue =
-          fillValue ??
-          array['fill_value'] ??
-          DEFAULT_FILL_VALUES[array['dtype']]
+          this.ndim = this.dimensions.length
 
-        if (mode === 'texture') {
-          const emptyTexture = ndarray(
-            new Float32Array(Array(1).fill(this.fillValue)),
-            [1, 1]
-          )
-          initialize = () => regl.texture(emptyTexture)
-        }
+          this.coordinates = coordinates
 
-        this.ndim = this.dimensions.length
-
-        this.coordinates = {}
-        Promise.all(
-          Object.keys(selector).map(
-            (key) =>
-              new Promise((innerResolve) => {
-                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                  const coordinates = Array.from(chunk.data)
-                  this.coordinates[key] = coordinates
-                  innerResolve()
-                })
-              })
-          )
-        ).then(() => {
           levels.forEach((z) => {
             const loader = loaders[z + '/' + variable]
             this.loaders[z] = loader
@@ -180,8 +175,8 @@ export const createTiles = (regl, opts) => {
           resolve(true)
           this.clearLoading(loadingID)
           this.invalidate()
-        })
-      })
+        }
+      )
     })
 
     this.drawTiles = regl({

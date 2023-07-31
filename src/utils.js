@@ -324,12 +324,10 @@ export const getTilesOfRegion = (region, level, projection) => {
   return Array.from(tiles)
 }
 
-export const getPyramidMetadata = (metadata) => {
-  const multiscales = metadata.metadata['.zattrs'].multiscales
-
+export const getPyramidMetadata = (multiscales) => {
   if (!multiscales) {
     throw new Error(
-      'Missing `multiscales` value in .zattrs. Please check your pyramid generation code.'
+      'Missing `multiscales` value in metadata. Please check your pyramid generation code.'
     )
   }
 
