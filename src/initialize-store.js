@@ -62,8 +62,6 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
       chunks = isSharded
         ? arrayMetadata.codecs[0].configuration.chunk_shape
         : arrayMetadata.chunk_grid.configuration.chunk_shape
-
-      console.log('chunks', chunks)
       fill_value = arrayMetadata.fill_value
       // dtype = arrayMetadata.data_type
 

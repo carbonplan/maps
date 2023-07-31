@@ -133,7 +133,6 @@ export const createTiles = (regl, opts) => {
           this.dimensions = dimensions
           this.shape = shape
           this.chunks = chunks
-          console.log('chunks here', chunks)
           this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
 
           if (mode === 'texture') {
