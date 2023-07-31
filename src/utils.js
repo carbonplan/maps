@@ -126,7 +126,7 @@ const getLatBasedOffsets = (tile, { zoom, length, order, camera }) => {
   const scale = window.devicePixelRatio * 512 * magnification
   const tileSize = Math.abs(y1 - y0) * scale
 
-  const cameraOffset = camera - Math.pow(2, z) * y1
+  const cameraOffset = camera - Math.pow(2, z) * (order === 1 ? y0 : y1)
 
   return getOffsets(length, tileSize, cameraOffset, order)
 }
