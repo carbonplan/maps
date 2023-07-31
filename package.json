@@ -46,7 +46,7 @@
     "regl": "^2.1.0",
     "uuid": "^8.3.2",
     "xhr-request": "^1.1.0",
-    "zarr-js": "^2.2.0"
+    "zarr-js": "^3.1.0"
   },
   "peerDependencies": {
     "react": ">=18",
