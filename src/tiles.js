@@ -201,7 +201,7 @@ export const createTiles = (regl, opts) => {
         globalLevel: regl.this('level'),
         level: regl.prop('level'),
         offset: regl.prop('offset'),
-        order: regl.prop('order'),
+        order: regl.this('order'),
         clim: regl.this('clim'),
         opacity: regl.this('opacity'),
         fillValue: regl.this('fillValue'),
@@ -265,7 +265,6 @@ export const createTiles = (regl, opts) => {
           offsets.forEach((offset) => {
             accum.push({
               ...tile.getBuffers(),
-              order: this.order,
               level,
               offset,
             })
@@ -292,7 +291,13 @@ export const createTiles = (regl, opts) => {
 
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
-      const tile = pointToTile(center.lng, center.lat, level, this.projection)
+      const tile = pointToTile(
+        center.lng,
+        center.lat,
+        level,
+        this.projection,
+        this.order
+      )
       const camera = pointToCamera(center.lng, center.lat, level)
 
       this.level = level
@@ -379,7 +384,12 @@ export const createTiles = (regl, opts) => {
     this.queryRegion = async (region, selector) => {
       await this.initialized
 
-      const tiles = getTilesOfRegion(region, this.level, this.projection)
+      const tiles = getTilesOfRegion(
+        region,
+        this.level,
+        this.projection,
+        this.order
+      )
 
       await Promise.all(
         tiles.map(async (key) => {

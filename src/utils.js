@@ -24,7 +24,7 @@ export const tileToKey = (tile) => {
   return tile.join(',')
 }
 
-export const pointToTile = (lon, lat, z, projection) => {
+export const pointToTile = (lon, lat, z, projection, order) => {
   const z2 = Math.pow(2, z)
 
   let tile
@@ -34,7 +34,7 @@ export const pointToTile = (lon, lat, z, projection) => {
       break
     case 'equirectangular':
       let x = z2 * (lon / 360 + 0.5)
-      let y = z2 * (lat / 180 + 0.5)
+      let y = z2 * ((order[1] * -1 * lat) / 180 + 0.5)
 
       x = x % z2
       if (x < 0) x = x + z2
@@ -283,15 +283,21 @@ export const getAdjustedOffset = (offset, renderedKey) => {
   ]
 }
 
-export const getTilesOfRegion = (region, level, projection) => {
+export const getTilesOfRegion = (region, level, projection, order) => {
   const { center, radius, units } = region.properties
-  const centralTile = pointToTile(center.lng, center.lat, level, projection)
+  const centralTile = pointToTile(
+    center.lng,
+    center.lat,
+    level,
+    projection,
+    order
+  )
 
   const tiles = new Set([tileToKey(centralTile)])
 
   region.geometry.coordinates[0].forEach(([lng, lat]) => {
     // Add tile along edge of region
-    const edgeTile = pointToTile(lng, lat, level, projection)
+    const edgeTile = pointToTile(lng, lat, level, projection, order)
     tiles.add(tileToKey(edgeTile))
 
     // Add any intermediate tiles if edge is > 1 tile away from center
@@ -314,7 +320,8 @@ export const getTilesOfRegion = (region, level, projection) => {
           intermediatePoint.geometry.coordinates[0],
           intermediatePoint.geometry.coordinates[1],
           level,
-          projection
+          projection,
+          order
         )
         tiles.add(tileToKey(intermediateTile))
       }
