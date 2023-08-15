@@ -66,8 +66,8 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
       // dtype = arrayMetadata.data_type
 
       loaders = {}
-      await Promise.all(
-        levels.map(
+      await Promise.all([
+        ...levels.map(
           (level) =>
             new Promise((resolve) => {
               zarr(window.fetch, version).open(
@@ -79,10 +79,8 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
                 level === 0 ? arrayMetadata : null
               )
             })
-        )
-      )
-      await Promise.all(
-        coordinateKeys.map(
+        ),
+        ...coordinateKeys.map(
           (key) =>
             new Promise((resolve) => {
               zarr(window.fetch, version).open(
@@ -95,8 +93,8 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
                 }
               )
             })
-        )
-      )
+        ),
+      ])
       break
     default:
       throw new Error(
