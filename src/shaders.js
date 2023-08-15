@@ -133,10 +133,6 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
         float rescaledX = lookup.x / 360.0 + 0.5;
         float rescaledY = order.y * (latBase - radians(lookup.y)) / sizeRad;
 
-        if (rescaledY > 1.0 || rescaledY < 0.0) {
-          discard;
-        }
-
         coord = vec2(rescaledY, rescaledX);
       }
 
