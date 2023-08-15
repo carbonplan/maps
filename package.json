@@ -1,6 +1,6 @@
 {
   "name": "@carbonplan/maps",
-  "version": "3.0.0-develop.4",
+  "version": "3.0.0-develop.5",
   "description": "interactive data-driven web maps",
   "main": "dst/index.js",
   "module": "dst/index.esm.js",
