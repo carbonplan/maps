@@ -75,7 +75,8 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
                 (err, get) => {
                   loaders[`${level}/${variable}`] = get
                   resolve()
-                }
+                },
+                level === 0 ? arrayMetadata : null
               )
             })
         )
