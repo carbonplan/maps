@@ -6,15 +6,15 @@ import { useThemedColormap } from '@carbonplan/colormaps'
 import RegionControls from '../components/region-controls'
 import ParameterControls from '../components/parameter-controls'
 
-const bucket = 'https://storage.googleapis.com/carbonplan-maps/'
+const bucket = 'https://carbonplan-maps.s3.us-west-2.amazonaws.com/'
 
 const Index = () => {
   const { theme } = useThemeUI()
   const [display, setDisplay] = useState(true)
   const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
-  const [clim, setClim] = useState([221.5, 315.4])
-  const [month, setMonth] = useState(0)
+  const [clim, setClim] = useState([-20, 30])
+  const [month, setMonth] = useState(1)
   const [band, setBand] = useState('tavg')
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useThemedColormap(colormapName)
@@ -42,12 +42,12 @@ const Index = () => {
         title={'@carbonplan/maps'}
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
-        <Map zoom={0} center={[0, 0]} debug={debug}>
-          {/* <Fill
+        <Map zoom={2} center={[0, 0]} debug={debug}>
+          <Fill
             color={theme.rawColors.background}
             source={bucket + 'basemaps/ocean'}
             variable={'ocean'}
-          /> */}
+          />
           <Line
             color={theme.rawColors.primary}
             source={bucket + 'basemaps/land'}
@@ -67,14 +67,10 @@ const Index = () => {
             clim={clim}
             display={display}
             opacity={opacity}
-            projection='equirectangular'
-            order={[1, -1]}
             mode={'texture'}
-            source={
-              'https://carbonplan-data-viewer.s3.amazonaws.com/demo/ScenarioMIP.CCCma.CanESM5.ssp245.r1i1p1f1.annual.GARD-SV.tasmax.pyramid.zarr'
-            }
-            variable={'tasmax'}
-            selector={{ time: month }}
+            source={bucket + 'v2/demo/4d/tavg-prec-month'}
+            variable={'climate'}
+            selector={{ month, band }}
             regionOptions={{ setData: setRegionData }}
           />
           <RegionControls
