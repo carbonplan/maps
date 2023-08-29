@@ -21,6 +21,7 @@ The `Raster` component is responsible for initializing the `mapbox-gl-js` instan
 | mode               | Display mode -- one of 'texture', 'grid', 'dotgrid'                                                                                | 'texture'  |
 | version            | Version of Zarr spec source data conforms to                                                                                       | 'v2'       |
 | projection         | Projection in which source data is stored (independent of map rendering in Web Mercator)                                           | 'mercator' |
+| order              | Array specifying whether the x, y dimensions are inverted from left -> right and top -> bottom, respectively                       | [1, 1]     |
 | fillValue          | Value to map to null                                                                                                               | -9999      |
 | display            | Boolean expressing whether contents should be drawn to canvas or not                                                               | `true`     |
 | opacity            | Number value for alpha value used when painting to canvas                                                                          | 1          |
