@@ -24,9 +24,25 @@ export const tileToKey = (tile) => {
   return tile.join(',')
 }
 
-export const pointToTile = (lon, lat, z) => {
+export const pointToTile = (lon, lat, z, projection, order) => {
   const z2 = Math.pow(2, z)
-  let tile = pointToCamera(lon, lat, z)
+
+  let tile
+  switch (projection) {
+    case 'mercator':
+      tile = pointToCamera(lon, lat, z, projection)
+      break
+    case 'equirectangular':
+      let x = z2 * (lon / 360 + 0.5)
+      let y = z2 * ((order[1] * -1 * lat) / 180 + 0.5)
+
+      x = x % z2
+      if (x < 0) x = x + z2
+      y = Math.max(Math.min(y, z2), 0)
+      tile = [x, y, z]
+    default:
+      break
+  }
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
 
@@ -34,10 +50,11 @@ export const pointToTile = (lon, lat, z) => {
 }
 
 export const pointToCamera = (lon, lat, z) => {
-  let sin = Math.sin(lat * d2r),
-    z2 = Math.pow(2, z),
-    x = z2 * (lon / 360 + 0.5),
-    y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
+  const sin = Math.sin(lat * d2r)
+  const z2 = Math.pow(2, z)
+
+  let x = z2 * (lon / 360 + 0.5)
+  let y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI)
 
   x = x % z2
   y = Math.max(Math.min(y, z2), 0)
@@ -61,7 +78,16 @@ export const zoomToLevel = (zoom, maxZoom) => {
   return Math.max(0, Math.floor(zoom))
 }
 
-const getOffsets = (length, tileSize, camera) => {
+export const mercatorYFromLat = (lat) => {
+  return (
+    (180 -
+      (180 / Math.PI) *
+        Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))) /
+    360
+  )
+}
+
+const getOffsets = (length, tileSize, cameraOffset, order) => {
   const siblingCount = (length - tileSize) / tileSize
 
   // Do not add offset for very small fraction of tile
@@ -69,25 +95,67 @@ const getOffsets = (length, tileSize, camera) => {
     return [0, 0]
   }
 
-  const cameraOffset = camera - Math.floor(camera)
   const prev = siblingCount / 2 + 0.5 - cameraOffset
   const next = siblingCount - prev
 
-  return [-1 * Math.ceil(prev), Math.ceil(next)]
+  let result = [-1 * Math.ceil(prev), Math.ceil(next)]
+  if (order === -1) {
+    result = [-1 * Math.ceil(next), Math.ceil(prev)]
+  }
+  return result
 }
 
-export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
+const getTileOffsets = (length, tileSize, camera, order) => {
+  const cameraOffset = camera - Math.floor(camera)
+
+  return getOffsets(length, tileSize, cameraOffset, order)
+}
+
+const getLatBasedOffsets = (tile, { zoom, length, order, camera }) => {
+  const [x, y, z] = tile
+  const z2 = Math.pow(2, z)
+  const sizeDeg = 180 / z2
+
+  const lat0 = order * (90 - y * sizeDeg)
+  const lat1 = lat0 - order * sizeDeg
+
+  const y0 = Math.max(Math.min(mercatorYFromLat(lat0), 1), 0)
+  const y1 = Math.max(Math.min(mercatorYFromLat(lat1), 1), 0)
+
+  const magnification = Math.pow(2, zoom - z)
+  const scale = window.devicePixelRatio * 512 * magnification
+  const tileSize = Math.abs(y1 - y0) * scale
+
+  const cameraOffset = camera - Math.pow(2, z) * (order === 1 ? y0 : y1)
+
+  return getOffsets(length, tileSize, cameraOffset, order)
+}
+
+// Given a tile, return an object mapping sibling tiles (including itself) mapped to the different locations to render
+// For example, { '0.0.0':  [ [0,0,0], [1,0,0] ] }
+export const getSiblings = (
+  tile,
+  { viewport, zoom, size, camera, order, projection }
+) => {
   const [tileX, tileY, tileZ] = tile
   const { viewportHeight, viewportWidth } = viewport
   const [cameraX, cameraY] = camera
 
   const magnification = Math.pow(2, zoom - tileZ)
-  const scale = (window.devicePixelRatio * 512) / size
-  const tileSize = size * scale * magnification
+  const scale = window.devicePixelRatio * 512 * magnification
 
-  const deltaX = getOffsets(viewportWidth, tileSize, cameraX)
-  const deltaY = getOffsets(viewportHeight, tileSize, cameraY)
+  const deltaX = getTileOffsets(viewportWidth, scale, cameraX, order[0])
+  const deltaY =
+    projection === 'equirectangular'
+      ? getLatBasedOffsets(tile, {
+          zoom,
+          length: viewportHeight,
+          order: order[1],
+          camera: cameraY,
+        })
+      : getTileOffsets(viewportHeight, scale, cameraY, order[1])
 
+  // offsets in units of tiles
   let offsets = []
   for (let x = deltaX[0]; x <= deltaX[1]; x++) {
     for (let y = deltaY[0]; y <= deltaY[1]; y++) {
@@ -98,6 +166,11 @@ export const getSiblings = (tile, { viewport, zoom, size, camera }) => {
   const max = Math.pow(2, tileZ) - 1
   return offsets.reduce((accum, offset) => {
     const [x, y, z] = offset
+
+    // Do not attempt to wrap in y direction
+    if (y < 0 || y > max) {
+      return accum
+    }
     const tile = [clip(x, max), clip(y, max), z]
     const key = tileToKey(tile)
 
@@ -191,6 +264,8 @@ export const getOverlappingAncestor = (key, renderedKeys) => {
   })
 }
 
+// Given a `renderedKey` for a tile to be rendered at some offset on the map,
+// return offset for rendering in context of map
 export const getAdjustedOffset = (offset, renderedKey) => {
   const [renderedX, renderedY, renderedLevel] = keyToTile(renderedKey)
   const [offsetX, offsetY, level] = offset
@@ -208,15 +283,21 @@ export const getAdjustedOffset = (offset, renderedKey) => {
   ]
 }
 
-export const getTilesOfRegion = (region, level) => {
+export const getTilesOfRegion = (region, level, projection, order) => {
   const { center, radius, units } = region.properties
-  const centralTile = pointToTile(center.lng, center.lat, level)
+  const centralTile = pointToTile(
+    center.lng,
+    center.lat,
+    level,
+    projection,
+    order
+  )
 
   const tiles = new Set([tileToKey(centralTile)])
 
   region.geometry.coordinates[0].forEach(([lng, lat]) => {
     // Add tile along edge of region
-    const edgeTile = pointToTile(lng, lat, level)
+    const edgeTile = pointToTile(lng, lat, level, projection, order)
     tiles.add(tileToKey(edgeTile))
 
     // Add any intermediate tiles if edge is > 1 tile away from center
@@ -238,7 +319,9 @@ export const getTilesOfRegion = (region, level) => {
         const intermediateTile = pointToTile(
           intermediatePoint.geometry.coordinates[0],
           intermediatePoint.geometry.coordinates[1],
-          level
+          level,
+          projection,
+          order
         )
         tiles.add(tileToKey(intermediateTile))
       }
@@ -248,12 +331,10 @@ export const getTilesOfRegion = (region, level) => {
   return Array.from(tiles)
 }
 
-export const getPyramidMetadata = (metadata) => {
-  const multiscales = metadata.metadata['.zattrs'].multiscales
-
+export const getPyramidMetadata = (multiscales) => {
   if (!multiscales) {
     throw new Error(
-      'Missing `multiscales` value in .zattrs. Please check your pyramid generation code.'
+      'Missing `multiscales` value in metadata. Please check your pyramid generation code.'
     )
   }
 
@@ -368,9 +449,9 @@ export const getChunks = (
   y
 ) => {
   const chunkIndicesToUse = dimensions.map((dimension, i) => {
-    if (dimension === 'x') {
+    if (['x', 'lon'].includes(dimension)) {
       return [x]
-    } else if (dimension === 'y') {
+    } else if (['y', 'lat'].includes(dimension)) {
       return [y]
     }
 

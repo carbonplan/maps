@@ -192,9 +192,9 @@ class Tile {
           const dimension = this.dimensions[i]
           const chunkOffset = chunk[i] * count
 
-          if (dimension === 'x') {
+          if (['x', 'lon'].includes(dimension)) {
             return accum.map((prev) => [...prev, x])
-          } else if (dimension === 'y') {
+          } else if (['y', 'lat'].includes(dimension)) {
             return accum.map((prev) => [...prev, y])
           } else if (selector.hasOwnProperty(dimension)) {
             const selectorValues = Array.isArray(selector[dimension])
@@ -240,7 +240,7 @@ class Tile {
           return accum
         }, [])
         const chunkIndices = indices.map((el, i) =>
-          ['x', 'y'].includes(this.dimensions[i])
+          ['x', 'lon', 'y', 'lat'].includes(this.dimensions[i])
             ? el
             : el - chunk[i] * this.chunks[i]
         )

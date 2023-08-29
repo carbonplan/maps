@@ -1,4 +1,3 @@
-import zarr from 'zarr-js'
 import ndarray from 'ndarray'
 import { distance } from '@turf/turf'
 
@@ -15,14 +14,15 @@ import {
   getOverlappingAncestor,
   cameraToPoint,
   getTilesOfRegion,
-  getPyramidMetadata,
   getBands,
   setObjectValues,
   getChunks,
   getSelectorHash,
+  mercatorYFromLat,
 } from './utils'
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
+import initializeStore from './initialize-store'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
@@ -44,6 +44,9 @@ export const createTiles = (regl, opts) => {
     invalidate,
     invalidateRegion,
     setMetadata,
+    order,
+    version = 'v2',
+    projection = 'mercator',
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -54,6 +57,9 @@ export const createTiles = (regl, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
+    this.projection = projection
+    this.projectionIndex = ['mercator', 'equirectangular'].indexOf(projection)
+    this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
     this._loading = false
@@ -98,55 +104,49 @@ export const createTiles = (regl, opts) => {
 
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
-      zarr().openGroup(source, (err, loaders, metadata) => {
-        if (setMetadata) setMetadata(metadata)
-        const { levels, maxZoom, tileSize } = getPyramidMetadata(metadata)
-        this.maxZoom = maxZoom
-        const position = getPositions(tileSize, mode)
-        this.position = regl.buffer(position)
-        this.size = tileSize
-        if (mode === 'grid' || mode === 'dotgrid') {
-          this.count = position.length
-        }
-        if (mode === 'texture') {
-          this.count = 6
-        }
+      initializeStore(source, version, variable, Object.keys(selector)).then(
+        ({
+          metadata,
+          loaders,
+          dimensions,
+          shape,
+          chunks,
+          fill_value,
+          dtype,
+          coordinates,
+          levels,
+          maxZoom,
+          tileSize,
+        }) => {
+          if (setMetadata) setMetadata(metadata)
+          this.maxZoom = maxZoom
+          const position = getPositions(tileSize, mode)
+          this.position = regl.buffer(position)
+          this.size = tileSize
+          if (mode === 'grid' || mode === 'dotgrid') {
+            this.count = position.length
+          }
+          if (mode === 'texture') {
+            this.count = 6
+          }
 
-        const attrs = metadata.metadata[`${levels[0]}/${variable}/.zattrs`]
-        const array = metadata.metadata[`${levels[0]}/${variable}/.zarray`]
+          this.dimensions = dimensions
+          this.shape = shape
+          this.chunks = chunks
+          this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
 
-        this.dimensions = attrs['_ARRAY_DIMENSIONS']
-        this.shape = array['shape']
-        this.chunks = array['chunks']
+          if (mode === 'texture') {
+            const emptyTexture = ndarray(
+              new Float32Array(Array(1).fill(this.fillValue)),
+              [1, 1]
+            )
+            initialize = () => regl.texture(emptyTexture)
+          }
 
-        this.fillValue =
-          fillValue ??
-          array['fill_value'] ??
-          DEFAULT_FILL_VALUES[array['dtype']]
+          this.ndim = this.dimensions.length
 
-        if (mode === 'texture') {
-          const emptyTexture = ndarray(
-            new Float32Array(Array(1).fill(this.fillValue)),
-            [1, 1]
-          )
-          initialize = () => regl.texture(emptyTexture)
-        }
+          this.coordinates = coordinates
 
-        this.ndim = this.dimensions.length
-
-        this.coordinates = {}
-        Promise.all(
-          Object.keys(selector).map(
-            (key) =>
-              new Promise((innerResolve) => {
-                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                  const coordinates = Array.from(chunk.data)
-                  this.coordinates[key] = coordinates
-                  innerResolve()
-                })
-              })
-          )
-        ).then(() => {
           levels.forEach((z) => {
             const loader = loaders[z + '/' + variable]
             this.loaders[z] = loader
@@ -174,8 +174,8 @@ export const createTiles = (regl, opts) => {
           resolve(true)
           this.clearLoading(loadingID)
           this.invalidate()
-        })
-      })
+        }
+      )
     })
 
     this.drawTiles = regl({
@@ -194,11 +194,14 @@ export const createTiles = (regl, opts) => {
         pixelRatio: regl.context('pixelRatio'),
         colormap: regl.this('colormap'),
         camera: regl.this('camera'),
+        centerY: regl.this('centerY'),
         size: regl.this('size'),
         zoom: regl.this('zoom'),
+        projection: regl.this('projectionIndex'),
         globalLevel: regl.this('level'),
         level: regl.prop('level'),
         offset: regl.prop('offset'),
+        order: regl.this('order'),
         clim: regl.this('clim'),
         opacity: regl.this('opacity'),
         fillValue: regl.this('fillValue'),
@@ -226,6 +229,8 @@ export const createTiles = (regl, opts) => {
       const adjustedActive = Object.keys(this.tiles)
         .filter((key) => this.active[key])
         .reduce((accum, key) => {
+          // Get optimum set of keys to render based on which have been fully loaded
+          // (potentially mixing levels of pyramid)
           const keysToRender = getKeysToRender(key, this.tiles, this.maxZoom)
           keysToRender.forEach((keyToRender) => {
             const offsets = this.active[key]
@@ -286,18 +291,27 @@ export const createTiles = (regl, opts) => {
 
     this.updateCamera = ({ center, zoom }) => {
       const level = zoomToLevel(zoom, this.maxZoom)
-      const tile = pointToTile(center.lng, center.lat, level)
+      const tile = pointToTile(
+        center.lng,
+        center.lat,
+        level,
+        this.projection,
+        this.order
+      )
       const camera = pointToCamera(center.lng, center.lat, level)
 
       this.level = level
       this.zoom = zoom
       this.camera = [camera[0], camera[1]]
+      this.centerY = mercatorYFromLat(center.lat)
 
       this.active = getSiblings(tile, {
         viewport: this.viewport,
         zoom,
         camera: this.camera,
         size: this.size,
+        order: this.order,
+        projection: this.projection,
       })
 
       if (this.size && Object.keys(this.active).length === 0) {
@@ -370,7 +384,12 @@ export const createTiles = (regl, opts) => {
     this.queryRegion = async (region, selector) => {
       await this.initialized
 
-      const tiles = getTilesOfRegion(region, this.level)
+      const tiles = getTilesOfRegion(
+        region,
+        this.level,
+        this.projection,
+        this.order
+      )
 
       await Promise.all(
         tiles.map(async (key) => {
@@ -407,14 +426,26 @@ export const createTiles = (regl, opts) => {
 
       tiles.map((key) => {
         const [x, y, z] = keyToTile(key)
+        const z2 = Math.pow(2, z)
+        const sizeDeg = 180 / z2
+        const stepDeg = sizeDeg / this.size
+
+        const lat0 = this.order[1] * (90 - y * sizeDeg)
+
         const { center, radius, units } = region.properties
         for (let i = 0; i < this.size; i++) {
           for (let j = 0; j < this.size; j++) {
-            const pointCoords = cameraToPoint(
+            const [mercLon, mercLat] = cameraToPoint(
               x + i / this.size,
               y + j / this.size,
               z
             )
+            const pointCoords = [
+              mercLon,
+              this.projection === 'equirectangular'
+                ? lat0 - this.order[1] * stepDeg * j
+                : mercLat,
+            ]
             const distanceToCenter = distance(
               [center.lng, center.lat],
               pointCoords,
@@ -447,9 +478,9 @@ export const createTiles = (regl, opts) => {
 
       if (this.ndim > 2) {
         out.dimensions = this.dimensions.map((d) => {
-          if (d === 'x') {
+          if (['x', 'lon'].includes(d)) {
             return 'lon'
-          } else if (d === 'y') {
+          } else if (['y', 'lat'].includes(d)) {
             return 'lat'
           } else {
             return d
@@ -458,7 +489,7 @@ export const createTiles = (regl, opts) => {
 
         out.coordinates = this.dimensions.reduce(
           (coords, d) => {
-            if (d !== 'x' && d !== 'y') {
+            if (!['x', 'lon', 'y', 'lat'].includes(d)) {
               if (selector.hasOwnProperty(d)) {
                 coords[d] = Array.isArray(selector[d])
                   ? selector[d]
