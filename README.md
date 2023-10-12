@@ -5,7 +5,7 @@
 
 # carbonplan / maps
 
-**interactive data-driven webmaps — [demo](https://maps.demo.carbonplan.org)**
+**interactive data-driven webmaps — [docs](https://docs.carbonplan.org/maps), [demo](https://maps.demo.carbonplan.org)**
 
 [![GitHub][github-badge]][github]
 [![Build Status]][actions]
@@ -102,8 +102,6 @@ Finally, if we want to render multiple arrays at once (and do math on them), we 
   />
 </Map>
 ```
-
-More docs are coming soon!
 
 ## thanks
 
