@@ -3,9 +3,9 @@ import { flushSync } from 'react-dom'
 import { useMapbox } from './mapbox'
 
 export const useControls = () => {
-  const [zoom, setZoom] = useState()
-  const [center, setCenter] = useState()
   const { map } = useMapbox()
+  const [zoom, setZoom] = useState(map.getZoom())
+  const [center, setCenter] = useState(map.getCenter())
 
   const updateControlsSync = useCallback(() => {
     flushSync(() => {
@@ -15,10 +15,10 @@ export const useControls = () => {
   }, [])
 
   useEffect(() => {
-    setZoom(map.getZoom())
-    setCenter(map.getCenter())
-    map.on('load', updateControlsSync)
     map.on('move', updateControlsSync)
+    return () => {
+      map.off('move', updateControlsSync)
+    }
   }, [map])
 
   return { center: center, zoom: zoom }
