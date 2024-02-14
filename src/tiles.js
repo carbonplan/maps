@@ -403,10 +403,9 @@ export const createTiles = (regl, opts) => {
             tileIndex[0],
             tileIndex[1]
           )
-
-          if (!this.tiles[key].hasLoadedChunks(chunks)) {
+          if (!this.tiles[key]?.hasLoadedChunks(chunks)) {
             const loadingID = this.setLoading('chunk')
-            await this.tiles[key].loadChunks(chunks)
+            await this.tiles[key]?.loadChunks(chunks)
             this.clearLoading(loadingID)
           }
         })
