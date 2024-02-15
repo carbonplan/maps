@@ -384,6 +384,9 @@ export const createTiles = (regl, opts) => {
     this.queryRegion = async (region, selector) => {
       await this.initialized
 
+      // update level since it can get out of sync when switching raster layers
+      this.level = zoomToLevel(this.zoom, this.maxZoom)
+
       const tiles = getTilesOfRegion(
         region,
         this.level,
