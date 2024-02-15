@@ -19,7 +19,7 @@ export const useControls = () => {
     return () => {
       map.off('move', updateControlsSync)
     }
-  }, [map])
+  }, [])
 
   return { center: center, zoom: zoom }
 }
