@@ -130,34 +130,14 @@ export default function CircleRenderer({
       onDrag(circle)
     }
 
-    const onMouseUp = (e) => {
+    const onMouseUp = () => {
       onIdle(circle)
       setCursor({ draggingCircle: false })
       map.off('mousemove', onMouseMove)
-      svgCircle.style('pointer-events', 'all')
-      svgHandle.style('pointer-events', 'all')
-    }
-
-    const onTouchMove = (e) => {
-      setCenter(
-        {
-          lng: e.lngLat.lng - offset.lng,
-          lat: e.lngLat.lat - offset.lat,
-        },
-        {
-          x: e.point.x,
-          y: e.point.y,
-        }
-      )
-      onDrag(circle)
-    }
-
-    const onTouchEnd = (e) => {
-      onIdle(circle)
-      map.off('touchmove', onTouchMove)
-      svgCircle.style('pointer-events', 'all')
-      svgHandle.style('pointer-events', 'all')
+      map.off('touchmove', onMouseMove)
       map.dragPan.enable()
+      svgCircle.style('pointer-events', 'all')
+      svgHandle.style('pointer-events', 'all')
       svgCircle.attr('stroke-width', 1)
     }
 
@@ -168,8 +148,8 @@ export default function CircleRenderer({
         point = { x: touch.pageX, y: touch.pageY }
         svgCircle.attr('stroke-width', 4)
         map.dragPan.disable()
-        map.on('touchmove', onTouchMove)
-        map.once('touchend', onTouchEnd)
+        map.on('touchmove', onMouseMove)
+        map.once('touchend', onMouseUp)
       } else {
         point = { x: e.offsetX, y: e.offsetY }
         map.on('mousemove', onMouseMove)
