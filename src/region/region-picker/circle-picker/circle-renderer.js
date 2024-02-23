@@ -76,28 +76,39 @@ export default function CircleRenderer({
       }
     }
 
-    const onMouseUp = (e) => {
+    const onMouseUp = () => {
       onIdle(circle)
       setCursor({ draggingHandle: false })
       map.off('mousemove', onMouseMove)
+      map.off('touchmove', onMouseMove)
       svgHandle.style('pointer-events', 'all')
       svgCircle.style('pointer-events', 'all')
       svgRadiusText.attr('fill-opacity', 0)
       svgGuideline.attr('stroke-opacity', 0)
     }
 
-    svgHandle.on('mousedown', () => {
-      map.on('mousemove', onMouseMove)
-      map.once('mouseup', onMouseUp)
+    const handleStart = (e) => {
+      if (e.type === 'touchstart') {
+        map.dragPan.disable()
+        map.on('touchmove', onMouseMove)
+        map.once('touchend', onMouseUp)
+      } else {
+        map.on('mousemove', onMouseMove)
+        map.once('mouseup', onMouseUp)
+      }
       setCursor({ draggingHandle: true })
       svgHandle.style('pointer-events', 'none')
       svgCircle.style('pointer-events', 'none')
       svgRadiusText.attr('fill-opacity', 1)
       svgGuideline.attr('stroke-opacity', 1)
-    })
+    }
+
+    svgHandle.on('mousedown', handleStart)
+    svgHandle.on('touchstart', handleStart)
 
     removers.push(function removeDragHandleListeners() {
       svgHandle.on('mousedown', null)
+      svgHandle.on('touchstart', null)
     })
   }
 
@@ -119,28 +130,43 @@ export default function CircleRenderer({
       onDrag(circle)
     }
 
-    const onMouseUp = (e) => {
+    const onMouseUp = () => {
       onIdle(circle)
       setCursor({ draggingCircle: false })
       map.off('mousemove', onMouseMove)
+      map.off('touchmove', onMouseMove)
+      map.dragPan.enable()
       svgCircle.style('pointer-events', 'all')
       svgHandle.style('pointer-events', 'all')
+      svgCircle.attr('stroke-width', 1)
     }
 
-    svgCircle.on('mousedown', (e) => {
-      const { offsetX: x, offsetY: y } = e
-      const lngLat = map.unproject({ x, y })
+    const handleCircleStart = (e) => {
+      let point
+      if (e.type === 'touchstart') {
+        const touch = e.touches[0]
+        point = { x: touch.pageX, y: touch.pageY }
+        svgCircle.attr('stroke-width', 4)
+        map.dragPan.disable()
+        map.on('touchmove', onMouseMove)
+        map.once('touchend', onMouseUp)
+      } else {
+        point = { x: e.offsetX, y: e.offsetY }
+        map.on('mousemove', onMouseMove)
+        map.once('mouseup', onMouseUp)
+      }
+      const lngLat = map.unproject(point)
       offset = {
         lng: lngLat.lng - center.lng,
         lat: lngLat.lat - center.lat,
       }
-
       setCursor({ draggingCircle: true })
-      map.on('mousemove', onMouseMove)
-      map.once('mouseup', onMouseUp)
       svgCircle.style('pointer-events', 'none')
       svgHandle.style('pointer-events', 'none')
-    })
+    }
+
+    svgCircle.on('mousedown', handleCircleStart)
+    svgCircle.on('touchstart', handleCircleStart)
 
     svgCircle.on('wheel', (e) => {
       e.preventDefault()
@@ -150,6 +176,7 @@ export default function CircleRenderer({
 
     removers.push(function removeCircleListeners() {
       svgCircle.on('mousedown', null)
+      svgCircle.on('touchstart', null)
       svgCircle.on('wheel', null)
     })
   }
