@@ -365,28 +365,36 @@ export const getPyramidMetadata = (multiscales) => {
  * @returns Object containing bandName, {[dimension]: dimensionValue} pairs
  */
 export const getBandInformation = (selector) => {
-  const keys = Object.keys(selector).filter((key) =>
-    Array.isArray(selector[key])
-  )
-  if (keys.length === 0) return {}
-  let combinedBands = {}
-  keys.forEach((key) => {
-    const newCombinedBands = {}
-    selector[key].forEach((value) => {
-      const valueKey = typeof value === 'string' ? value : key + '_' + value
-      if (Object.keys(combinedBands).length === 0) {
-        newCombinedBands[valueKey] = { [key]: value }
+  const combinedBands = Object.keys(selector)
+    .filter((key) => Array.isArray(selector[key]))
+    .reduce((bandMapping, selectorKey) => {
+      const values = selector[selectorKey]
+      let keys
+      if (typeof values[0] === 'string') {
+        keys = values
       } else {
-        Object.keys(combinedBands).forEach((existingKey) => {
-          newCombinedBands[existingKey + '_' + valueKey] = {
-            ...combinedBands[existingKey],
-            [key]: value,
-          }
-        })
+        keys = values.map((d) => selectorKey + '_' + d)
       }
-    })
-    combinedBands = newCombinedBands
-  })
+
+      const bands = Object.keys(bandMapping)
+      const updatedBands = {}
+      keys.forEach((key, i) => {
+        if (bands.length > 0) {
+          bands.forEach((band) => {
+            const bandKey = `${band}_${key}`
+            updatedBands[bandKey] = {
+              ...bandMapping[band],
+              [selectorKey]: values[i],
+            }
+          })
+        } else {
+          updatedBands[key] = { [selectorKey]: values[i] }
+        }
+      })
+
+      return updatedBands
+    }, {})
+
   Object.keys(selector).forEach((key) => {
     if (!Array.isArray(selector[key])) {
       Object.keys(combinedBands).forEach((combinedKey) => {
