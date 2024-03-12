@@ -395,6 +395,13 @@ export const getBandInformation = (selector) => {
       return updatedBands
     }, {})
 
+  Object.keys(selector).forEach((key) => {
+    if (!Array.isArray(selector[key])) {
+      Object.keys(combinedBands).forEach((combinedKey) => {
+        combinedBands[combinedKey][key] = selector[key]
+      })
+    }
+  })
   return combinedBands
 }
 
