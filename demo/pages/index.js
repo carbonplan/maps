@@ -68,7 +68,7 @@ const Index = () => {
             opacity={opacity}
             mode={'texture'}
             source={
-              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyramid_test_consolidated/GPM_3IMERGDF.07/'
+              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyramid_test_consolidated/GPM_3IMERGDF.07'
             }
             variable={'precipitation'}
             selector={{
