@@ -72,7 +72,7 @@ const Index = () => {
             }
             variable={'precipitation'}
             selector={{
-              time: 1,
+              time: 11109,
             }}
             regionOptions={{ setData: setRegionData }}
           />
