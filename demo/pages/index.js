@@ -68,7 +68,7 @@ const Index = () => {
             opacity={opacity}
             mode={'texture'}
             source={
-              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/oisst_1_mo/pyramid'
+              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/oisst_1_week/pyramid'
             }
             variable={'sst'}
             selector={{
