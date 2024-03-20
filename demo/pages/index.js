@@ -72,7 +72,8 @@ const Index = () => {
             }
             variable={'sst'}
             selector={{
-              time: 4261,
+              time: 4261.5,
+              zlev: 0,
             }}
             regionOptions={{ setData: setRegionData }}
           />
