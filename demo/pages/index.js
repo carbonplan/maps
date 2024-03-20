@@ -15,7 +15,7 @@ const Index = () => {
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([2000, 3000])
   const [month, setMonth] = useState(1)
-  const [band, setBand] = useState('tavg')
+  const [band, setBand] = useState('sst')
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useThemedColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
@@ -68,11 +68,11 @@ const Index = () => {
             opacity={opacity}
             mode={'texture'}
             source={
-              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyramid_test_consolidated/GPM_3IMERGDF.07'
+              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/oisst_1_mo/pyramid'
             }
-            variable={'precipitation'}
+            variable={'sst'}
             selector={{
-              time: 11109,
+              time: 4261,
             }}
             regionOptions={{ setData: setRegionData }}
           />

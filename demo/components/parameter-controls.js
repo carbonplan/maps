@@ -14,13 +14,13 @@ const sx = {
 }
 
 const CLIM_RANGES = {
-  tavg: { max: 30, min: -20 },
-  prec: { max: 300, min: 0 },
+  sst: { max: 30, min: -20 },
+  ice: { max: 300, min: 0 },
 }
 
 const DEFAULT_COLORMAPS = {
-  tavg: 'warm',
-  prec: 'cool',
+  sst: 'warm',
+  ice: 'cool',
 }
 
 const ParameterControls = ({ getters, setters }) => {
@@ -171,8 +171,8 @@ const ParameterControls = ({ getters, setters }) => {
           sx={{ mt: [1] }}
           value={band}
         >
-          <option value='tavg'>Temperature</option>
-          <option value='prec'>Precipitation</option>
+          <option value='sst'>Sea Surface Temperature</option>
+          <option value='ice'>Sea Ice Concentrations</option>
         </Select>
 
         <Box sx={{ ...sx.label, mt: [4] }}>Colormap</Box>
