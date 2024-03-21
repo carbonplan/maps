@@ -50,11 +50,11 @@ const Index = () => {
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Map zoom={2} center={[0, 0]} debug={debug}>
-          {/* <Fill
+          <Fill
             color={theme.rawColors.background}
-            source={bucket + 'basemaps/ocean'}
-            variable={'ocean'}
-          /> */}
+            source={bucket + 'basemaps/land'}
+            variable={'land'}
+          />
           <Line
             color={theme.rawColors.primary}
             source={bucket + 'basemaps/land'}
