@@ -15,7 +15,7 @@ const sx = {
 
 const CLIM_RANGES = {
   sst: { max: 30, min: -20 },
-  ice: { max: 300, min: 0 },
+  ice: { max: 1, min: 0 },
 }
 
 const DEFAULT_COLORMAPS = {
@@ -24,22 +24,23 @@ const DEFAULT_COLORMAPS = {
 }
 
 const ParameterControls = ({ getters, setters }) => {
-  const { display, debug, opacity, clim, month, band, colormapName } = getters
+  const { display, debug, opacity, clim, month, variable, colormapName } =
+    getters
   const {
     setDisplay,
     setDebug,
     setOpacity,
     setClim,
     setMonth,
-    setBand,
+    setVariable,
     setColormapName,
   } = setters
 
-  const handleBandChange = useCallback((e) => {
-    const band = e.target.value
-    setBand(band)
-    setClim([CLIM_RANGES[band].min, CLIM_RANGES[band].max])
-    setColormapName(DEFAULT_COLORMAPS[band])
+  const handleVariableChange = useCallback((e) => {
+    const variable = e.target.value
+    setVariable(variable)
+    setClim([CLIM_RANGES[variable].min, CLIM_RANGES[variable].max])
+    setColormapName(DEFAULT_COLORMAPS[variable])
   })
 
   return (
@@ -97,8 +98,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Minimum</Box>
         <Slider
-          min={CLIM_RANGES[band].min}
-          max={CLIM_RANGES[band].max}
+          min={CLIM_RANGES[variable].min}
+          max={CLIM_RANGES[variable].max}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[0]}
@@ -120,8 +121,8 @@ const ParameterControls = ({ getters, setters }) => {
         </Badge>
         <Box sx={sx.label}>Maximum</Box>
         <Slider
-          min={CLIM_RANGES[band].min}
-          max={CLIM_RANGES[band].max}
+          min={CLIM_RANGES[variable].min}
+          max={CLIM_RANGES[variable].max}
           step={1}
           sx={{ width: '175px', display: 'inline-block' }}
           value={clim[1]}
@@ -163,13 +164,13 @@ const ParameterControls = ({ getters, setters }) => {
           {month.toFixed(0)}
         </Badge>
 
-        <Box sx={{ ...sx.label, mt: [4] }}>Band</Box>
+        <Box sx={{ ...sx.label, mt: [4] }}>Variable</Box>
         <Select
           sxSelect={{ bg: 'transparent' }}
           size='xs'
-          onChange={handleBandChange}
+          onChange={handleVariableChange}
           sx={{ mt: [1] }}
-          value={band}
+          value={variable}
         >
           <option value='sst'>Sea Surface Temperature</option>
           <option value='ice'>Sea Ice Concentrations</option>

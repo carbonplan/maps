@@ -15,20 +15,28 @@ const Index = () => {
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
   const [month, setMonth] = useState(1)
-  const [band, setBand] = useState('sst')
+  const [variable, setVariable] = useState('sst')
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useThemedColormap(colormapName)
   const [showRegionPicker, setShowRegionPicker] = useState(false)
   const [regionData, setRegionData] = useState({ loading: true })
 
-  const getters = { display, debug, opacity, clim, month, band, colormapName }
+  const getters = {
+    display,
+    debug,
+    opacity,
+    clim,
+    month,
+    variable,
+    colormapName,
+  }
   const setters = {
     setDisplay,
     setDebug,
     setOpacity,
     setClim,
     setMonth,
-    setBand,
+    setVariable,
     setColormapName,
   }
   return (
@@ -62,6 +70,8 @@ const Index = () => {
             />
           )}
           <Raster
+            key={variable}
+            variable={variable}
             colormap={colormap}
             clim={clim}
             display={display}
@@ -70,7 +80,6 @@ const Index = () => {
             source={
               'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/oisst_1_year_3_lvl/pyramid'
             }
-            variable={'sst'}
             selector={{
               time: 4261.5,
               zlev: 0,
@@ -78,7 +87,7 @@ const Index = () => {
             regionOptions={{ setData: setRegionData }}
           />
           <RegionControls
-            band={band}
+            variable={variable}
             regionData={regionData}
             showRegionPicker={showRegionPicker}
             setShowRegionPicker={setShowRegionPicker}
