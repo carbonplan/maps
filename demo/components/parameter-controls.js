@@ -186,7 +186,7 @@ const ParameterControls = ({ getters, setters }) => {
         >
           {clim[1].toFixed(0)}
         </Badge>
-        <Box sx={sx.label}>Month</Box>
+        <Box sx={sx.label}>Time</Box>
         <Slider
           min={0}
           max={TIME.length - 1}
@@ -195,19 +195,6 @@ const ParameterControls = ({ getters, setters }) => {
           value={TIME.indexOf(time)}
           onChange={(e) => setTime(TIME[parseFloat(e.target.value)])}
         />
-        <Badge
-          sx={{
-            bg: 'primary',
-            color: 'background',
-            display: 'inline-block',
-            position: 'relative',
-            left: [3],
-            top: [1],
-          }}
-        >
-          {time}
-        </Badge>
-
         <Box sx={{ ...sx.label, mt: [4] }}>Variable</Box>
         <Select
           sxSelect={{ bg: 'transparent' }}
