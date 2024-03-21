@@ -14,7 +14,7 @@ const Index = () => {
   const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
   const [clim, setClim] = useState([-20, 30])
-  const [month, setMonth] = useState(1)
+  const [time, setTime] = useState(4261.5)
   const [variable, setVariable] = useState('sst')
   const [colormapName, setColormapName] = useState('warm')
   const colormap = useThemedColormap(colormapName)
@@ -26,7 +26,7 @@ const Index = () => {
     debug,
     opacity,
     clim,
-    month,
+    time,
     variable,
     colormapName,
   }
@@ -35,7 +35,7 @@ const Index = () => {
     setDebug,
     setOpacity,
     setClim,
-    setMonth,
+    setTime,
     setVariable,
     setColormapName,
   }
@@ -81,7 +81,7 @@ const Index = () => {
               'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/oisst_1_year_3_lvl/pyramid'
             }
             selector={{
-              time: 4261.5,
+              time,
               zlev: 0,
             }}
             regionOptions={{ setData: setRegionData }}
