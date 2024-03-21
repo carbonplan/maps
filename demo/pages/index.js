@@ -13,7 +13,7 @@ const Index = () => {
   const [display, setDisplay] = useState(true)
   const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
-  const [clim, setClim] = useState([2000, 3000])
+  const [clim, setClim] = useState([-20, 30])
   const [month, setMonth] = useState(1)
   const [band, setBand] = useState('sst')
   const [colormapName, setColormapName] = useState('warm')
