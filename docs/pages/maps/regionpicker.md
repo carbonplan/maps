@@ -10,17 +10,18 @@ The `RegionPicker` component renders a moveable and resizeable circle over the m
 
 <Table>
 
-| Prop             | Description                                                                | Default      |
-| ---------------- | -------------------------------------------------------------------------- | ------------ |
-| color            | Color of circle border, radius guideline, and label                        |              |
-| backgroundColor  | Color rendered over area of map not covered by circle (with opacity `0.8`) |              |
-| fontFamily       | Font family used to render circle radius label                             |              |
-| fontSize         | Font size used to render circle radius label                               |              |
-| _optional props_ |                                                                            |              |
-| units            | Units used to render circle radius label, one of: 'meters', 'kilometers'   | 'kilometers' |
-| initialRadius    | Radius used to initialize circle                                           |              |
-| minRadius        | Minimum radius allowed                                                     |              |
-| maxRadius        | Maximum radius allowed                                                     |              |
+| Prop             | Description                                                                | Default         |
+| ---------------- | -------------------------------------------------------------------------- | --------------- |
+| color            | Color of circle border, radius guideline, and label                        |                 |
+| backgroundColor  | Color rendered over area of map not covered by circle (with opacity `0.8`) |                 |
+| fontFamily       | Font family used to render circle radius label                             |                 |
+| fontSize         | Font size used to render circle radius label                               |                 |
+| _optional props_ |                                                                            |                 |
+| units            | Units used to render circle radius label, one of: 'meters', 'kilometers'   | 'kilometers'    |
+| initialRadius    | Radius used to initialize circle                                           |                 |
+| initialCenter    | Center coordinates used to initialize circle `{lng, lat}`                  | map view center |
+| minRadius        | Minimum radius allowed                                                     |                 |
+| maxRadius        | Maximum radius allowed                                                     |                 |
 
 </Table>
 
@@ -91,5 +92,6 @@ You could instead choose to include all data from all months in the regional que
 ```
 
 export default ({ children }) => (
+
   <Section name='regionpicker'>{children}</Section>
 )
