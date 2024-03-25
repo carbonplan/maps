@@ -26,12 +26,13 @@ function RegionPicker({
   fontSize,
   units = 'kilometers',
   initialRadius: initialRadiusProp,
+  initialCenter: initialCenterProp,
   minRadius,
   maxRadius,
 }) {
   const { map } = useMapbox()
   const id = useRef(uuidv4())
-  const initialCenter = useRef(map.getCenter())
+  const initialCenter = useRef(initialCenterProp || map.getCenter())
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
   )
