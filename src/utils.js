@@ -42,7 +42,6 @@ export const pointToTile = (lon, lat, z, projection, order) => {
       tile = [x, y, z]
     default:
       return
-      break
   }
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
