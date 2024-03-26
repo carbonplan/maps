@@ -128,6 +128,10 @@ export const createTiles = (regl, opts) => {
           this.projectionIndex = projection
             ? ['mercator', 'equirectangular'].indexOf(projection)
             : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
+          this.projection = ['mercator', 'equirectangular'][
+            this.projectionIndex
+          ]
+
           if (mode === 'grid' || mode === 'dotgrid') {
             this.count = position.length
           }
@@ -295,6 +299,11 @@ export const createTiles = (regl, opts) => {
     }
 
     this.updateCamera = ({ center, zoom }) => {
+      // Return early if projection not yet initialized
+      if (!this.projection) {
+        return
+      }
+
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(
         center.lng,
