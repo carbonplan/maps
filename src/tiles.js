@@ -46,7 +46,7 @@ export const createTiles = (regl, opts) => {
     setMetadata,
     order,
     version = 'v2',
-    projection = 'mercator',
+    projection,
   }) {
     this.tiles = {}
     this.loaders = {}
