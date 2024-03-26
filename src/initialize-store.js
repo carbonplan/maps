@@ -10,7 +10,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
   let chunks
   let fill_value
   let dtype
-  let levels, maxZoom, tileSize
+  let levels, maxZoom, tileSize, crs
   const coordinates = {}
   switch (version) {
     case 'v2':
