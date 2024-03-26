@@ -46,7 +46,7 @@ export const createTiles = (regl, opts) => {
     setMetadata,
     order,
     version = 'v2',
-    projection = 'mercator',
+    projection,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -57,8 +57,6 @@ export const createTiles = (regl, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
-    this.projection = projection
-    this.projectionIndex = ['mercator', 'equirectangular'].indexOf(projection)
     this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
@@ -117,6 +115,7 @@ export const createTiles = (regl, opts) => {
           levels,
           maxZoom,
           tileSize,
+          crs,
         }) => {
           if (setMetadata) setMetadata(metadata)
           this.maxZoom = maxZoom
@@ -124,6 +123,23 @@ export const createTiles = (regl, opts) => {
           const position = getPositions(tileSize, mode)
           this.position = regl.buffer(position)
           this.size = tileSize
+          // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
+          this.projectionIndex = projection
+            ? ['mercator', 'equirectangular'].indexOf(projection)
+            : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
+          this.projection = ['mercator', 'equirectangular'][
+            this.projectionIndex
+          ]
+
+          if (!this.projection) {
+            this.projection = null
+            throw new Error(
+              projection
+                ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
+                : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
+            )
+          }
+
           if (mode === 'grid' || mode === 'dotgrid') {
             this.count = position.length
           }
@@ -291,6 +307,11 @@ export const createTiles = (regl, opts) => {
     }
 
     this.updateCamera = ({ center, zoom }) => {
+      // Return early if projection not yet initialized
+      if (!this.projection) {
+        return
+      }
+
       const level = zoomToLevel(zoom, this.maxZoom)
       const tile = pointToTile(
         center.lng,

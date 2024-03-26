@@ -1,5 +1,4 @@
 import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
-import { select } from 'd3-selection'
 
 const d2r = Math.PI / 180
 
@@ -41,7 +40,7 @@ export const pointToTile = (lon, lat, z, projection, order) => {
       y = Math.max(Math.min(y, z2), 0)
       tile = [x, y, z]
     default:
-      break
+      return
   }
   tile[0] = Math.floor(tile[0])
   tile[1] = Math.min(Math.floor(tile[1]), z2 - 1)
@@ -349,13 +348,21 @@ export const getPyramidMetadata = (multiscales) => {
   const levels = datasets.map((dataset) => Number(dataset.path))
   const maxZoom = Math.max(...levels)
   const tileSize = datasets[0].pixels_per_tile
+  let crs = datasets[0].crs
 
   if (!tileSize) {
     throw new Error(
       'Missing required `pixels_per_tile` value in `multiscales` metadata. Please check your pyramid generation code.'
     )
   }
-  return { levels, maxZoom, tileSize }
+
+  if (!crs) {
+    console.warn(
+      'Missing `crs` value in `multiscales` metadata. Please check your pyramid generation code. Falling back to `crs=EPSG:3857` (Web Mercator)'
+    )
+    crs = 'EPSG:3857'
+  }
+  return { levels, maxZoom, tileSize, crs }
 }
 
 /**
