@@ -57,7 +57,6 @@ export const createTiles = (regl, opts) => {
     this.selector = selector
     this.variable = variable
     this.fillValue = fillValue
-    this.projection = projection
     this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
@@ -133,10 +132,11 @@ export const createTiles = (regl, opts) => {
           ]
 
           if (!this.projection) {
+            this.projection = null
             throw new Error(
               projection
-                ? `Unexpected \`projection\` prop provided: ${projection}. Must be one of 'mercator', 'equirectangular'.`
-                : `Unexpected \`crs\` found in metadata: ${crs}. Must be one of 'EPSG:3857', 'EPSG:4326'.`
+                ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
+                : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
             )
           }
 
