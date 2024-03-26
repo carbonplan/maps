@@ -21,7 +21,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
           resolve()
         })
       )
-      ;({ levels, maxZoom, tileSize } = getPyramidMetadata(
+      ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
         metadata.metadata['.zattrs'].multiscales
       ))
 
@@ -48,7 +48,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
       break
     case 'v3':
       metadata = await fetch(`${source}/zarr.json`).then((res) => res.json())
-      ;({ levels, maxZoom, tileSize } = getPyramidMetadata(
+      ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
         metadata.attributes.multiscales
       ))
 
@@ -114,6 +114,7 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
     levels,
     maxZoom,
     tileSize,
+    crs,
   }
 }
 

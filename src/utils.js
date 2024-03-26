@@ -349,13 +349,21 @@ export const getPyramidMetadata = (multiscales) => {
   const levels = datasets.map((dataset) => Number(dataset.path))
   const maxZoom = Math.max(...levels)
   const tileSize = datasets[0].pixels_per_tile
+  let crs = datasets[0].crs
 
   if (!tileSize) {
     throw new Error(
       'Missing required `pixels_per_tile` value in `multiscales` metadata. Please check your pyramid generation code.'
     )
   }
-  return { levels, maxZoom, tileSize }
+
+  if (!crs) {
+    console.warn(
+      'Missing `crs` value in `multiscales` metadata. Please check your pyramid generation code. Falling back to `crs=EPSG:3857` (Web Mercator)'
+    )
+    crs = 'EPSG:3857'
+  }
+  return { levels, maxZoom, tileSize, crs }
 }
 
 /**

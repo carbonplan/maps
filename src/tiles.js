@@ -58,7 +58,6 @@ export const createTiles = (regl, opts) => {
     this.variable = variable
     this.fillValue = fillValue
     this.projection = projection
-    this.projectionIndex = ['mercator', 'equirectangular'].indexOf(projection)
     this.order = order ?? [1, 1]
     this.invalidate = invalidate
     this.viewport = { viewportHeight: 0, viewportWidth: 0 }
@@ -117,6 +116,7 @@ export const createTiles = (regl, opts) => {
           levels,
           maxZoom,
           tileSize,
+          crs,
         }) => {
           if (setMetadata) setMetadata(metadata)
           this.maxZoom = maxZoom
@@ -124,6 +124,10 @@ export const createTiles = (regl, opts) => {
           const position = getPositions(tileSize, mode)
           this.position = regl.buffer(position)
           this.size = tileSize
+          // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
+          this.projectionIndex = projection
+            ? ['mercator', 'equirectangular'].indexOf(projection)
+            : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
           if (mode === 'grid' || mode === 'dotgrid') {
             this.count = position.length
           }
