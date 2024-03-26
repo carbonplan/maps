@@ -132,6 +132,14 @@ export const createTiles = (regl, opts) => {
             this.projectionIndex
           ]
 
+          if (!this.projection) {
+            throw new Error(
+              projection
+                ? `Unexpected \`projection\` prop provided: ${projection}. Must be one of 'mercator', 'equirectangular'.`
+                : `Unexpected \`crs\` found in metadata: ${crs}. Must be one of 'EPSG:3857', 'EPSG:4326'.`
+            )
+          }
+
           if (mode === 'grid' || mode === 'dotgrid') {
             this.count = position.length
           }
