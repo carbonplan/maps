@@ -1,5 +1,4 @@
 import { point, rhumbBearing, rhumbDestination } from '@turf/turf'
-import { select } from 'd3-selection'
 
 const d2r = Math.PI / 180
 
