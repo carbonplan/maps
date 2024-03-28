@@ -20,8 +20,30 @@ function getInitialRadius(map, units, minRadius, maxRadius) {
 
 function isValidCoordinate(longitude, latitude) {
   return (
-    longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90
+    longitude !== undefined &&
+    latitude !== undefined &&
+    longitude >= -180 &&
+    longitude <= 180 &&
+    latitude >= -90 &&
+    latitude <= 90
   )
+}
+
+function getInitialCenter(map, center) {
+  if (
+    Array.isArray(center) &&
+    center.length === 2 &&
+    isValidCoordinate(center[0], center[1])
+  ) {
+    return new mapboxgl.LngLat(center[0], center[1])
+  } else {
+    if (center) {
+      console.warn(
+        `Invalid initialCenter provided: ${center}. Should be [lng, lat]. Using map center instead.`
+      )
+    }
+    return map.getCenter()
+  }
 }
 
 // TODO:
@@ -40,19 +62,7 @@ function RegionPicker({
   const { map } = useMapbox()
   const id = useRef(uuidv4())
 
-  let safeInitialCenter
-  if (isValidCoordinate(initialCenterProp[0], initialCenterProp[1])) {
-    safeInitialCenter = new mapboxgl.LngLat(
-      initialCenterProp[0],
-      initialCenterProp[1]
-    )
-  } else {
-    safeInitialCenter = map.getCenter()
-    console.warn(
-      `Invalid initial center coordinates: ${initialCenterProp}, Falling back to map's current center.`
-    )
-  }
-  const initialCenter = useRef(safeInitialCenter)
+  const initialCenter = useRef(getInitialCenter(map, initialCenterProp))
 
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
