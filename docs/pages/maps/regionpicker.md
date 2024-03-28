@@ -19,7 +19,7 @@ The `RegionPicker` component renders a moveable and resizeable circle over the m
 | _optional props_ |                                                                            |                 |
 | units            | Units used to render circle radius label, one of: 'meters', 'kilometers'   | 'kilometers'    |
 | initialRadius    | Radius used to initialize circle                                           |                 |
-| initialCenter    | Center coordinates used to initialize circle `{lng, lat}`                  | map view center |
+| initialCenter    | Center coordinates used to initialize circle `[lng, lat]`                  | map view center |
 | minRadius        | Minimum radius allowed                                                     |                 |
 | maxRadius        | Maximum radius allowed                                                     |                 |
 
