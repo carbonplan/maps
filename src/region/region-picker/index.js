@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { useRegionContext } from '../context'
 import { useMapbox } from '../../mapbox'
+import mapboxgl from 'mapbox-gl'
 
 function getInitialRadius(map, units, minRadius, maxRadius) {
   const bounds = map.getBounds().toArray()
@@ -17,6 +18,34 @@ function getInitialRadius(map, units, minRadius, maxRadius) {
   return radius
 }
 
+function isValidCoordinate(longitude, latitude) {
+  return (
+    longitude !== undefined &&
+    latitude !== undefined &&
+    longitude >= -180 &&
+    longitude <= 180 &&
+    latitude >= -90 &&
+    latitude <= 90
+  )
+}
+
+function getInitialCenter(map, center) {
+  if (
+    Array.isArray(center) &&
+    center.length === 2 &&
+    isValidCoordinate(center[0], center[1])
+  ) {
+    return new mapboxgl.LngLat(center[0], center[1])
+  } else {
+    if (center) {
+      console.warn(
+        `Invalid initialCenter provided: ${center}. Should be [lng, lat]. Using map center instead.`
+      )
+    }
+    return map.getCenter()
+  }
+}
+
 // TODO:
 // - accept mode (only accept mode="circle" to start)
 function RegionPicker({
@@ -26,12 +55,15 @@ function RegionPicker({
   fontSize,
   units = 'kilometers',
   initialRadius: initialRadiusProp,
+  initialCenter: initialCenterProp,
   minRadius,
   maxRadius,
 }) {
   const { map } = useMapbox()
   const id = useRef(uuidv4())
-  const initialCenter = useRef(map.getCenter())
+
+  const initialCenter = useRef(getInitialCenter(map, initialCenterProp))
+
   const initialRadius = useRef(
     initialRadiusProp || getInitialRadius(map, units, minRadius, maxRadius)
   )
