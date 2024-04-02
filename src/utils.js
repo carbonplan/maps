@@ -39,6 +39,7 @@ export const pointToTile = (lon, lat, z, projection, order) => {
       if (x < 0) x = x + z2
       y = Math.max(Math.min(y, z2), 0)
       tile = [x, y, z]
+      break
     default:
       return
   }
