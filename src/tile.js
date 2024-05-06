@@ -5,22 +5,40 @@ import {
   getSelectorHash,
 } from './utils'
 
+
+function findDifference(array1, array2) {
+    const fillValue1 = 3.4028234663852886e38
+    const fillValue2 = 9.969209968386869e36
+
+    for (let i = 0; i < array1.length; i++) {
+        const value1 = array1[i];
+        if (value1 !== fillValue1 && value1 !== fillValue2) {
+            array1[i]  = array1[i] - array2[i]
+        }
+    }
+
+    return array1;
+}
+
 class Tile {
   constructor({
     key,
     loader,
     shape,
     chunks,
+    chunksDif,
     dimensions,
     coordinates,
     bands,
     initializeBuffer,
+    initializeBufferDif,
   }) {
     this.key = key
     this.tileCoordinates = keyToTile(key)
 
     this.shape = shape
     this.chunks = chunks
+    this.chunksDif = chunksDif
     this.dimensions = dimensions
     this.coordinates = coordinates
     this.bands = bands
@@ -31,20 +49,32 @@ class Tile {
     this._loading = {}
     this._ready = {}
 
+    // diff variables
+    this._bufferCacheDif = null
+    this._buffersDif = {}
+
+    this._loadingDif = {}
+    this._readyDif = {}
+
     bands.forEach((k) => {
       this._buffers[k] = initializeBuffer()
     })
+    bands.forEach((k) => {
+      this._buffersDif[k] = initializeBufferDif()
+    })
 
     this.chunkedData = {}
+    this.chunkedDataDif = {}
 
     this._loader = loader
   }
+
 
   getBuffers() {
     return this._buffers
   }
 
-  async loadChunks(chunks) {
+  async loadChunks(chunks, chunksDif) {
     const updated = await Promise.all(
       chunks.map(
         (chunk) =>
@@ -67,11 +97,33 @@ class Tile {
       )
     )
 
+    const updatedDif = await Promise.all(
+      chunksDif.map(
+        (chunkDif) =>
+          new Promise((resolve) => {
+            const keyDif = chunkDif.join('.')
+            if (this.chunkedDataDif[keyDif]) {
+              resolve(false)
+            } else {
+              this._loading[keyDif] = true
+              this._ready[keyDif] = new Promise((innerResolveDif) => {
+                this._loader(chunkDif, (err, dataDif) => {
+                  this.chunkedDataDif[keyDif] = dataDif
+                  this._loading[keyDif] = false
+                  innerResolveDif(true)
+                  resolve(true)
+                })
+              })
+            }
+          })
+      )
+    )
+
     return updated.some(Boolean)
   }
 
-  async populateBuffers(chunks, selector) {
-    const updated = await this.loadChunks(chunks)
+  async populateBuffers(chunks, chunksDif, selector) {
+    const updated = await this.loadChunks(chunks, chunksDif)
 
     this.populateBuffersSync(selector)
 
@@ -83,13 +135,23 @@ class Tile {
 
     this.bands.forEach((band) => {
       const info = bandInformation[band] || selector
+        // selector = {month:1, band: "prec"}
       const chunks = getChunks(
         info,
-        this.dimensions,
-        this.coordinates,
-        this.shape,
-        this.chunks,
-        this.tileCoordinates[0],
+        this.dimensions,  // ["band", "month", "y", "x"]
+        this.coordinates, // [band["prec","tavg"], month[1,2,...,12]]
+        this.shape,   // [2,12,128,128]
+        this.chunks,  // [2,12,128,128]
+        this.tileCoordinates[0], // tileCoordinates = [2,2,2]
+        this.tileCoordinates[1]
+      )
+      const chunksDif = getChunks(
+        info,
+        this.dimensions,  // ["band", "month", "y", "x"]
+        this.coordinates, // [band["prec","tavg"], month[1,2,...,12]]
+        this.shape,   // [2,12,128,128]
+        this.chunksDif,  // [2,12,128,128]
+        this.tileCoordinates[0], // tileCoordinates = [2,2,2]
         this.tileCoordinates[1]
       )
 
@@ -102,7 +164,25 @@ class Tile {
       }
       const chunk = chunks[0]
       const chunkKey = chunk.join('.')
-      const data = this.chunkedData[chunkKey]
+      let data = this.chunkedData[chunkKey]
+
+      const chunkDif = chunksDif[0]
+      const chunkKeyDif = chunkDif.join('.')
+      let dataDif = this.chunkedDataDif[chunkKeyDif]
+
+      let newdata = data
+
+      // map difference between two datasets
+      if (typeof dataDif === 'undefined') {
+          // Variable is undefined, temporarily set to 0
+          data.data = findDifference(data.data, newdata.data)
+          console.log('Variable is undefined');
+      } else {
+          // Variable is defined, set to true differrence
+          data.data = findDifference(data.data, dataDif.data)
+          console.log("new data =", data)
+          console.log('Variable is defined');
+      }
 
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
@@ -151,9 +231,9 @@ class Tile {
     return chunks.every((chunk) => this._loading[chunk.join('.')])
   }
 
-  async chunksLoaded(chunks) {
+  async chunksLoaded(chunks, chunksDif) {
     await Promise.all(chunks.map((chunk) => this._ready[chunk.join('.')]))
-
+    await Promise.all(chunksDif.map((chunkDif) => this._readyDif[chunkDif.join('.')]))
     return true
   }
 
