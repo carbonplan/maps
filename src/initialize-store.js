@@ -2,18 +2,53 @@ import zarr from 'zarr-js'
 
 import { getPyramidMetadata } from './utils'
 
-const initializeStore = async (source, version, variable, coordinateKeys) => {
-  let metadata
-  let loaders
-  let dimensions
-  let shape
-  let chunks
-  let fill_value
-  let dtype
+const initializeStore = async (source, sourceDif, version, variable, coordinateKeys) => {
+  let metadata, metadataDif
+  let loaders, loadersDif
+  let dimensions, dimensionsDif
+  let shape, shapeDif
+  let chunks, chunksDif
+  let fill_value, fill_valueDif
+  let dtype, dtypeDif
   let levels, maxZoom, tileSize, crs
+  let levelsDif
+
   const coordinates = {}
+  const coordinatesDif = {}
   switch (version) {
     case 'v2':
+      await new Promise((resolve) =>
+        zarr(window.fetch, version).openGroup(sourceDif, (err, l, m) => {
+          loadersDif = l
+          metadataDif = m
+          resolve()
+        })
+      )
+      ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
+        metadataDif.metadata['.zattrs'].multiscales
+      ))
+
+      const zattrsDif = metadataDif.metadata[`${levels[0]}/${variable}/.zattrs`]
+      const zarrayDif = metadataDif.metadata[`${levels[0]}/${variable}/.zarray`]
+      dimensionsDif = zattrsDif['_ARRAY_DIMENSIONS']
+      shapeDif = zarrayDif.shape
+      chunksDif = zarrayDif.chunks
+      fill_valueDif = zarrayDif.fill_value
+      dtype = zarrayDif.dtype
+
+      await Promise.all(
+        coordinateKeys.map(
+          (key) =>
+            new Promise((resolve) => {
+              loadersDif[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                coordinatesDif[key] = Array.from(chunk.data)
+                resolve()
+              })
+            })
+        )
+      )
+
+      // --- original zarr fetch ---
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(source, (err, l, m) => {
           loaders = l
@@ -115,6 +150,14 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
     maxZoom,
     tileSize,
     crs,
+    metadataDif,
+    loadersDif,
+    dimensionsDif,
+    shapeDif,
+    chunksDif,
+    fill_valueDif,
+    coordinatesDif,
+    levelsDif,
   }
 }
 
