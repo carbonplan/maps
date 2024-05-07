@@ -35,6 +35,7 @@ export const createTiles = (regl, opts) => {
     opacity,
     display,
     variable,
+    filterValue,
     selector = {},
     uniforms: customUniforms = {},
     frag: customFrag,
@@ -64,6 +65,7 @@ export const createTiles = (regl, opts) => {
     this._loading = false
     this.setLoading = setLoading
     this.clearLoading = clearLoading
+    this.filterValue = filterValue
 
     this.colormap = regl.texture({
       data: colormap,
@@ -102,6 +104,8 @@ export const createTiles = (regl, opts) => {
     }
 
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
+
+
 
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
@@ -200,6 +204,7 @@ export const createTiles = (regl, opts) => {
                       bands: this.bands,
                       initializeBuffer: initialize,
                       initializeBufferDif: initializeDif,
+                      filterValue: this.filterValue,
                     })
                   })
               })
@@ -385,6 +390,8 @@ export const createTiles = (regl, opts) => {
                 )
 
                 const initialHash = getSelectorHash(this.selector)
+
+                tile.setFilterValue(this.filterValue)
 
                 if (tile.hasPopulatedBuffer(this.selector)) {
                   resolve(false)
@@ -582,6 +589,10 @@ export const createTiles = (regl, opts) => {
         this.opacity = 0
       }
       this.invalidate()
+    }
+
+   this.updateFilter = (infilterValue) => {
+       this.filterValue = infilterValue
     }
 
     this.updateColormap = ({ colormap }) => {

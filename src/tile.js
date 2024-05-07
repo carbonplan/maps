@@ -32,6 +32,7 @@ class Tile {
     bands,
     initializeBuffer,
     initializeBufferDif,
+    filterValue,
   }) {
     this.key = key
     this.tileCoordinates = keyToTile(key)
@@ -42,6 +43,7 @@ class Tile {
     this.dimensions = dimensions
     this.coordinates = coordinates
     this.bands = bands
+    this.filterValue = filterValue
 
     this._bufferCache = null
     this._buffers = {}
@@ -170,18 +172,23 @@ class Tile {
       const chunkKeyDif = chunkDif.join('.')
       let dataDif = this.chunkedDataDif[chunkKeyDif]
 
-      let newdata = data
+      const filterValue = this.filterValue
 
-      // map difference between two datasets
-      if (typeof dataDif === 'undefined') {
-          // Variable is undefined, temporarily set to 0
-          data.data = findDifference(data.data, newdata.data)
-          console.log('Variable is undefined');
+      let newdata = data
+      if (filterValue["Dif."]) {
+          // map difference between two datasets
+          if (typeof dataDif === 'undefined') {
+              // Variable is undefined, temporarily set to 0
+              data.data = findDifference(data.data, newdata.data)
+              console.log('Variable is undefined');
+          } else {
+              // Variable is defined, set to true differrence
+              data.data = findDifference(data.data, dataDif.data)
+              console.log("new data =", data)
+              console.log('Variable is defined');
+          }
       } else {
-          // Variable is defined, set to true differrence
-          data.data = findDifference(data.data, dataDif.data)
-          console.log("new data =", data)
-          console.log('Variable is defined');
+        data = this.chunkedData[chunkKey]
       }
 
       if (!data) {
@@ -245,6 +252,11 @@ class Tile {
     return (
       !!this._bufferCache && this._bufferCache === getSelectorHash(selector)
     )
+  }
+
+  setFilterValue(filterValue) {
+    this.filterValue = filterValue
+    return true
   }
 
   getPointValues({ selector, point: [x, y] }) {
