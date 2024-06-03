@@ -98,7 +98,6 @@ const Raster = (props) => {
   }, [index])
 
   useEffect(() => {
-    console.log("raster111", filterValue)
     tiles.current.updateFilter({ filterValue })
   }, [filterValue])
 
