@@ -6,24 +6,32 @@ import {
 } from './utils'
 
 
-function findDifference(array1, array2) {
-    const fillValue1 = 3.4028234663852886e38
-    const fillValue2 = 9.969209968386869e36
+function calcDifference(array1, array2) {
+    const fillValue1 = 3.4028234663852886e38;
+    const fillValue2 = 9.969209968386869e36;
+    let diffArray = array1.slice(); // create shallow copy
 
     for (let i = 0; i < array1.length; i++) {
         const value1 = array1[i];
-        if (value1 !== fillValue1 && value1 !== fillValue2) {
-            array1[i]  = array1[i] - array2[i]
+        const value2 = array2[i];
+        if (value1 === fillValue1 || value1 === fillValue2) {
+            continue;
+        } else if (value2 === fillValue1 || value2 === fillValue2) {
+            diffArray[i] = value2;
+        }
+        else {
+            diffArray[i]  = array1[i] - array2[i];
         }
     }
 
-    return array1;
+    return diffArray;
 }
 
 class Tile {
   constructor({
     key,
     loader,
+    loaderDif,
     shape,
     chunks,
     chunksDif,
@@ -69,6 +77,7 @@ class Tile {
     this.chunkedDataDif = {}
 
     this._loader = loader
+    this._loaderDif = loaderDif
   }
 
 
@@ -107,11 +116,11 @@ class Tile {
             if (this.chunkedDataDif[keyDif]) {
               resolve(false)
             } else {
-              this._loading[keyDif] = true
-              this._ready[keyDif] = new Promise((innerResolveDif) => {
-                this._loader(chunkDif, (err, dataDif) => {
+              this._loadingDif[keyDif] = true
+              this._readyDif[keyDif] = new Promise((innerResolveDif) => {
+                this._loaderDif(chunkDif, (err, dataDif) => {
                   this.chunkedDataDif[keyDif] = dataDif
-                  this._loading[keyDif] = false
+                  this._loadingDif[keyDif] = false
                   innerResolveDif(true)
                   resolve(true)
                 })
@@ -121,7 +130,9 @@ class Tile {
       )
     )
 
-    return updated.some(Boolean)
+    const [result1, result2] = await Promise.all([updated, updatedDif]);
+    // return updated.some(Boolean)
+    return result1
   }
 
   async populateBuffers(chunks, chunksDif, selector) {
@@ -164,33 +175,38 @@ class Tile {
           }: ${chunks.join(', ')}`
         )
       }
+     const filterValue = this.filterValue.filterValue
+     if (filterValue["Dif."]) {
+       if (chunksDif.length !== 1) {
+         throw new Error(
+           `Expected 1 chunk for band '${band}', found ${
+            chunks.length
+            }: ${chunks.join(', ')}`
+           )
+         }
+       }
+
       const chunk = chunks[0]
       const chunkKey = chunk.join('.')
       let data = this.chunkedData[chunkKey]
 
       const chunkDif = chunksDif[0]
       const chunkKeyDif = chunkDif.join('.')
-      let dataDif = this.chunkedDataDif[chunkKeyDif]
+      const dataDif = this.chunkedDataDif[chunkKeyDif]
 
-      const filterValue = this.filterValue
-
-      let newdata = data
       if (filterValue["Dif."]) {
-          // map difference between two datasets
           if (typeof dataDif === 'undefined') {
-              // Variable is undefined, temporarily set to 0
-              data.data = findDifference(data.data, newdata.data)
-              console.log('Variable is undefined');
-          } else {
-              // Variable is defined, set to true differrence
-              data.data = findDifference(data.data, dataDif.data)
-              console.log("new data =", data)
-              console.log('Variable is defined');
+              // console.log("UNDEFINED");
+          }
+          else{
+          data = this.chunkedData[chunkKey]
+          data.data = calcDifference(this.chunkedData[chunkKey].data, this.chunkedDataDif[chunkKeyDif].data)
+          // console.log("dataDif =", data.data);
           }
       } else {
         data = this.chunkedData[chunkKey]
       }
-
+      // console.log("ACTUAL data =", data.data)
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
       }
