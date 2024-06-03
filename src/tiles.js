@@ -52,6 +52,7 @@ export const createTiles = (regl, opts) => {
   }) {
     this.tiles = {}
     this.loaders = {}
+    this.loadersDif = {}
     this.active = {}
     this.display = display
     this.clim = clim
@@ -191,7 +192,9 @@ export const createTiles = (regl, opts) => {
 
           levels.forEach((z) => {
             const loader = loaders[z + '/' + variable]
+            const loaderDif = loadersDif[z + '/' + variable]
             this.loaders[z] = loader
+            this.loadersDif[z] = loaderDif
             Array(Math.pow(2, z))
               .fill(0)
               .map((_, x) => {
@@ -202,6 +205,7 @@ export const createTiles = (regl, opts) => {
                     this.tiles[key] = new Tile({
                       key,
                       loader,
+                      loaderDif,
                       shape: this.shape,
                       chunks: this.chunks,
                       chunksDif: this.chunksDif,
