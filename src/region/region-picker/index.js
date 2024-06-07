@@ -20,10 +20,10 @@ function getInitialRadius(map, units, minRadius, maxRadius) {
 
 function isValidCoordinate(longitude, latitude) {
   return (
-    longitude !== undefined &&
-    latitude !== undefined &&
-    longitude >= -180 &&
-    longitude <= 180 &&
+    typeof longitude === 'number' &&
+    typeof latitude === 'number' &&
+    !isNaN(longitude) &&
+    !isNaN(latitude) &&
     latitude >= -90 &&
     latitude <= 90
   )
