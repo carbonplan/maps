@@ -7,8 +7,8 @@ import {
 
 
 function calcDifference(array1, array2) {
-    const fillValue1 = 3.4028234663852886e38;
-    const fillValue2 = 9.969209968386869e36;
+    const fillValue1 = 3.4028234663852886e38; // max color
+    const fillValue2 = 9.969209968386869e36; // black
     let diffArray = array1.slice(); // create shallow copy
 
     for (let i = 0; i < array1.length; i++) {
