@@ -29,7 +29,15 @@ const Mapbox = ({
   const [ready, setReady] = useState()
 
   const ref = useCallback((node) => {
-    const mapboxStyle = { version: 8, sources: {}, layers: [] }
+    const mapboxStyle = { version: 8, sources: {}, layers: [
+        // {
+        //     id: 'background',
+        //     type: 'background',
+        //     paint: {
+        //       'background-color': 'white'
+        //     }
+        //   }
+    ] }
     if (glyphs) {
       mapboxStyle.glyphs = glyphs
     }

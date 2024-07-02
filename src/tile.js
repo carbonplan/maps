@@ -206,7 +206,17 @@ class Tile {
       } else {
         data = this.chunkedData[chunkKey]
       }
-      // console.log("ACTUAL data =", data.data)
+
+      for (let i = 0; i < data.data.length; i++) {
+          let val = data.data[i];
+          if ( !isFinite(val) || val > 3.420100022885679e+30) {
+              data.data[i] = 3.4028234663852886e38; // black on land, red nans
+          }
+          //else {
+          //      console.log("data[i] =", data.data[i])
+          //   }
+      }
+
       if (!data) {
         throw new Error(`Missing data for chunk: ${chunkKey}`)
       }
