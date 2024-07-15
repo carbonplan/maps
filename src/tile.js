@@ -17,7 +17,7 @@ function calcDifference(array1, array2) {
         if (value1 === fillValue1 || value1 === fillValue2) {
             continue;
         } else if (value2 === fillValue1 || value2 === fillValue2) {
-            diffArray[i] = value2;
+            diffArray[i] = value1; // value2 will default everything to land background color
         }
         else {
             diffArray[i]  = array1[i] - array2[i];
