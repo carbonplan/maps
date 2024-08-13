@@ -28,7 +28,7 @@ export const createTiles = (regl, opts) => {
   return new Tiles(opts)
 
   function Tiles({
-    source,
+    sources,
     sourceDif,
     colormap,
     clim,
@@ -110,7 +110,7 @@ export const createTiles = (regl, opts) => {
 
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
-      initializeStore(source, sourceDif, version, variable, Object.keys(selector)).then(
+      initializeStore(sources[0], sourceDif, version, variable, Object.keys(selector)).then(
         ({
           metadata,
           loaders,
@@ -422,8 +422,7 @@ export const createTiles = (regl, opts) => {
                     resolve(false)
                   } else {
                     const loadingID = this.setLoading('chunk')
-                    tile
-                      .populateBuffers(chunks, chunksDif, this.selector)
+                    tile.populateBuffers(chunks, chunksDif, this.selector, sources)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
