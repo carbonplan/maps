@@ -407,6 +407,7 @@ export const createTiles = (regl, opts) => {
                   tile.chunksLoaded(chunks, chunksDif).then(() => {
                     // ...wait for ready state and populate buffers if selector is still relevant.
                     if (initialHash === getSelectorHash(this.selector)) {
+                      console.log("1 :: TILE LOADED ALL CHUNKS PBS()")
                       tile.populateBuffersSync(this.selector)
                       this.invalidate()
                       resolve(false)
@@ -417,10 +418,12 @@ export const createTiles = (regl, opts) => {
                 } else {
                   // Otherwise, immediately kick off fetch or populate buffers.
                   if (tile.hasLoadedChunks(chunks)) {
+                    console.log("2 :: HAD LOADED CHUNKS PBS()")
                     tile.populateBuffersSync(this.selector)
                     this.invalidate()
                     resolve(false)
                   } else {
+                    console.log("3 :: LOADING CHUNKS: POPULATEBUFFERS()")
                     const loadingID = this.setLoading('chunk')
                     tile.populateBuffers(chunks, chunksDif, this.selector, sources)
                       .then((dataUpdated) => {
