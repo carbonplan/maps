@@ -3,7 +3,32 @@ import {
   getChunks,
   keyToTile,
   getSelectorHash,
+  getPyramidMetadata,
 } from './utils'
+import zarr from 'zarr-js'
+
+function sumAndAverageData(array1, array2, n) {
+    console.log("AR1=", array1)
+    console.log("AR2=", array2)
+
+    const fillValue1 = 3.4028234663852886e38; // max color
+    const fillValue2 = 9.969209968386869e36; // black
+    let summedArray = array1.slice(); // create shallow copy
+    for (let i = 0; i < array1.length; i++) {
+        const value1 = array1[i];
+        const value2 = array2[i];
+        if (value1 === fillValue1 || value1 === fillValue2) {
+            continue
+        } else if (value2 === fillValue1 ||
+                   value2 === fillValue2 ||
+                   value2 === Infinity) {
+            continue
+        } else {
+            summedArray[i] = (array1[i] + array2[i]) / n
+        }
+    }
+    return summedArray
+}
 
 
 function calcDifference(array1, array2) {
@@ -85,15 +110,15 @@ class Tile {
     return this._buffers
   }
 
-    async addChunk(orig_chunks, source, summedData) {
-        // console.log("CHUNKS=", this.chunkedData) // [ 16, 128, 128 ]
-        console.log("ORIG_CHUNKS=", orig_chunks)
-        const version='v2'
-        let loaders
-        let metadata
-        let group
-  try {
-    await new Promise((resolve, reject) =>
+  async addChunk(orig_chunks, source, summedData) {
+    // console.log("CHUNKS=", this.chunkedData) // [ 16, 128, 128 ]
+    console.log("ORIG_CHUNKS=", orig_chunks)
+    const version='v2'
+    let loaders
+    let metadata
+    let group
+    try {
+      await new Promise((resolve, reject) =>
         zarr(window.fetch, version).openGroup(source, (err, l, m) => {
         if (err) {
           reject(err); // Reject the promise if there's an error
@@ -101,101 +126,95 @@ class Tile {
             loaders = l;
             metadata = m;
             // group = g;
-          resolve(); // Resolve the promise if successful
-        }
-      })
-    );
-    // The following code will only run after the promise resolves
-    console.log("Loaders:", loaders);
+            resolve(); // Resolve the promise if successful
+        }}));
+      console.log("Loaders:", loaders);
       console.log("Metadata:", metadata);
       // console.log("Group:", group)
-  } catch (error) {
-    console.error("Error opening group:", error);
-  }
-   let levels, maxZoom, tileSize, crs
-   ({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
-        metadata.metadata['.zattrs'].multiscales
-      ))
+    } catch (error) {
+      console.error("Error opening zarr group:", error);
+    }
+    let levels, maxZoom, tileSize, crs
+    ({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(metadata.metadata['.zattrs'].multiscales))
 
-        let info = ["djft"] // pass this is as selector
+    let info = ["djft"] // pass this is as selector
 
-        const lcoordinates = {}
+    const lcoordinates = {}
 
-        let coordinateKeys = ["band"]
-        console.log("LEVELS=", levels)
+    let coordinateKeys = ["band"]
+    console.log("LEVELS=", levels)
 
-     await Promise.all(
-        coordinateKeys.map(
-          (key) =>
-            new Promise((resolve) => {
-        console.log("KEY=", `${levels[0]}/${key}`)
-              loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                  // console.log("HERE")
-                  console.log("chunk=", chunk)
-                  lcoordinates[key] = Array.from(chunk.data)
-                resolve()
-              })
-            })
-        )
+    await Promise.all(
+      coordinateKeys.map(
+        (key) =>
+        new Promise((resolve) => {
+          console.log("KEY=", `${levels[0]}/${key}`)
+          loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+            // console.log("HERE")
+            console.log("chunk=", chunk)
+            lcoordinates[key] = Array.from(chunk.data)
+            resolve()
+           })
+        })
       )
+    )
 
-      console.log("CO KEYS", lcoordinates)
-        console.log("KEY tilecoords=", this.tileCoordinates)
-        let z = this.tileCoordinates[2]
-        let fooData = {}
-        let _loading = {}
-        let _ready = {}
-        let chunkedData = {}
-        let variable = 'climate'
-        const _loader = loaders[z + '/' + variable]
+    console.log("CO KEYS", lcoordinates)
+    console.log("KEY tilecoords=", this.tileCoordinates)
+    let z = this.tileCoordinates[2]
+    let fooData = {}
+    let _loading = {}
+    let _ready = {}
+    let chunkedData = {}
+    let variable = 'climate'
+    const _loader = loaders[z + '/' + variable]
 
-      const chunks = getChunks(
+    const chunks = getChunks(
         info,
         this.dimensions,  // ["band", "month", "y", "x"]
-          lcoordinates, // "n34p"...
+        lcoordinates, // "n34p"...
         this.shape,   // [2,12,128,128]
         this.chunks,  // [2,12,128,128]
         this.tileCoordinates[0], // tileCoordinates = [2,2,2]
         this.tileCoordinates[1]
       )
-  }
 
-        // loadChunk()
+    // loadChunk()
     const updated = await Promise.all(
       chunks.map(
         (chunk) =>
           new Promise((resolve) => {
             const key = chunk.join('.')
             if (chunkedData[key]) {
-                              resolve(false)
+              resolve(false)
             } else {
               _loading[key] = true
               _ready[key] = new Promise((innerResolve) => {
-                                  _loader(chunk, (err, data) => {
-                  chunkedData[key] = data
-                  _loading[key] = false
-                  innerResolve(true)
-                  resolve(true)
-                })
+                  _loader(chunk, (err, data) => {
+                    chunkedData[key] = data
+                    _loading[key] = false
+                    innerResolve(true)
+                    resolve(true)
+                  })
               })
             }
           })
       )
     )
 
-        let chunk = chunks[0]
-        const chunkKey = chunk.join('.')
-        console.log("FOOCHUNKKEY =", chunkKey)
-        let data = chunkedData[chunkKey]
-        console.log("foo data", data)
-        console.log("PRE SUM DATA", summedData)
-        if (summedData === undefined) {
-            summedData = data
-        } else {
-            summedData = summedData + data
-        }
+    let chunk = chunks[0]
+    const chunkKey = chunk.join('.')
+    console.log("FOOCHUNKKEY =", chunkKey)
+    let data = chunkedData[chunkKey]
+    console.log("foo data", data)
+    console.log("PRE SUM DATA", summedData)
+    if (summedData === undefined) {
+      summedData = data
+    } else {
+      summedData = summedData + data
+    }
 
-        return summedData;
+    return summedData;
   }  // end addChunk()
 
 
@@ -255,7 +274,9 @@ class Tile {
     const updated = await this.loadChunks(chunks, chunksDif)
 
     console.log("sources =", sources)
-    let summedData
+    let summedData = undefined
+    const nDatasets = sources.length
+
     for (let i=1; i < sources.length; i++) {
         const source = sources[i]
         summedData = await this.addChunk(chunks,source, summedData)
@@ -263,15 +284,12 @@ class Tile {
         console.log("summedData =", summedData)
     }
 
-    this.populateBuffersSync(selector)
-
-
-    this.populateBuffersSync(selector)
+    this.populateBuffersSync(selector, summedData, nDatasets)
 
     return updated
   }
 
-  populateBuffersSync(selector) {
+  populateBuffersSync(selector, summedData=undefined, nDatasets=undefined) {
     const bandInformation = getBandInformation(selector)
 
     this.bands.forEach((band) => {
@@ -322,7 +340,15 @@ class Tile {
       const chunkKeyDif = chunkDif.join('.')
       const dataDif = this.chunkedDataDif[chunkKeyDif]
 
-      if (filterValue["Dif."]) {
+        console.log("POPBUFFER SUMMEDDATA", summedData)
+        console.log("nDatasets", nDatasets)
+        console.log("filterValue=",filterValue)
+
+       if (filterValue["Dif."] && summedData !== undefined) {
+                  console.log("----- THIS IS CXALLED AND IT HSOUDL MBE")
+                  data.data = sumAndAverageData(data.data, summedData.data, nDatasets)
+        }
+      else if (filterValue["Dif."]) {
           if (typeof dataDif === 'undefined') {
               // console.log("UNDEFINED");
           }
