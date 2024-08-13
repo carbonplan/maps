@@ -85,6 +85,122 @@ class Tile {
     return this._buffers
   }
 
+    async addChunk(orig_chunks, source, summedData) {
+        // console.log("CHUNKS=", this.chunkedData) // [ 16, 128, 128 ]
+        console.log("ORIG_CHUNKS=", orig_chunks)
+        const version='v2'
+        let loaders
+        let metadata
+        let group
+  try {
+    await new Promise((resolve, reject) =>
+        zarr(window.fetch, version).openGroup(source, (err, l, m) => {
+        if (err) {
+          reject(err); // Reject the promise if there's an error
+        } else {
+            loaders = l;
+            metadata = m;
+            // group = g;
+          resolve(); // Resolve the promise if successful
+        }
+      })
+    );
+    // The following code will only run after the promise resolves
+    console.log("Loaders:", loaders);
+      console.log("Metadata:", metadata);
+      // console.log("Group:", group)
+  } catch (error) {
+    console.error("Error opening group:", error);
+  }
+   let levels, maxZoom, tileSize, crs
+   ({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
+        metadata.metadata['.zattrs'].multiscales
+      ))
+
+        let info = ["djft"] // pass this is as selector
+
+        const lcoordinates = {}
+
+        let coordinateKeys = ["band"]
+        console.log("LEVELS=", levels)
+
+     await Promise.all(
+        coordinateKeys.map(
+          (key) =>
+            new Promise((resolve) => {
+        console.log("KEY=", `${levels[0]}/${key}`)
+              loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
+                  // console.log("HERE")
+                  console.log("chunk=", chunk)
+                  lcoordinates[key] = Array.from(chunk.data)
+                resolve()
+              })
+            })
+        )
+      )
+
+      console.log("CO KEYS", lcoordinates)
+        console.log("KEY tilecoords=", this.tileCoordinates)
+        let z = this.tileCoordinates[2]
+        let fooData = {}
+        let _loading = {}
+        let _ready = {}
+        let chunkedData = {}
+        let variable = 'climate'
+        const _loader = loaders[z + '/' + variable]
+
+      const chunks = getChunks(
+        info,
+        this.dimensions,  // ["band", "month", "y", "x"]
+          lcoordinates, // "n34p"...
+        this.shape,   // [2,12,128,128]
+        this.chunks,  // [2,12,128,128]
+        this.tileCoordinates[0], // tileCoordinates = [2,2,2]
+        this.tileCoordinates[1]
+      )
+  }
+
+        // loadChunk()
+    const updated = await Promise.all(
+      chunks.map(
+        (chunk) =>
+          new Promise((resolve) => {
+            const key = chunk.join('.')
+            if (chunkedData[key]) {
+                              resolve(false)
+            } else {
+              _loading[key] = true
+              _ready[key] = new Promise((innerResolve) => {
+                                  _loader(chunk, (err, data) => {
+                  chunkedData[key] = data
+                  _loading[key] = false
+                  innerResolve(true)
+                  resolve(true)
+                })
+              })
+            }
+          })
+      )
+    )
+
+        let chunk = chunks[0]
+        const chunkKey = chunk.join('.')
+        console.log("FOOCHUNKKEY =", chunkKey)
+        let data = chunkedData[chunkKey]
+        console.log("foo data", data)
+        console.log("PRE SUM DATA", summedData)
+        if (summedData === undefined) {
+            summedData = data
+        } else {
+            summedData = summedData + data
+        }
+
+        return summedData;
+  }  // end addChunk()
+
+
+
+
   async loadChunks(chunks, chunksDif) {
     const updated = await Promise.all(
       chunks.map(
@@ -135,8 +251,20 @@ class Tile {
     return result1
   }
 
-  async populateBuffers(chunks, chunksDif, selector) {
+  async populateBuffers(chunks, chunksDif, selector, sources) {
     const updated = await this.loadChunks(chunks, chunksDif)
+
+    console.log("sources =", sources)
+    let summedData
+    for (let i=1; i < sources.length; i++) {
+        const source = sources[i]
+        summedData = await this.addChunk(chunks,source, summedData)
+        console.log("POST ADDING CHUNK i=", i)
+        console.log("summedData =", summedData)
+    }
+
+    this.populateBuffersSync(selector)
+
 
     this.populateBuffersSync(selector)
 
