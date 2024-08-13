@@ -211,7 +211,7 @@ class Tile {
     if (summedData === undefined) {
       summedData = data
     } else {
-      summedData = summedData + data
+      summedData.data = summedData.data.map((val, i) => val + data.data[i])
     }
 
     return summedData;
