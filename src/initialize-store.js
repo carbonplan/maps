@@ -2,7 +2,7 @@ import zarr from 'zarr-js'
 
 import { getPyramidMetadata } from './utils'
 
-const initializeStore = async (sources, sourceDif, version, variable, coordinateKeys) => {
+const initializeStore = async (source, sourceDif, version, variable, coordinateKeys) => {
   let metadata, metadataDif
   let loaders, loadersDif
   let dimensions, dimensionsDif
@@ -12,7 +12,6 @@ const initializeStore = async (sources, sourceDif, version, variable, coordinate
   let dtype, dtypeDif
   let levels, maxZoom, tileSize, crs
   let levelsDif
-  const source = sources[0]
 
   const coordinates = {}
   const coordinatesDif = {}
