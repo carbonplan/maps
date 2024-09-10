@@ -17,7 +17,7 @@ function sumAndAverageData(array1, array2, n) {
     for (let i = 0; i < array1.length; i++) {
         const value1 = array1[i];
         const value2 = array2[i];
-        if (value1 === fillValue1 || value1 === fillValue2) {
+       if (value1 === fillValue1 || value1 === fillValue2) {
             continue
         } else if (value2 === fillValue1 ||
                    value2 === fillValue2 ||
@@ -40,9 +40,10 @@ function calcDifference(array1, array2) {
         const value1 = array1[i];
         const value2 = array2[i];
         if (value1 === fillValue1 || value1 === fillValue2) {
-            continue;
+          // value already a fill value
+          continue;
         } else if (value2 === fillValue1 || value2 === fillValue2) {
-            diffArray[i] = value1; // value2 will default everything to land background color
+          diffArray[i] = fillValue1 // Green
         }
         else {
             diffArray[i]  = array1[i] - array2[i];
@@ -112,7 +113,7 @@ class Tile {
 
   async addChunk(orig_chunks, source, summedData) {
     // console.log("CHUNKS=", this.chunkedData) // [ 16, 128, 128 ]
-    console.log("ORIG_CHUNKS=", orig_chunks)
+    // console.log("ORIG_CHUNKS=", orig_chunks)
     const version='v2'
     let loaders
     let metadata
@@ -128,8 +129,8 @@ class Tile {
             // group = g;
             resolve(); // Resolve the promise if successful
         }}));
-      console.log("Loaders:", loaders);
-      console.log("Metadata:", metadata);
+      // console.log("Loaders:", loaders);
+      // console.log("Metadata:", metadata);
       // console.log("Group:", group)
     } catch (error) {
       console.error("Error opening zarr group:", error);
@@ -148,10 +149,10 @@ class Tile {
       coordinateKeys.map(
         (key) =>
         new Promise((resolve) => {
-          console.log("KEY=", `${levels[0]}/${key}`)
+          // console.log("KEY=", `${levels[0]}/${key}`)
           loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
             // console.log("HERE")
-            console.log("chunk=", chunk)
+            // console.log("chunk=", chunk)
             lcoordinates[key] = Array.from(chunk.data)
             resolve()
            })
@@ -159,8 +160,8 @@ class Tile {
       )
     )
 
-    console.log("CO KEYS", lcoordinates)
-    console.log("KEY tilecoords=", this.tileCoordinates)
+    // console.log("CO KEYS", lcoordinates)
+    // console.log("KEY tilecoords=", this.tileCoordinates)
     let z = this.tileCoordinates[2]
     let fooData = {}
     let _loading = {}
@@ -204,10 +205,10 @@ class Tile {
 
     let chunk = chunks[0]
     const chunkKey = chunk.join('.')
-    console.log("FOOCHUNKKEY =", chunkKey)
+    // console.log("FOOCHUNKKEY =", chunkKey)
     let data = chunkedData[chunkKey]
-    console.log("foo data", data)
-    console.log("PRE SUM DATA", summedData)
+    // console.log("foo data", data)
+    // console.log("PRE SUM DATA", summedData)
     if (summedData === undefined) {
       summedData = data
     } else {
@@ -280,8 +281,8 @@ class Tile {
     for (let i=1; i < sources.length; i++) {
         const source = sources[i]
         summedData = await this.addChunk(chunks,source, summedData)
-        console.log("POST ADDING CHUNK i=", i)
-        console.log("summedData =", summedData)
+        // console.log("POST ADDING CHUNK i=", i)
+        // console.log("summedData =", summedData)
     }
 
     this.populateBuffersSync(selector, summedData, nDatasets)
@@ -340,12 +341,12 @@ class Tile {
       const chunkKeyDif = chunkDif.join('.')
       const dataDif = this.chunkedDataDif[chunkKeyDif]
 
-        console.log("POPBUFFER SUMMEDDATA", summedData)
-        console.log("nDatasets", nDatasets)
-        console.log("filterValue=",filterValue)
+        // console.log("POPBUFFER SUMMEDDATA", summedData)
+        // console.log("nDatasets", nDatasets)
+        // console.log("filterValue=",filterValue)
 
        if (filterValue["Dif."] && summedData !== undefined) {
-                  console.log("----- THIS IS CXALLED AND IT HSOUDL MBE")
+                  // console.log("----- THIS IS CXALLED AND IT HSOUDL MBE")
                   data.data = sumAndAverageData(data.data, summedData.data, nDatasets)
         }
       else if (filterValue["Dif."]) {
