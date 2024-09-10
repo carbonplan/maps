@@ -7,21 +7,22 @@ import {
 } from './utils'
 import zarr from 'zarr-js'
 
-function sumAndAverageData(array1, array2, n) {
-    console.log("AR1=", array1)
-    console.log("AR2=", array2)
 
-    const fillValue1 = 3.4028234663852886e38; // max color
-    const fillValue2 = 9.969209968386869e36; // black
+const fillValue1 = 3.4028234663852886e38; // max color
+const fillValue2 = 9.969209968386869e36; // black
+
+function sumAndAverageData(array1, array2, n) {
     let summedArray = array1.slice(); // create shallow copy
     for (let i = 0; i < array1.length; i++) {
         const value1 = array1[i];
         const value2 = array2[i];
-       if (value1 === fillValue1 || value1 === fillValue2) {
+        if (value1 === fillValue1 || value1 === fillValue2) {
+            summedArray[i] = fillValue1
             continue
         } else if (value2 === fillValue1 ||
                    value2 === fillValue2 ||
                    value2 === Infinity) {
+            summedArray[i] = fillValue1
             continue
         } else {
             summedArray[i] = (array1[i] + array2[i]) / n
@@ -30,20 +31,17 @@ function sumAndAverageData(array1, array2, n) {
     return summedArray
 }
 
-
 function calcDifference(array1, array2) {
-    const fillValue1 = 3.4028234663852886e38; // max color
-    const fillValue2 = 9.969209968386869e36; // black
     let diffArray = array1.slice(); // create shallow copy
-
     for (let i = 0; i < array1.length; i++) {
         const value1 = array1[i];
         const value2 = array2[i];
         if (value1 === fillValue1 || value1 === fillValue2) {
           // value already a fill value
+          diffArray[i] = fillValue2 // Green
           continue;
         } else if (value2 === fillValue1 || value2 === fillValue2) {
-          diffArray[i] = fillValue1 // Green
+          diffArray[i] = fillValue2 // Green
         }
         else {
             diffArray[i]  = array1[i] - array2[i];
