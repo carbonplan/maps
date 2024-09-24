@@ -141,7 +141,7 @@ class Tile {
     const lcoordinates = {}
 
     let coordinateKeys = ["band"]
-    console.log("LEVELS=", levels)
+    // console.log("LEVELS=", levels)
 
     await Promise.all(
       coordinateKeys.map(
