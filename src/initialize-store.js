@@ -17,6 +17,7 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
   const coordinatesDif = {}
   switch (version) {
     case 'v2':
+      console.log("getting metadata sourceDif", sourceDif);
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(sourceDif, (err, l, m) => {
           loadersDif = l
@@ -48,6 +49,7 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
         )
       )
 
+      console.log("getting metadata source", source);
       // --- original zarr fetch ---
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(source, (err, l, m) => {
