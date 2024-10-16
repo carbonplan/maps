@@ -28,7 +28,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.errorMessage) {
       // You can render any custom fallback UI
       return (
-        <div style={{ textAlign: 'center', padding: 24 }}>
+        <div style={{ textAlign: 'center', padding: 24, marginTop: '56px' }}>
           {this.props.showErrorTrace ? this.state.errorMessage : DEFAULT_ERROR}
         </div>
       )
