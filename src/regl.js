@@ -17,14 +17,43 @@ export const useRegl = () => {
 const Regl = ({ style, extensions, children }) => {
   const regl = useRef()
   const [ready, setReady] = useState(false)
+  const [error, setError] = useState(null)
 
   const ref = useCallback((node) => {
     if (node !== null) {
-      regl.current = _regl({
-        container: node,
-        extensions: ['OES_texture_float', 'OES_element_index_uint'],
-      })
-      setReady(true)
+      try {
+        const canvas = document.createElement('canvas')
+        const context =
+          canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+        if (!context) {
+          throw new Error('WebGL is not supported in this browser.')
+        }
+
+        const requiredExtensions = [
+          'OES_texture_float',
+          'OES_element_index_uint',
+        ]
+        const missingExtensions = requiredExtensions.filter(
+          (ext) => !context.getExtension(ext)
+        )
+
+        if (missingExtensions.length > 0) {
+          throw new Error(
+            `Required WebGL extensions not supported: ${missingExtensions.join(
+              ', '
+            )}`
+          )
+        }
+        canvas.remove()
+        regl.current = _regl({
+          container: node,
+          extensions: requiredExtensions,
+        })
+        setReady(true)
+      } catch (error) {
+        console.error('Error initializing WebGL:', error)
+        setError('Sorry, your device is not supported.')
+      }
     }
   }, [])
 
@@ -34,6 +63,10 @@ const Regl = ({ style, extensions, children }) => {
       setReady(false)
     }
   }, [])
+
+  if (error) {
+    return <div style={{ marginTop: '56px', fontSize: '20px' }}>{error}</div>
+  }
 
   return (
     <ReglContext.Provider
