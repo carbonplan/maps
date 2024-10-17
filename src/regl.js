@@ -28,17 +28,40 @@ const Regl = ({ style, extensions, children }) => {
           'OES_element_index_uint',
           ...(extensions || []),
         ]
-
         try {
-          reglRef.current = webgl2Compat.overrideContextType(() =>
-            _regl({
+          const canvas = document.createElement('canvas')
+          const context =
+            canvas.getContext('webgl') ||
+            canvas.getContext('experimental-webgl')
+          if (!context) {
+            throw new Error('WebGL is not supported in this browser.')
+          }
+          const missingExtensions = requiredExtensions.filter(
+            (ext) => !context.getExtension(ext)
+          )
+          canvas.remove()
+          if (missingExtensions.length > 0) {
+            // use webgl2 compat when missing extensions
+            console.log(
+              'using webgl2 compat due to missing extensions: ',
+              missingExtensions
+            )
+            reglRef.current = webgl2Compat.overrideContextType(() =>
+              _regl({
+                container: node,
+                extensions: requiredExtensions,
+              })
+            )
+          } else {
+            reglRef.current = _regl({
               container: node,
               extensions: requiredExtensions,
             })
-          )
+          }
           setReady(true)
         } catch (err) {
           console.error('Error initializing regl:', err)
+          throw err
         }
       }
     },
