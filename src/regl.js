@@ -18,30 +18,34 @@ export const useRegl = () => {
 
 const Regl = ({ style, extensions, children }) => {
   const reglRef = useRef(null)
-  const canvasRef = useRef(null)
   const [ready, setReady] = useState(false)
 
-  useEffect(() => {
-    if (canvasRef.current) {
-      const requiredExtensions = [
-        'OES_texture_float',
-        'OES_element_index_uint',
-        ...(extensions || []),
-      ]
+  const ref = useCallback(
+    (node) => {
+      if (node !== null) {
+        const requiredExtensions = [
+          'OES_texture_float',
+          'OES_element_index_uint',
+          ...(extensions || []),
+        ]
 
-      try {
-        reglRef.current = webgl2Compat.overrideContextType(() =>
-          _regl({
-            canvas: canvasRef.current,
-            extensions: requiredExtensions,
-          })
-        )
-        setReady(true)
-      } catch (err) {
-        console.error('Error initializing regl:', err)
+        try {
+          reglRef.current = webgl2Compat.overrideContextType(() =>
+            _regl({
+              container: node,
+              extensions: requiredExtensions,
+            })
+          )
+          setReady(true)
+        } catch (err) {
+          console.error('Error initializing regl:', err)
+        }
       }
-    }
+    },
+    [extensions]
+  )
 
+  useEffect(() => {
     return () => {
       if (reglRef.current) {
         reglRef.current.destroy()
@@ -49,7 +53,7 @@ const Regl = ({ style, extensions, children }) => {
       }
       setReady(false)
     }
-  }, [extensions])
+  }, [])
 
   return (
     <ReglContext.Provider
@@ -57,10 +61,7 @@ const Regl = ({ style, extensions, children }) => {
         regl: reglRef.current,
       }}
     >
-      <canvas
-        ref={canvasRef}
-        style={{ width: '100%', height: '100%', ...style }}
-      />
+      <div ref={ref} style={{ width: '100%', height: '100%', ...style }} />
       {ready && children}
     </ReglContext.Provider>
   )
