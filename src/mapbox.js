@@ -44,8 +44,8 @@ const Mapbox = ({
         pitchWithRotate: false,
         touchZoomRotate: true,
       })
-      if (center) map.current.setCenter(center)
       if (zoom) map.current.setZoom(zoom)
+      if (center) map.current.setCenter(center)
       map.current.touchZoomRotate.disableRotation()
       map.current.touchPitch.disable()
       map.current.on('styledata', () => {
