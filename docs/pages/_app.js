@@ -11,7 +11,6 @@ const App = ({ Component, pageProps }) => {
     <ThemeProvider theme={theme}>
       {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && (
         <Script
-          strategy='lazyOnload'
           data-domain='carbonplan.org'
           data-api='https://carbonplan.org/proxy/api/event'
           src='https://carbonplan.org/js/script.file-downloads.outbound-links.js'
