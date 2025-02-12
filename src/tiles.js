@@ -106,6 +106,7 @@ export const createTiles = (regl, opts) => {
 
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
+
     this.cameraInitialized = new Promise((resolve) => {
       let shouldResolve = true
       this._resolveCameraInitialized = () => {
@@ -115,6 +116,7 @@ export const createTiles = (regl, opts) => {
         }
       }
     })
+
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
       initializeStore(sources[0], sourceDif, version, variable, Object.keys(selector)).then(
