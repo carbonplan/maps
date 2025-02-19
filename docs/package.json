@@ -17,10 +17,10 @@
   "prettier": "@carbonplan/prettier",
   "dependencies": {
     "@carbonplan/colormaps": "^4.0.0",
-    "@carbonplan/components": "^12.0.0",
+    "@carbonplan/components": "^13.1.1",
     "@carbonplan/emoji": "^2.0.0",
     "@carbonplan/icons": "^2.0.0",
-    "@carbonplan/layouts": "^3.0.0",
+    "@carbonplan/layouts": "^5.1.0",
     "@carbonplan/maps": "^3.0.0",
     "@carbonplan/prism": "^2.0.0",
     "@carbonplan/theme": "^8.0.0",
