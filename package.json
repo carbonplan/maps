@@ -55,9 +55,9 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
     "@carbonplan/prettier": "^1.2.0",
-    "babel-jest": "^27.3.1",
-    "jest": "^27.3.1",
-    "microbundle": "^0.13.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "microbundle": "^0.15.1",
     "prettier": "^2.2.1",
     "rimraf": "3.0.2"
   }
