@@ -3,6 +3,7 @@ import Mapbox from './mapbox'
 import Regl from './regl'
 import { RegionProvider } from './region/context'
 import { LoadingProvider, LoadingUpdater } from './loading'
+import ErrorBoundary from './error-boundary'
 
 const Map = ({
   id,
@@ -24,6 +25,7 @@ const Map = ({
   setMetadataLoading,
   /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
+  showErrorTrace = false,
 }) => {
   return (
     <div
@@ -38,34 +40,36 @@ const Map = ({
         ...style,
       }}
     >
-      <Mapbox
-        zoom={zoom}
-        minZoom={minZoom}
-        maxZoom={maxZoom}
-        maxBounds={maxBounds}
-        center={center}
-        debug={debug}
-        glyphs={glyphs}
-        style={{ position: 'absolute' }}
-      >
-        <Regl
-          extensions={extensions}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            zIndex: -1,
-          }}
+      <ErrorBoundary showErrorTrace={showErrorTrace}>
+        <Mapbox
+          zoom={zoom}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+          maxBounds={maxBounds}
+          center={center}
+          debug={debug}
+          glyphs={glyphs}
+          style={{ position: 'absolute' }}
         >
-          <LoadingProvider>
-            <LoadingUpdater
-              setLoading={setLoading}
-              setMetadataLoading={setMetadataLoading}
-              setChunkLoading={setChunkLoading}
-            />
-            <RegionProvider>{children}</RegionProvider>
-          </LoadingProvider>
-        </Regl>
-      </Mapbox>
+          <Regl
+            extensions={extensions}
+            style={{
+              position: 'absolute',
+              pointerEvents: 'none',
+              zIndex: -1,
+            }}
+          >
+            <LoadingProvider>
+              <LoadingUpdater
+                setLoading={setLoading}
+                setMetadataLoading={setMetadataLoading}
+                setChunkLoading={setChunkLoading}
+              />
+              <RegionProvider>{children}</RegionProvider>
+            </LoadingProvider>
+          </Regl>
+        </Mapbox>
+      </ErrorBoundary>
     </div>
   )
 }
