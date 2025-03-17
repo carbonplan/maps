@@ -13,7 +13,7 @@ const Index = () => {
   const [display, setDisplay] = useState(true)
   const [debug, setDebug] = useState(false)
   const [opacity, setOpacity] = useState(1)
-  const [clim, setClim] = useState([-20, 30])
+  const [clim, setClim] = useState([2000, 3000])
   const [month, setMonth] = useState(1)
   const [band, setBand] = useState('tavg')
   const [colormapName, setColormapName] = useState('warm')
@@ -31,7 +31,6 @@ const Index = () => {
     setBand,
     setColormapName,
   }
-
   return (
     <>
       <Meta
@@ -43,11 +42,11 @@ const Index = () => {
       />
       <Box sx={{ position: 'absolute', top: 0, bottom: 0, width: '100%' }}>
         <Map zoom={2} center={[0, 0]} debug={debug}>
-          <Fill
+          {/* <Fill
             color={theme.rawColors.background}
             source={bucket + 'basemaps/ocean'}
             variable={'ocean'}
-          />
+          /> */}
           <Line
             color={theme.rawColors.primary}
             source={bucket + 'basemaps/land'}
@@ -68,9 +67,13 @@ const Index = () => {
             display={display}
             opacity={opacity}
             mode={'texture'}
-            source={bucket + 'v2/demo/4d/tavg-prec-month'}
-            variable={'climate'}
-            selector={{ month, band }}
+            source={
+              'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyramid_test_consolidated/GPM_3IMERGDF.07'
+            }
+            variable={'precipitation'}
+            selector={{
+              time: 11109,
+            }}
             regionOptions={{ setData: setRegionData }}
           />
           <RegionControls
