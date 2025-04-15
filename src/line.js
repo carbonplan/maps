@@ -12,6 +12,7 @@ const Line = ({
   opacity = 1,
   blur = 0.4,
   width = 0.5,
+  ndp = true,
 }) => {
   const { map } = useMapbox()
   const removed = useRef(false)
@@ -25,14 +26,24 @@ const Line = ({
     })
   }, [])
 
+  var sourceType;
   useEffect(() => {
     sourceIdRef.current = id || uuidv4()
     const { current: sourceId } = sourceIdRef
     if (!map.getSource(sourceId)) {
-      map.addSource(sourceId, {
-        type: 'vector',
-        tiles: [`${source}/{z}/{x}/{y}.pbf`],
-      })
+      if (ndp) {
+        sourceType = 'vector';
+        map.addSource(sourceId, {
+          type: 'vector',
+            tiles: [`${source}/{z}/{x}/{y}.pbf`],
+        });
+      } else {
+        sourceType = 'geojson';
+        map.addSource(sourceId, {
+            type: 'geojson',
+            data: source,
+        });
+      }
       if (maxZoom) {
         map.getSource(sourceId).maxzoom = maxZoom
       }
@@ -44,19 +55,24 @@ const Line = ({
     layerIdRef.current = layerId
     const { current: sourceId } = sourceIdRef
     if (!map.getLayer(layerId)) {
-      map.addLayer({
+      const layerConfig = {
         id: layerId,
         type: 'line',
         source: sourceId,
-        'source-layer': variable,
         layout: { visibility: 'visible' },
         paint: {
           'line-blur': blur,
           'line-color': color,
           'line-opacity': opacity,
           'line-width': width,
-        },
-      })
+        }
+      };
+
+      // Only include 'source-layer' if using a vector tile source
+      if (sourceType === 'vector') {
+        layerConfig['source-layer'] = variable;
+      }
+      map.addLayer(layerConfig);
     }
 
     return () => {
