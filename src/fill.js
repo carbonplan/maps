@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { useMapbox } from './mapbox'
+import { useMap } from './map-provider'
 import { updatePaintProperty } from './utils'
 import { v4 as uuidv4 } from 'uuid'
 
 const Fill = ({ source, variable, color, id, maxZoom = 5, opacity = 1 }) => {
-  const { map } = useMapbox()
+  const { map } = useMap()
   const removed = useRef(false)
 
   const sourceIdRef = useRef()

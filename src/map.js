@@ -1,8 +1,16 @@
 import React from 'react'
 import Mapbox from './mapbox'
-import Regl from './regl'
-import { RegionProvider } from './region/context'
-import { LoadingProvider, LoadingUpdater } from './loading'
+import { MapProvider } from './map-provider'
+import { useMapbox } from './mapbox'
+
+const MapboxToMapProvider = ({ extensions, children }) => {
+  const { map } = useMapbox()
+  return (
+    <MapProvider map={map} extensions={extensions}>
+      {children}
+    </MapProvider>
+  )
+}
 
 const Map = ({
   id,
@@ -18,12 +26,6 @@ const Map = ({
   extensions,
   glyphs,
   children,
-  /** Tracks *any* pending requests made by containing `Raster` layers */
-  setLoading,
-  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
-  setMetadataLoading,
-  /** Tracks any requests of new chunks by containing `Raster` layers */
-  setChunkLoading,
 }) => {
   return (
     <div
@@ -48,23 +50,9 @@ const Map = ({
         glyphs={glyphs}
         style={{ position: 'absolute' }}
       >
-        <Regl
-          extensions={extensions}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            zIndex: -1,
-          }}
-        >
-          <LoadingProvider>
-            <LoadingUpdater
-              setLoading={setLoading}
-              setMetadataLoading={setMetadataLoading}
-              setChunkLoading={setChunkLoading}
-            />
-            <RegionProvider>{children}</RegionProvider>
-          </LoadingProvider>
-        </Regl>
+        <MapboxToMapProvider extensions={extensions}>
+          {children}
+        </MapboxToMapProvider>
       </Mapbox>
     </div>
   )

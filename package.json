@@ -1,6 +1,6 @@
 {
   "name": "@carbonplan/maps",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "interactive data-driven web maps",
   "main": "dst/index.js",
   "module": "dst/index.esm.js",
@@ -19,6 +19,7 @@
     "carbonplan",
     "webgl",
     "mapbox",
+    "maplibre",
     "regl",
     "mapping"
   ],

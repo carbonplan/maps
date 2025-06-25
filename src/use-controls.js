@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { flushSync } from 'react-dom'
-import { useMapbox } from './mapbox'
+import { useMap } from './map-provider'
 
 export const useControls = () => {
-  const { map } = useMapbox()
+  const { map } = useMap()
   const [zoom, setZoom] = useState(map.getZoom())
   const [center, setCenter] = useState(map.getCenter())
 

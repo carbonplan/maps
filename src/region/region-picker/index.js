@@ -5,7 +5,7 @@ import { distance } from '@turf/turf'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useRegionContext } from '../context'
-import { useMapbox } from '../../mapbox'
+import { useMap } from '../../map-provider'
 import mapboxgl from 'mapbox-gl'
 
 function getInitialRadius(map, units, minRadius, maxRadius) {
@@ -59,7 +59,7 @@ function RegionPicker({
   minRadius,
   maxRadius,
 }) {
-  const { map } = useMapbox()
+  const { map } = useMap()
   const id = useRef(uuidv4())
 
   const initialCenter = useRef(getInitialCenter(map, initialCenterProp))

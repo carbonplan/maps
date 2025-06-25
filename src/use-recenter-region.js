@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
 import { useRegion } from './region/context'
-import { useMapbox } from './mapbox'
+import { useMap } from './map-provider'
 
 export const useRecenterRegion = () => {
   const [value, setValue] = useState({ recenterRegion: () => {} })
-  const { map } = useMapbox()
+  const { map } = useMap()
   const { region } = useRegion()
 
   const center = region?.properties?.center
