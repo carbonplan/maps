@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { useRegionContext } from '../context'
 import { useMap } from '../../map-provider'
-import mapboxgl from 'mapbox-gl'
 
 function getInitialRadius(map, units, minRadius, maxRadius) {
   const bounds = map.getBounds().toArray()
@@ -35,14 +34,15 @@ function getInitialCenter(map, center) {
     center.length === 2 &&
     isValidCoordinate(center[0], center[1])
   ) {
-    return new mapboxgl.LngLat(center[0], center[1])
+    return { lng: center[0], lat: center[1] }
   } else {
     if (center) {
       console.warn(
         `Invalid initialCenter provided: ${center}. Should be [lng, lat]. Using map center instead.`
       )
     }
-    return map.getCenter()
+    const mapCenter = map.getCenter()
+    return { lng: mapCenter.lng, lat: mapCenter.lat }
   }
 }
 

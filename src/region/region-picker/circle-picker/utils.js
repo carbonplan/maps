@@ -1,9 +1,23 @@
 import { geoPath, geoTransform } from 'd3-geo'
-import mapboxgl from 'mapbox-gl'
+
+const normalizeLngLat = (coordinates) => {
+  if (
+    coordinates &&
+    typeof coordinates.lng === 'number' &&
+    typeof coordinates.lat === 'number'
+  ) {
+    return coordinates
+  }
+  if (Array.isArray(coordinates) && coordinates.length >= 2) {
+    return { lng: coordinates[0], lat: coordinates[1] }
+  }
+  throw new Error(
+    'Invalid coordinate format. Expected [lng, lat] or {lng, lat}'
+  )
+}
 
 export const project = (map, coordinates, options = {}) => {
-  // Convert any LngLatLike to LngLat
-  const ll = mapboxgl.LngLat.convert(coordinates)
+  const ll = normalizeLngLat(coordinates)
 
   let result = map.project(ll)
 
