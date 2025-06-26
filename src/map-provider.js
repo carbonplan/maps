@@ -1,11 +1,22 @@
 import React, { createContext, useContext } from 'react'
-import { LoadingProvider } from './loading'
+import { LoadingProvider, LoadingUpdater } from './loading'
 import { RegionProvider } from './region/context'
 import Regl from './regl'
 
 const MapContext = createContext(null)
 
-export const MapProvider = ({ map, extensions, children, style }) => {
+export const MapProvider = ({
+  map,
+  extensions,
+  children,
+  style = {},
+  /** Tracks *any* pending requests made by containing `Raster` layers */
+  setLoading,
+  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
+  setMetadataLoading,
+  /** Tracks any requests of new chunks by containing `Raster` layers */
+  setChunkLoading,
+}) => {
   if (!map) {
     throw new Error(
       '@carbonplan/maps: A map instance must be provided to MapProvider'
@@ -14,25 +25,24 @@ export const MapProvider = ({ map, extensions, children, style }) => {
 
   return (
     <MapContext.Provider value={{ map }}>
-      <LoadingProvider>
-        <RegionProvider>
-          <Regl
-            extensions={extensions}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              pointerEvents: 'none',
-              zIndex: -1,
-              ...style,
-            }}
-          >
-            {children}
-          </Regl>
-        </RegionProvider>
-      </LoadingProvider>
+      <Regl
+        extensions={extensions}
+        style={{
+          position: 'absolute',
+          pointerEvents: 'none',
+          zIndex: -1,
+          ...style,
+        }}
+      >
+        <LoadingProvider>
+          <LoadingUpdater
+            setLoading={setLoading}
+            setMetadataLoading={setMetadataLoading}
+            setChunkLoading={setChunkLoading}
+          />
+          <RegionProvider>{children}</RegionProvider>
+        </LoadingProvider>
+      </Regl>
     </MapContext.Provider>
   )
 }

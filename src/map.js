@@ -3,10 +3,22 @@ import Mapbox from './mapbox'
 import { MapProvider } from './map-provider'
 import { useMapbox } from './mapbox'
 
-const MapboxToMapProvider = ({ extensions, children }) => {
+const MapboxToMapProvider = ({
+  extensions,
+  children,
+  setLoading,
+  setMetadataLoading,
+  setChunkLoading,
+}) => {
   const { map } = useMapbox()
   return (
-    <MapProvider map={map} extensions={extensions}>
+    <MapProvider
+      map={map}
+      extensions={extensions}
+      setLoading={setLoading}
+      setMetadataLoading={setMetadataLoading}
+      setChunkLoading={setChunkLoading}
+    >
       {children}
     </MapProvider>
   )
@@ -26,6 +38,12 @@ const Map = ({
   extensions,
   glyphs,
   children,
+  /** Tracks *any* pending requests made by containing `Raster` layers */
+  setLoading,
+  /** Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers */
+  setMetadataLoading,
+  /** Tracks any requests of new chunks by containing `Raster` layers */
+  setChunkLoading,
 }) => {
   return (
     <div
@@ -50,7 +68,12 @@ const Map = ({
         glyphs={glyphs}
         style={{ position: 'absolute' }}
       >
-        <MapboxToMapProvider extensions={extensions}>
+        <MapboxToMapProvider
+          extensions={extensions}
+          setLoading={setLoading}
+          setMetadataLoading={setMetadataLoading}
+          setChunkLoading={setChunkLoading}
+        >
           {children}
         </MapboxToMapProvider>
       </Mapbox>
