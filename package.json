@@ -4,9 +4,24 @@
   "description": "interactive data-driven web maps",
   "main": "dst/index.js",
   "module": "dst/index.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dst/index.esm.js",
+      "require": "./dst/index.js"
+    },
+    "./core": {
+      "import": "./dst/core.esm.js",
+      "require": "./dst/core.js"
+    },
+    "./mapbox.css": "./mapbox.css"
+  },
   "scripts": {
-    "build": "rimraf dst && microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
-    "watch": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "build": "rimraf dst && npm run build:main && npm run build:core",
+    "build:main": "microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "build:core": "microbundle src/core.js -o dst/core.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch": "npm run watch:main & npm run watch:core",
+    "watch:main": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch:core": "microbundle watch src/core.js -o dst/core.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
     "test": "NODE_ENV=test jest --watch",
     "test:ci": "NODE_ENV=test jest --ci --reporters='default'",
     "format": "prettier --write 'src/**/*.js'"

@@ -1,6 +1,5 @@
-export { default as Map } from './map'
-export { default as Mapbox } from './mapbox'
-export { useMap as useMapbox } from './map-provider'
+// no mapbox dependencies
+export { MapProvider, useMap } from './map-provider'
 export { default as RegionPicker } from './region/region-picker'
 export { useRegion } from './region/context'
 export { useRecenterRegion } from './use-recenter-region'
