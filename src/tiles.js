@@ -36,6 +36,7 @@ export const createTiles = (regl, opts) => {
     display,
     variable,
     filterValue,
+    setDisplay,
     selector = {},
     uniforms: customUniforms = {},
     frag: customFrag,
@@ -50,23 +51,23 @@ export const createTiles = (regl, opts) => {
     version = 'v2',
     projection,
   }) {
-    this.tiles = {}
-    this.loaders = {}
-    this.loadersDif = {}
-    this.active = {}
-    this.display = display
-    this.clim = clim
-    this.opacity = opacity
-    this.selector = selector
-    this.variable = variable
-    this.fillValue = fillValue
-    this.order = order ?? [1, 1]
-    this.invalidate = invalidate
-    this.viewport = { viewportHeight: 0, viewportWidth: 0 }
-    this._loading = false
-    this.setLoading = setLoading
-    this.clearLoading = clearLoading
-    this.filterValue = filterValue
+    this.tiles = {};
+    this.loaders = {};
+    this.loadersDif = {};
+    this.active = {};
+    this.display = display;
+    this.clim = clim;
+    this.opacity = opacity;
+    this.selector = selector;
+    this.variable = variable;
+    this.fillValue = fillValue;
+    this.order = order ?? [1, 1];
+    this.invalidate = invalidate;
+    this.viewport = { viewportHeight: 0, viewportWidth: 0 };
+    this._loading = false;
+    this.setLoading = setLoading;
+    this.clearLoading = clearLoading;
+    this.filterValue = filterValue;
 
     this.colormap = regl.texture({
       data: colormap,
@@ -216,6 +217,7 @@ export const createTiles = (regl, opts) => {
                       initializeBuffer: initialize,
                       initializeBufferDif: initializeDif,
                       filterValue: this.filterValue,
+                      setDisplay: setDisplay,
                     })
                   })
               })
