@@ -65,6 +65,7 @@ class Tile {
     initializeBuffer,
     initializeBufferDif,
     filterValue,
+    setDisplay,
   }) {
     this.key = key
     this.tileCoordinates = keyToTile(key)
@@ -76,6 +77,8 @@ class Tile {
     this.coordinates = coordinates
     this.bands = bands
     this.filterValue = filterValue
+    this.setDisplay = setDisplay
+    this.difCalculated = false;
 
     this._bufferCache = null
     this._buffers = {}
@@ -220,6 +223,7 @@ class Tile {
 
 
   async loadChunks(chunks, chunksDif) {
+    this.difCalculated = false;
     const updated = await Promise.all(
       chunks.map(
         (chunk) =>
@@ -331,33 +335,39 @@ class Tile {
          }
        }
 
-      const chunk = chunks[0]
-      const chunkKey = chunk.join('.')
-      let data = this.chunkedData[chunkKey]
+      const chunk = chunks[0];
+      const chunkKey = chunk.join('.');
+      let data = this.chunkedData[chunkKey];
 
-      const chunkDif = chunksDif[0]
-      const chunkKeyDif = chunkDif.join('.')
-      const dataDif = this.chunkedDataDif[chunkKeyDif]
+      const chunkDif = chunksDif[0];
+      const chunkKeyDif = chunkDif.join('.');
+      const dataDif = this.chunkedDataDif[chunkKeyDif];
 
         // console.log("POPBUFFER SUMMEDDATA", summedData)
         // console.log("nDatasets", nDatasets)
         // console.log("filterValue=",filterValue)
 
        if (filterValue["Dif."] && summedData !== undefined) {
-                  // console.log("----- THIS IS CXALLED AND IT HSOUDL MBE")
-                  data.data = sumAndAverageData(data.data, summedData.data, nDatasets)
+           console.log("FILTER DIF I, SUMMEDDATA UNDERFINED");
+           data.data = sumAndAverageData(data.data, summedData.data, nDatasets)
         }
-      else if (filterValue["Dif."]) {
+      // else if (filterValue["Dif."]){
+      else if (filterValue["Dif."] && !this.difCalculated) {
           if (typeof dataDif === 'undefined') {
               // console.log("UNDEFINED");
           }
           else{
+
           data = this.chunkedData[chunkKey]
           data.data = calcDifference(this.chunkedData[chunkKey].data, this.chunkedDataDif[chunkKeyDif].data)
           // console.log("dataDif =", data.data);
+          console.log("FILTER DIF II ck", chunkKey, "ckDif", chunkKeyDif);
+          this.setDisplay(true);
+          this.difCalculated = true;
           }
       } else {
         data = this.chunkedData[chunkKey]
+        console.log("FILTER ELSE CHOICE");
       }
 
       for (let i = 0; i < data.data.length; i++) {
