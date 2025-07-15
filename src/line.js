@@ -13,6 +13,7 @@ const Line = ({
   blur = 0.4,
   width = 0.5,
   ndp = true,
+  dashArray = [1, 0], // [dashLength, gapLength, dashLength, gapLength, ...]
 }) => {
   const { map } = useMapbox()
   const removed = useRef(false)
@@ -65,6 +66,7 @@ const Line = ({
           'line-color': color,
           'line-opacity': opacity,
           'line-width': width,
+          'line-dasharray': dashArray,
         }
       };
 
