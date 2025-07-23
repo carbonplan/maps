@@ -16,6 +16,7 @@ const Raster = (props) => {
     regionOptions = {},
     selector = {},
     uniforms = {},
+    setMapVal,
   } = props
   const { center, zoom } = useControls()
   const [regionDataInvalidated, setRegionDataInvalidated] = useState(
@@ -33,6 +34,17 @@ const Raster = (props) => {
   camera.current = { center: center, zoom: zoom }
 
   let filterValue = props.filterValue
+
+  // Set Map Val
+  useEffect(() => {
+  if (!map) return;
+  const handleMouseMove = (e) => {
+    const { lng, lat } = e.lngLat;
+    setMapVal(-1);
+    };
+  map.on('mousemove', handleMouseMove);
+  return () => map.off('mousemove', handleMouseMove);
+}, [map]);
 
   const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
