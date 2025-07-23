@@ -53,9 +53,43 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
       // --- original zarr fetch ---
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(source, (err, l, m) => {
-          loaders = l
-          metadata = m
-          resolve()
+        if (err) {
+          document.body.innerHTML = `
+          <div style="font-family: sans-serif; font-size: 24px; text-align: center; margin-top: 20vh;">
+            Dataset not found: <br />
+            ${source} <br /><br />
+            <style>
+              .button-link {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 18px;
+                color: white;
+                background-color: #007BFF;
+                text-decoration: none;
+                border-radius: 5px;
+                margin-top: 10px;
+                transition: background-color 0.3s ease;
+              }
+
+              .button-link:hover {
+                background-color: #0056b3; /* darker blue on hover */
+              }
+            </style>
+
+            <a href="https://hydro.rap.ucar.edu/hydro-climate-eval" class="button-link">
+              Return to hydro-climate-eval
+            </a>
+            <br />
+          </div>
+          `;
+          throw new Error(`Could not load Zarr source: ${source}`);
+            // console.error("Zarr openGroup error:", err)
+            // reject(new Error(`Could not load source: ${source}`))  // ❗ proper rejection
+          } else {
+            loaders = l
+            metadata = m
+            resolve()
+          }
         })
       )
       ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
