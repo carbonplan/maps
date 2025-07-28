@@ -591,7 +591,49 @@ export const createTiles = (regl, opts) => {
       }
 
       return out
-    }
+    };
+
+    this.queryPoint = async (lat, lon, selector) => {
+      await Promise.all([this.initialized, this.cameraInitialized]);
+
+      const tileKey = pointToTile(lon, lat, this.level, this.projection, this.order).join(',');
+      const tile = this.tiles[tileKey];
+
+      // Ensure tile data is loaded
+      const chunks = getChunks(
+        selector,
+        this.dimensions,
+        this.coordinates,
+        this.shape,
+        this.chunks,
+        ...pointToTile(lon, lat, this.level, this.projection, this.order)
+      );
+      const chunksDif = getChunks(
+        selector,
+        this.dimensions,
+        this.coordinates,
+        this.shape,
+        this.chunksDif,
+        ...pointToTile(lon, lat, this.level, this.projection, this.order)
+      );
+
+      await tile.chunksLoaded(chunks, chunksDif);
+      if (!tile.chunksLoaded(chunks, chunksDif)) {
+        const loadingID = this.setLoading('chunk');
+        await tile.loadChunks(chunks);
+        this.clearLoading(loadingID);
+      }
+
+      // Convert to local pixel indices
+      const size = this.size;
+      const [x, y, z] = tileKey.split(',').map(Number);
+      const z2 = Math.pow(2, z);
+      const localI = Math.floor(((lon + 180) / 360) * z2 * size) % size;
+      const localJ = Math.floor(((90 - lat) / 180) * z2 * size) % size;
+
+      const values = tile.getPointValues({ selector, point: [localI, localJ] });
+      return values;
+    };
 
     this.updateSelector = ({ selector }) => {
       this.selector = selector

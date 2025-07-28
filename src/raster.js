@@ -35,17 +35,6 @@ const Raster = (props) => {
 
   let filterValue = props.filterValue
 
-  // Set Map Val
-  useEffect(() => {
-  if (!map) return;
-  const handleMouseMove = (e) => {
-    const { lng, lat } = e.lngLat;
-    setMapVal(-1);
-    };
-  map.on('mousemove', handleMouseMove);
-  return () => map.off('mousemove', handleMouseMove);
-}, [map]);
-
   const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
@@ -59,6 +48,23 @@ const Raster = (props) => {
       regionOptions.setData({ value: data })
     }
   }
+
+  // Set Map Val
+  useEffect(() => {
+    if (!map) return;
+    const NO_DATA = 3.4028234663852886e+38;
+    const handleMouseMove = async (e) => {
+      const { lng, lat } = e.lngLat;
+      const data = await tiles.current.queryPoint(lat, lng, selector);
+      let value = data[0].value;
+      if (value === NO_DATA) {
+        value = null;
+      }
+      setMapVal(value);
+      };
+    map.on('mousemove', handleMouseMove);
+    return () => map.off('mousemove', handleMouseMove);
+  }, [map, selector]);
 
   useEffect(() => {
     tiles.current = createTiles(regl, {
