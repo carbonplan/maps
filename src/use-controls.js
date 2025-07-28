@@ -2,24 +2,33 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { useMapbox } from './mapbox'
 
-export const useControls = () => {
+export const useControls = (zoomArgs) => {
   const { map } = useMapbox()
-  const [zoom, setZoom] = useState(map.getZoom())
-  const [center, setCenter] = useState(map.getCenter())
+  const { center, setCenter, zoom, setZoom, onZoomChange } = zoomArgs
+  // const [zoom, setZoom] = useState(map.getZoom())
+  // const [center, setCenter] = useState(map.getCenter())
+
 
   const updateControlsSync = useCallback(() => {
     flushSync(() => {
-      setZoom(map.getZoom())
-      setCenter(map.getCenter())
+      const newZoom = map.getZoom()
+      const newCenter = map.getCenter()
+      setZoom(newZoom)
+      setCenter(newCenter)
+      console.log("onzzoomchange =", onZoomChange)
+      if (onZoomChange) {
+        // propagate changes to parent for syncing maps
+        onZoomChange({ lat: newCenter.lat, lng: newCenter.lng }, newZoom)
+      }
     })
-  }, [])
+  }, [map, onZoomChange])
 
   useEffect(() => {
-    map.on('move', updateControlsSync)
+    map.on('moveend', updateControlsSync)
     return () => {
-      map.off('move', updateControlsSync)
+      map.off('moveend', updateControlsSync)
     }
-  }, [map])
+  }, [map, updateControlsSync])
 
-  return { center: center, zoom: zoom }
+  return { center, zoom }
 }

@@ -17,8 +17,10 @@ const Raster = (props) => {
     selector = {},
     uniforms = {},
     setMapVal,
+    zoomArgs,
   } = props
-  const { center, zoom } = useControls()
+  const { center, zoom } = useControls(zoomArgs)
+
   const [regionDataInvalidated, setRegionDataInvalidated] = useState(
     new Date().getTime()
   )
