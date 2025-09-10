@@ -266,8 +266,7 @@ export const createTiles = (regl, opts) => {
       return activeKeys.reduce((accum, key) => {
         if (!getOverlappingAncestor(key, activeKeys)) {
           const [, , level] = keyToTile(key)
-          this._ensureTile(key, level)
-          const tile = this.tiles[key]
+          const tile = this._initializeTile(key, level)
           const offsets = adjustedActive[key]
 
           offsets.forEach((offset) => {
@@ -299,7 +298,7 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
-    this._ensureTile = (key, level) => {
+    this._initializeTile = (key, level) => {
       if (!this.tiles[key]) {
         const loader = this.loaders[level]
         if (!loader) return
@@ -314,6 +313,7 @@ export const createTiles = (regl, opts) => {
           initializeBuffer: initialize,
         })
       }
+      return this.tiles[key]
     }
 
     this.updateCamera = ({ center, zoom }) => {
@@ -358,8 +358,7 @@ export const createTiles = (regl, opts) => {
             new Promise((resolve) => {
               if (this.loaders[level]) {
                 const tileIndex = keyToTile(key)
-                this._ensureTile(key, level)
-                const tile = this.tiles[key]
+                const tile = this._initializeTile(key, level)
 
                 const chunks = getChunks(
                   this.selector,
@@ -429,7 +428,7 @@ export const createTiles = (regl, opts) => {
       await Promise.all(
         tiles.map(async (key) => {
           const tileIndex = keyToTile(key)
-          this._ensureTile(key, tileIndex[2])
+          const tile = this._initializeTile(key, tileIndex[2])
           const chunks = getChunks(
             selector,
             this.dimensions,
@@ -440,9 +439,9 @@ export const createTiles = (regl, opts) => {
             tileIndex[1]
           )
 
-          if (this.tiles[key] && !this.tiles[key].hasLoadedChunks(chunks)) {
+          if (!tile.hasLoadedChunks(chunks)) {
             const loadingID = this.setLoading('chunk')
-            await this.tiles[key].loadChunks(chunks)
+            await tile.loadChunks(chunks)
             this.clearLoading(loadingID)
           }
         })
