@@ -5,6 +5,83 @@ import Regl from './regl'
 
 const MapContext = createContext(null)
 
+const validateMapInstance = (map) => {
+  if (!map) {
+    throw new Error(
+      '@carbonplan/maps: A map instance must be provided to MapProvider'
+    )
+  }
+  if (map.getProjection) {
+    const projection = map.getProjection()
+    // projection is undefined by default in maplibre-gl
+    if (projection) {
+      if (projection.name !== 'mercator' || projection.type !== 'mercator') {
+        throw new Error(
+          '@carbonplan/maps: Only the web-mercator projection is supported at this time'
+        )
+      }
+    }
+  }
+
+  const requiredMethods = [
+    'on',
+    'off',
+    'once',
+    'remove',
+    'loaded',
+    'getZoom',
+    'setZoom',
+    'getCenter',
+    'setCenter',
+    'getBounds',
+    'project',
+    'unproject',
+    'easeTo',
+    'getSource',
+    'addSource',
+    'getLayer',
+    'addLayer',
+    'removeLayer',
+    'setPaintProperty',
+    'triggerRepaint',
+    'getContainer',
+    'getCanvas',
+    'zoomIn',
+    'zoomOut',
+  ]
+
+  const missingMethods = requiredMethods.filter(
+    (method) => typeof map[method] !== 'function'
+  )
+
+  const touchMethods = [
+    { name: 'touchPitch', method: 'disable' },
+    { name: 'dragPan', method: 'disable' },
+    { name: 'dragRotate', method: 'disable' },
+    { name: 'touchZoomRotate', method: 'disableRotation' },
+  ]
+
+  touchMethods.forEach(({ name, method }) => {
+    if (map[name] && typeof map[name][method] !== 'function') {
+      missingMethods.push(`${name}.${method}`)
+    }
+  })
+
+  if (missingMethods.length > 0) {
+    throw new Error(
+      `@carbonplan/maps: Map instance is missing required methods: ${missingMethods.join(
+        ', '
+      )}`
+    )
+  }
+}
+
+const disableUnsupportedControls = (map) => {
+  map.touchZoomRotate.disableRotation()
+  map.dragRotate.disable()
+  map.touchPitch.disable()
+}
+
 export const MapProvider = ({
   map,
   extensions,
@@ -17,16 +94,8 @@ export const MapProvider = ({
   /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
 }) => {
-  if (!map) {
-    throw new Error(
-      '@carbonplan/maps: A map instance must be provided to MapProvider'
-    )
-  }
-  if (map.getProjection && map.getProjection()?.name !== 'mercator') {
-    throw new Error(
-      '@carbonplan/maps: Only the web-mercator projection is supported at this time'
-    )
-  }
+  validateMapInstance(map)
+  disableUnsupportedControls(map)
 
   return (
     <MapContext.Provider value={{ map }}>
