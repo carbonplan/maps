@@ -1,28 +1,5 @@
 import React from 'react'
 import Mapbox from './mapbox'
-import { MapProvider } from './map-provider'
-import { useMapbox } from './mapbox'
-
-const MapboxToMapProvider = ({
-  extensions,
-  children,
-  setLoading,
-  setMetadataLoading,
-  setChunkLoading,
-}) => {
-  const { map } = useMapbox()
-  return (
-    <MapProvider
-      map={map}
-      extensions={extensions}
-      setLoading={setLoading}
-      setMetadataLoading={setMetadataLoading}
-      setChunkLoading={setChunkLoading}
-    >
-      {children}
-    </MapProvider>
-  )
-}
 
 const Map = ({
   id,
@@ -66,16 +43,13 @@ const Map = ({
         center={center}
         debug={debug}
         glyphs={glyphs}
+        extensions={extensions}
+        setLoading={setLoading}
+        setMetadataLoading={setMetadataLoading}
+        setChunkLoading={setChunkLoading}
         style={{ position: 'absolute' }}
       >
-        <MapboxToMapProvider
-          extensions={extensions}
-          setLoading={setLoading}
-          setMetadataLoading={setMetadataLoading}
-          setChunkLoading={setChunkLoading}
-        >
-          {children}
-        </MapboxToMapProvider>
+        {children}
       </Mapbox>
     </div>
   )
