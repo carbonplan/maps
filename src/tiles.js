@@ -298,10 +298,29 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
+    this._removeOldTiles = () => {
+      const maxCachedTiles = 500
+      const tileKeys = Object.keys(this.tiles)
+      if (tileKeys.length <= maxCachedTiles) {
+        return
+      }
+      const sortedTiles = tileKeys
+        .map((key) => ({ key, tile: this.tiles[key] }))
+        .filter(({ key }) => !this.active[key] && !this.tiles[key]?.isLoading())
+        .sort((a, b) => (a.tile.lastAccess || 0) - (b.tile.lastAccess || 0))
+      const tilesToRemove = tileKeys.length - maxCachedTiles
+      for (let i = 0; i < Math.min(tilesToRemove, sortedTiles.length); i++) {
+        const key = sortedTiles[i].key
+        this.tiles[key].cleanup()
+        delete this.tiles[key]
+      }
+    }
+
     this._initializeTile = (key, level) => {
       if (!this.tiles[key]) {
         const loader = this.loaders[level]
         if (!loader) return
+        this._removeOldTiles()
         this.tiles[key] = new Tile({
           key,
           loader,
@@ -313,6 +332,8 @@ export const createTiles = (regl, opts) => {
           initializeBuffer: initialize,
         })
       }
+
+      this.tiles[key].lastAccess = Date.now()
       return this.tiles[key]
     }
 
