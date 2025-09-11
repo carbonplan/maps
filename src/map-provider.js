@@ -22,6 +22,11 @@ export const MapProvider = ({
       '@carbonplan/maps: A map instance must be provided to MapProvider'
     )
   }
+  if (map.getProjection && map.getProjection()?.name !== 'mercator') {
+    throw new Error(
+      '@carbonplan/maps: Only the web-mercator projection is supported at this time'
+    )
+  }
 
   return (
     <MapContext.Provider value={{ map }}>
