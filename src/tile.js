@@ -253,6 +253,19 @@ class Tile {
 
     return result
   }
+
+  cleanup() {
+    Object.keys(this._buffers).forEach((key) => {
+      const buffer = this._buffers[key]
+      buffer.destroy()
+    })
+
+    this.chunkedData = {}
+    this._buffers = {}
+    this._loading = {}
+    this._ready = {}
+    this._bufferCache = null
+  }
 }
 
 export default Tile
