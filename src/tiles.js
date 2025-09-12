@@ -47,6 +47,7 @@ export const createTiles = (regl, opts) => {
     order,
     version = 'v2',
     projection,
+    maxCachedTiles = 500,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -63,6 +64,7 @@ export const createTiles = (regl, opts) => {
     this._loading = false
     this.setLoading = setLoading
     this.clearLoading = clearLoading
+    this.maxCachedTiles = maxCachedTiles
 
     this.colormap = regl.texture({
       data: colormap,
@@ -299,16 +301,15 @@ export const createTiles = (regl, opts) => {
     }
 
     this._removeOldTiles = () => {
-      const maxCachedTiles = 500
       const tileKeys = Object.keys(this.tiles)
-      if (tileKeys.length <= maxCachedTiles) {
+      if (tileKeys.length <= this.maxCachedTiles) {
         return
       }
       const sortedTiles = tileKeys
         .map((key) => ({ key, tile: this.tiles[key] }))
         .filter(({ key }) => !this.active[key] && !this.tiles[key]?.isLoading())
         .sort((a, b) => (a.tile.lastAccess || 0) - (b.tile.lastAccess || 0))
-      const tilesToRemove = tileKeys.length - maxCachedTiles
+      const tilesToRemove = tileKeys.length - this.maxCachedTiles
       for (let i = 0; i < Math.min(tilesToRemove, sortedTiles.length); i++) {
         const key = sortedTiles[i].key
         this.tiles[key].cleanup()
