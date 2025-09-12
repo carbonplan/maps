@@ -84,6 +84,12 @@ const disableUnsupportedControls = (map) => {
   map.touchPitch.disable()
 }
 
+const enableUnsupportedControls = (map) => {
+  map.touchZoomRotate.enableRotation()
+  map.dragRotate.enable()
+  map.touchPitch.enable()
+}
+
 const setMapView = (map) => {
   map.setPitch(0)
   map.setBearing(0)
@@ -105,6 +111,9 @@ export const MapProvider = ({
     validateMapInstance(map)
     setMapView(map)
     disableUnsupportedControls(map)
+    return () => {
+      enableUnsupportedControls(map)
+    }
   }, [map])
 
   return (
