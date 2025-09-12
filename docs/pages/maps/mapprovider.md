@@ -10,7 +10,7 @@ The `MapProvider` component (imported from `@carbonplan/maps/core`) allows use o
 
 | Prop               | Description                                                                                      | Default |
 | ------------------ | ------------------------------------------------------------------------------------------------ | ------- |
-| map                | Maplibre or Mapbox `Map` instance                                                                  |
+| map                | Maplibre or Mapbox `Map` instance                                                                |
 | style              | css object for `@carbonplan/maps` canvas. Use `zIndex` to bring canvas above or below main map.  |
 | setLoading         | Tracks _any_ pending requests made by containing `Raster` layers                                 |
 | setMetadataLoading | Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers |
