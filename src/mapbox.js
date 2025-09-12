@@ -1,18 +1,6 @@
-import React, {
-  createContext,
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-  useContext,
-} from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
-
-export const MapboxContext = createContext(null)
-
-export const useMapbox = () => {
-  return useContext(MapboxContext)
-}
+import { MapProvider } from './map-provider'
 
 const Mapbox = ({
   glyphs,
@@ -23,7 +11,11 @@ const Mapbox = ({
   maxZoom,
   maxBounds,
   debug,
+  extensions,
   children,
+  setLoading,
+  setMetadataLoading,
+  setChunkLoading,
 }) => {
   const map = useRef()
   const [ready, setReady] = useState()
@@ -46,8 +38,6 @@ const Mapbox = ({
       })
       if (zoom) map.current.setZoom(zoom)
       if (center) map.current.setCenter(center)
-      map.current.touchZoomRotate.disableRotation()
-      map.current.touchPitch.disable()
       map.current.on('styledata', () => {
         setReady(true)
       })
@@ -68,11 +58,7 @@ const Mapbox = ({
   }, [debug])
 
   return (
-    <MapboxContext.Provider
-      value={{
-        map: map.current,
-      }}
-    >
+    <>
       <div
         style={{
           top: '0px',
@@ -83,8 +69,18 @@ const Mapbox = ({
         }}
         ref={ref}
       />
-      {ready && children}
-    </MapboxContext.Provider>
+      {ready && map.current && (
+        <MapProvider
+          map={map.current}
+          extensions={extensions}
+          setLoading={setLoading}
+          setMetadataLoading={setMetadataLoading}
+          setChunkLoading={setChunkLoading}
+        >
+          {children}
+        </MapProvider>
+      )}
+    </>
   )
 }
 

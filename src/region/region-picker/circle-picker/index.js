@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useMapbox } from '../../../mapbox'
+import { useMap } from '../../../map-provider'
 import CircleRenderer from './circle-renderer'
 
 const CirclePicker = ({
@@ -16,7 +16,7 @@ const CirclePicker = ({
   maxRadius,
   minRadius,
 }) => {
-  const { map } = useMapbox()
+  const { map } = useMap()
   const [renderer, setRenderer] = useState(null)
 
   useEffect(() => {

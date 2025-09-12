@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useRegl } from './regl'
-import { useMapbox } from './mapbox'
+import { useMap } from './map-provider'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
@@ -22,7 +22,7 @@ const Raster = (props) => {
     new Date().getTime()
   )
   const { regl } = useRegl()
-  const { map } = useMapbox()
+  const { map } = useMap()
   const { region } = useRegion()
   const { setLoading, clearLoading, loading, chunkLoading, metadataLoading } =
     useSetLoading()

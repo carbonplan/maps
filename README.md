@@ -99,6 +99,33 @@ Finally, if we want to render multiple arrays at once (and do math on them), we 
 </Map>
 ```
 
+Bring a Zarr layer into any Maplibre GL JS or Mapbox GL JS map using `<MapProvider>` and the `/core` namespace (currently only supports web-mercator projection). The `/core` import path excludes `mapbox-gl` from being included in the the final app bundle.
+
+```jsx
+import { MapProvider, Raster } from '@carbonplan/maps/core'
+import { useColormap } from '@carbonplan/colormaps'
+
+const BringYourOwnMap = ({ map }) => {
+  const colormap = useColormap('warm')
+  return (
+    <MapProvider
+      map={map}
+      style={{
+        zIndex: 2, // Use z-index to bring layer above or below main map canvas
+      }}
+    >
+      <Raster
+        colormap={colormap}
+        clim={[0, 25]}
+        source={'path/to/zarr/pyramid'}
+        variable={'climate'}
+        selector={{ month, band }}
+      />
+    </MapProvider>
+  )
+}
+```
+
 ## thanks
 
 We owe enormous credit to existing open source libraries in the ecosystem, in particular `mapbox-gl-js` and `leaflet`. We've also taken inspiration from the design of `react-three-fiber` in terms of how to wrap a rendering library with `react`.

@@ -4,7 +4,7 @@ import { axisBottom, axisLeft } from 'd3-axis'
 import { scaleOrdinal } from 'd3-scale'
 import { select } from 'd3-selection'
 
-import { useMapbox } from './mapbox'
+import { useMap } from './map-provider'
 
 const TICK_SEPARATION = 150 // target distance between ticks
 const TICK_SIZE = 6 // tick length
@@ -16,7 +16,7 @@ function useRuler({
   fontFamily,
   gridColor,
 }) {
-  const { map } = useMapbox()
+  const { map } = useMap()
 
   useEffect(() => {
     if (!showAxes && !showGrid) {

@@ -1,8 +1,5 @@
 import React from 'react'
 import Mapbox from './mapbox'
-import Regl from './regl'
-import { RegionProvider } from './region/context'
-import { LoadingProvider, LoadingUpdater } from './loading'
 
 const Map = ({
   id,
@@ -46,25 +43,13 @@ const Map = ({
         center={center}
         debug={debug}
         glyphs={glyphs}
+        extensions={extensions}
+        setLoading={setLoading}
+        setMetadataLoading={setMetadataLoading}
+        setChunkLoading={setChunkLoading}
         style={{ position: 'absolute' }}
       >
-        <Regl
-          extensions={extensions}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            zIndex: -1,
-          }}
-        >
-          <LoadingProvider>
-            <LoadingUpdater
-              setLoading={setLoading}
-              setMetadataLoading={setMetadataLoading}
-              setChunkLoading={setChunkLoading}
-            />
-            <RegionProvider>{children}</RegionProvider>
-          </LoadingProvider>
-        </Regl>
+        {children}
       </Mapbox>
     </div>
   )
