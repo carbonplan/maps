@@ -4,13 +4,13 @@ import Maplibre from '../../components/examples/maplibre'
 
 # MapProvider
 
-The `MapProvider` component (imported from `@carbonplan/maps/core`) allows use of an external map object from Maplibre GL JS or Mapbox GL JS. Only the web-mercator projection is supported at this time. All imports should be from the `/core` namespace when used with `MapProvider` to avoid bundling unneeded mapbox-gl dependencies and mixing react context.
+The `MapProvider` component (imported from `@carbonplan/maps/core`) allows use of an external map object from Maplibre GL JS or Mapbox GL JS. Only the web-mercator projection is supported at this time. All imports should be from the `/core` namespace when used with `MapProvider` to avoid bundling unneeded `mapbox-gl` dependencies and mixing react context.
 
 <Table>
 
 | Prop               | Description                                                                                      | Default |
 | ------------------ | ------------------------------------------------------------------------------------------------ | ------- |
-| map                | Maplibre or Mapbox map instance                                                                  |
+| map                | Maplibre or Mapbox `Map` instance                                                                  |
 | style              | css object for `@carbonplan/maps` canvas. Use `zIndex` to bring canvas above or below main map.  |
 | setLoading         | Tracks _any_ pending requests made by containing `Raster` layers                                 |
 | setMetadataLoading | Tracks any metadata and coordinate requests made on initialization by containing `Raster` layers |
