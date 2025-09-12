@@ -58,9 +58,13 @@ const validateMapInstance = (map) => {
 
   const touchMethods = [
     { name: 'touchPitch', method: 'disable' },
+    { name: 'touchPitch', method: 'enable' },
     { name: 'dragPan', method: 'disable' },
+    { name: 'dragPan', method: 'enable' },
     { name: 'dragRotate', method: 'disable' },
+    { name: 'dragRotate', method: 'enable' },
     { name: 'touchZoomRotate', method: 'disableRotation' },
+    { name: 'touchZoomRotate', method: 'enableRotation' },
   ]
 
   touchMethods.forEach(({ name, method }) => {
