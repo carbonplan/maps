@@ -78,5 +78,4 @@ const BringYourOwnMap = () => {
 
 export default ({ children }) => (
 
-<Section name='mapprovider'>{children}</Section>
-)
+<Section name='mapprovider'>{children}</Section>)
