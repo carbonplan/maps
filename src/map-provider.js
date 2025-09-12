@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
 import { LoadingProvider, LoadingUpdater } from './loading'
 import { RegionProvider } from './region/context'
 import Regl from './regl'
@@ -31,6 +31,8 @@ const validateMapInstance = (map) => {
     'loaded',
     'getZoom',
     'setZoom',
+    'setPitch',
+    'setBearing',
     'getCenter',
     'setCenter',
     'getBounds',
@@ -82,6 +84,11 @@ const disableUnsupportedControls = (map) => {
   map.touchPitch.disable()
 }
 
+const setMapView = (map) => {
+  map.setPitch(0)
+  map.setBearing(0)
+}
+
 export const MapProvider = ({
   map,
   extensions,
@@ -94,8 +101,11 @@ export const MapProvider = ({
   /** Tracks any requests of new chunks by containing `Raster` layers */
   setChunkLoading,
 }) => {
-  validateMapInstance(map)
-  disableUnsupportedControls(map)
+  useEffect(() => {
+    validateMapInstance(map)
+    setMapView(map)
+    disableUnsupportedControls(map)
+  }, [map])
 
   return (
     <MapContext.Provider value={{ map }}>
