@@ -33,6 +33,7 @@ The `Raster` component is responsible for initializing the `mapbox-gl-js` instan
 | setMetadataLoading | Callback to track any metadata and coordinate requests made on initialization                                                      |            |
 | setChunkLoading    | Callback to track any requests of new chunks                                                                                       |            |
 | setMetadata        | Callback that is invoked with `.zmetadata` value once fetched                                                                      |            |
+| maxCachedTiles     | Maximum number of tiles stored in cache to prevent excessive memory consumption during map navigation                              | 500        |
 
 </Table>
 
