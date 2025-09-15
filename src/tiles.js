@@ -47,6 +47,7 @@ export const createTiles = (regl, opts) => {
     order,
     version = 'v2',
     projection,
+    maxCachedTiles = 500,
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -63,6 +64,7 @@ export const createTiles = (regl, opts) => {
     this._loading = false
     this.setLoading = setLoading
     this.clearLoading = clearLoading
+    this.maxCachedTiles = maxCachedTiles
 
     this.colormap = regl.texture({
       data: colormap,
@@ -176,25 +178,6 @@ export const createTiles = (regl, opts) => {
           levels.forEach((z) => {
             const loader = loaders[z + '/' + variable]
             this.loaders[z] = loader
-            Array(Math.pow(2, z))
-              .fill(0)
-              .map((_, x) => {
-                Array(Math.pow(2, z))
-                  .fill(0)
-                  .map((_, y) => {
-                    const key = [x, y, z].join(',')
-                    this.tiles[key] = new Tile({
-                      key,
-                      loader,
-                      shape: this.shape,
-                      chunks: this.chunks,
-                      dimensions: this.dimensions,
-                      coordinates: this.coordinates,
-                      bands: this.bands,
-                      initializeBuffer: initialize,
-                    })
-                  })
-              })
           })
 
           resolve(true)
@@ -285,15 +268,17 @@ export const createTiles = (regl, opts) => {
       return activeKeys.reduce((accum, key) => {
         if (!getOverlappingAncestor(key, activeKeys)) {
           const [, , level] = keyToTile(key)
-          const tile = this.tiles[key]
+          const tile = this._initializeTile(key, level)
           const offsets = adjustedActive[key]
 
           offsets.forEach((offset) => {
-            accum.push({
-              ...tile.getBuffers(),
-              level,
-              offset,
-            })
+            if (tile) {
+              accum.push({
+                ...tile.getBuffers(),
+                level,
+                offset,
+              })
+            }
           })
         }
 
@@ -313,6 +298,47 @@ export const createTiles = (regl, opts) => {
 
     this.draw = () => {
       this.drawTiles(this.getProps())
+    }
+
+    this._removeOldestTile = () => {
+      const tileKeys = Object.keys(this.tiles)
+      if (tileKeys.length <= this.maxCachedTiles) return
+      let oldestKey = null
+      let oldestAccess = Number.POSITIVE_INFINITY
+      tileKeys.forEach((key) => {
+        if (this.active[key]) return
+        const tile = this.tiles[key]
+        if (!tile.lastAccess || tile.isLoading?.()) return
+        if (tile.lastAccess < oldestAccess) {
+          oldestAccess = tile.lastAccess
+          oldestKey = key
+        }
+      })
+      if (oldestKey && this.tiles[oldestKey]) {
+        this.tiles[oldestKey].cleanup()
+        delete this.tiles[oldestKey]
+      }
+    }
+
+    this._initializeTile = (key, level) => {
+      if (!this.tiles[key]) {
+        const loader = this.loaders[level]
+        if (!loader) return
+        this._removeOldestTile()
+        this.tiles[key] = new Tile({
+          key,
+          loader,
+          shape: this.shape,
+          chunks: this.chunks,
+          dimensions: this.dimensions,
+          coordinates: this.coordinates,
+          bands: this.bands,
+          initializeBuffer: initialize,
+        })
+      }
+
+      this.tiles[key].lastAccess = Date.now()
+      return this.tiles[key]
     }
 
     this.updateCamera = ({ center, zoom }) => {
@@ -357,7 +383,7 @@ export const createTiles = (regl, opts) => {
             new Promise((resolve) => {
               if (this.loaders[level]) {
                 const tileIndex = keyToTile(key)
-                const tile = this.tiles[key]
+                const tile = this._initializeTile(key, level)
 
                 const chunks = getChunks(
                   this.selector,
@@ -427,6 +453,7 @@ export const createTiles = (regl, opts) => {
       await Promise.all(
         tiles.map(async (key) => {
           const tileIndex = keyToTile(key)
+          const tile = this._initializeTile(key, tileIndex[2])
           const chunks = getChunks(
             selector,
             this.dimensions,
@@ -437,9 +464,9 @@ export const createTiles = (regl, opts) => {
             tileIndex[1]
           )
 
-          if (!this.tiles[key].hasLoadedChunks(chunks)) {
+          if (!tile.hasLoadedChunks(chunks)) {
             const loadingID = this.setLoading('chunk')
-            await this.tiles[key].loadChunks(chunks)
+            await tile.loadChunks(chunks)
             this.clearLoading(loadingID)
           }
         })
