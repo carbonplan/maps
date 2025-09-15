@@ -300,20 +300,23 @@ export const createTiles = (regl, opts) => {
       this.drawTiles(this.getProps())
     }
 
-    this._removeOldTiles = () => {
+    this._removeOldestTile = () => {
       const tileKeys = Object.keys(this.tiles)
-      if (tileKeys.length <= this.maxCachedTiles) {
-        return
-      }
-      const sortedTiles = tileKeys
-        .map((key) => ({ key, tile: this.tiles[key] }))
-        .filter(({ key }) => !this.active[key] && !this.tiles[key]?.isLoading())
-        .sort((a, b) => (a.tile.lastAccess || 0) - (b.tile.lastAccess || 0))
-      const tilesToRemove = tileKeys.length - this.maxCachedTiles
-      for (let i = 0; i < Math.min(tilesToRemove, sortedTiles.length); i++) {
-        const key = sortedTiles[i].key
-        this.tiles[key].cleanup()
-        delete this.tiles[key]
+      if (tileKeys.length <= this.maxCachedTiles) return
+      let oldestKey = null
+      let oldestAccess = Number.POSITIVE_INFINITY
+      tileKeys.forEach((key) => {
+        if (this.active[key]) return
+        const tile = this.tiles[key]
+        if (!tile.lastAccess || tile.isLoading?.()) return
+        if (tile.lastAccess < oldestAccess) {
+          oldestAccess = tile.lastAccess
+          oldestKey = key
+        }
+      })
+      if (oldestKey && this.tiles[oldestKey]) {
+        this.tiles[oldestKey].cleanup()
+        delete this.tiles[oldestKey]
       }
     }
 
@@ -321,7 +324,7 @@ export const createTiles = (regl, opts) => {
       if (!this.tiles[key]) {
         const loader = this.loaders[level]
         if (!loader) return
-        this._removeOldTiles()
+        this._removeOldestTile()
         this.tiles[key] = new Tile({
           key,
           loader,
