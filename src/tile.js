@@ -15,6 +15,8 @@ class Tile {
     coordinates,
     bands,
     initializeBuffer,
+    needsNaNPreprocessing = false,
+    fillValue = null,
   }) {
     this.key = key
     this.tileCoordinates = keyToTile(key)
@@ -30,6 +32,9 @@ class Tile {
 
     this._loading = {}
     this._ready = {}
+
+    this.needsNaNPreprocessing = needsNaNPreprocessing
+    this.fillValue = fillValue
 
     bands.forEach((k) => {
       this._buffers[k] = initializeBuffer()
@@ -133,7 +138,26 @@ class Tile {
           `Unexpected data dimensions for band: ${band}. Found ${bandData.dimension}, expected 2. Check the selector value.`
         )
       }
-      this._buffers[band](bandData)
+
+      if (this.needsNaNPreprocessing && bandData.data) {
+        const processedData = new Float32Array(bandData.data)
+        let hasNaN = false
+        for (let i = 0; i < processedData.length; i++) {
+          if (isNaN(processedData[i])) {
+            processedData[i] = this.fillValue
+            hasNaN = true
+          }
+        }
+        if (hasNaN) {
+          const processedBandData = bandData.pick()
+          processedBandData.data = processedData
+          this._buffers[band](processedBandData)
+        } else {
+          this._buffers[band](bandData)
+        }
+      } else {
+        this._buffers[band](bandData)
+      }
     })
 
     this._bufferCache = getSelectorHash(selector)

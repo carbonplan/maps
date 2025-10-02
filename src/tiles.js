@@ -161,7 +161,12 @@ export const createTiles = (regl, opts) => {
           this.dimensions = dimensions
           this.shape = shape
           this.chunks = chunks
-          this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
+          const originalFillValue =
+            fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
+          this.fillValue = isNaN(originalFillValue)
+            ? DEFAULT_FILL_VALUES['<f4']
+            : originalFillValue
+          this.needsNaNPreprocessing = isNaN(originalFillValue)
 
           if (mode === 'texture') {
             const emptyTexture = ndarray(
@@ -334,6 +339,8 @@ export const createTiles = (regl, opts) => {
           coordinates: this.coordinates,
           bands: this.bands,
           initializeBuffer: initialize,
+          needsNaNPreprocessing: this.needsNaNPreprocessing,
+          fillValue: this.fillValue,
         })
       }
 
