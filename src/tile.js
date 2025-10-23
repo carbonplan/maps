@@ -55,12 +55,19 @@ class Tile {
             } else {
               this._loading[key] = true
               this._ready[key] = new Promise((innerResolve) => {
-                this._loader(chunk, (err, data) => {
-                  this.chunkedData[key] = data
-                  this._loading[key] = false
-                  innerResolve(true)
-                  resolve(true)
-                })
+                this._loader(chunk)
+                  .then((data) => {
+                    this.chunkedData[key] = data
+                    this._loading[key] = false
+                    innerResolve(true)
+                    resolve(true)
+                  })
+                  .catch((err) => {
+                    console.error('Error loading chunk', key, err)
+                    this._loading[key] = false
+                    innerResolve(false)
+                    resolve(false)
+                  })
               })
             }
           })

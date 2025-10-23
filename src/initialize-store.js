@@ -33,60 +33,53 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
         fill_value = zarray.fill_value
         dtype = zarray.dtype
 
-        const loadersCache = {}
+        const getCache = new Map()
 
-        const loadLevel = (key) => {
-          if (loadersCache[key]) {
-            return Promise.resolve(loadersCache[key])
+        const callGet = async (key, chunkIndices) => {
+          let getPromise = getCache.get(key)
+
+          if (!getPromise) {
+            const arrayMeta = metadata.metadata[`${key}/.zarray`]
+            getPromise = new Promise((resolve, reject) => {
+              zarr(window.fetch, version).open(
+                `${source}/${key}`,
+                (err, get) => (err ? reject(err) : resolve(get)),
+                arrayMeta
+              )
+            })
+            getCache.set(key, getPromise)
           }
 
-          const promise = new Promise((resolve) => {
-            const arrayMeta = metadata.metadata[`${key}/.zarray`]
-            zarr(window.fetch, version).open(
-              `${source}/${key}`,
-              (err, get) => {
-                loadersCache[key] = get
-                resolve(get)
-              },
-              arrayMeta
-            )
+          const get = await getPromise
+          return new Promise((resolve, reject) => {
+            get(chunkIndices, (err, out) => (err ? reject(err) : resolve(out)))
           })
-
-          loadersCache[key] = promise
-          return promise
         }
 
         await Promise.all(
-          coordinateKeys.map((key) => {
+          coordinateKeys.map(async (key) => {
             const coordKey = `${levels[0]}/${key}`
-            return loadLevel(coordKey).then(
-              (get) =>
-                new Promise((resolve) => {
-                  get([0], (err, chunk) => {
-                    coordinates[key] = Array.from(chunk.data)
-                    resolve()
-                  })
-                })
-            )
+            const chunk = await callGet(coordKey, [0])
+            coordinates[key] = Array.from(chunk.data)
           })
         )
 
         loaders = {}
         levels.forEach((level) => {
           const key = `${level}/${variable}`
-          loaders[key] = (...args) => {
-            return loadLevel(key).then((loader) => loader(...args))
-          }
+          loaders[key] = (chunkIndices) => callGet(key, chunkIndices)
         })
 
         coordinateKeys.forEach((key) => {
-          loaders[`${levels[0]}/${key}`] = loadersCache[`${levels[0]}/${key}`]
+          const coordKey = `${levels[0]}/${key}`
+          loaders[coordKey] = (chunkIndices) => callGet(coordKey, chunkIndices)
         })
       } catch (e) {
         // Fallback to openGroup
+        let rawLoaders
         await new Promise((resolve) =>
           zarr(window.fetch, version).openGroup(source, (err, l, m) => {
-            loaders = l
+            rawLoaders = l
             metadata = m
             resolve()
           })
@@ -104,16 +97,22 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
         dtype = zarray.dtype
 
         await Promise.all(
-          coordinateKeys.map(
-            (key) =>
-              new Promise((resolve) => {
-                loaders[`${levels[0]}/${key}`]([0], (err, chunk) => {
-                  coordinates[key] = Array.from(chunk.data)
-                  resolve()
-                })
+          coordinateKeys.map((key) => {
+            const coordKey = `${levels[0]}/${key}`
+            return new Promise((resolve, reject) => {
+              rawLoaders[coordKey]([0], (err, chunk) => {
+                if (err) return reject(err)
+                coordinates[key] = Array.from(chunk.data)
+                resolve()
               })
-          )
+            })
+          })
         )
+
+        loaders = {}
+        Object.keys(rawLoaders).forEach((key) => {
+          loaders[key] = wrapGet(rawLoaders[key])
+        })
       }
 
       break
