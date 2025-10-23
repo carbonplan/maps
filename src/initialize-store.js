@@ -2,6 +2,14 @@ import zarr from 'zarr-js'
 
 import { getPyramidMetadata } from './utils'
 
+// return promises for all for consistency
+const wrapGet = (getFn) => {
+  return (chunkIndices) =>
+    new Promise((resolve, reject) => {
+      getFn(chunkIndices, (err, out) => (err ? reject(err) : resolve(out)))
+    })
+}
+
 const initializeStore = async (source, version, variable, coordinateKeys) => {
   let metadata
   let loaders
@@ -135,40 +143,51 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
       fill_value = arrayMetadata.fill_value
       // dtype = arrayMetadata.data_type
 
+      const getCache = new Map()
+
+      const callGet = async (key, chunkIndices, meta = null) => {
+        let getPromise = getCache.get(key)
+
+        if (!getPromise) {
+          getPromise = new Promise((resolve, reject) => {
+            zarr(window.fetch, version).open(
+              `${source}/${key}`,
+              (err, get) => (err ? reject(err) : resolve(get)),
+              meta
+            )
+          })
+          getCache.set(key, getPromise)
+        }
+
+        const get = await getPromise
+        return new Promise((resolve, reject) => {
+          get(chunkIndices, (err, out) => (err ? reject(err) : resolve(out)))
+        })
+      }
+
+      await Promise.all(
+        coordinateKeys.map(async (key) => {
+          const coordKey = `${levels[0]}/${key}`
+          const chunk = await callGet(coordKey, [0])
+          coordinates[key] = Array.from(chunk.data)
+        })
+      )
+
       loaders = {}
-      await Promise.all([
-        ...levels.map(
-          (level) =>
-            new Promise((resolve) => {
-              zarr(window.fetch, version).open(
-                `${source}/${level}/${variable}`,
-                (err, get) => {
-                  loaders[`${level}/${variable}`] = get
-                  resolve()
-                },
-                level === 0 ? arrayMetadata : null
-              )
-            })
-        ),
-        ...coordinateKeys.map(
-          (key) =>
-            new Promise((resolve) => {
-              zarr(window.fetch, version).open(
-                `${source}/${levels[0]}/${key}`,
-                (err, get) => {
-                  get([0], (err, chunk) => {
-                    coordinates[key] = Array.from(chunk.data)
-                    resolve()
-                  })
-                }
-              )
-            })
-        ),
-      ])
+      levels.forEach((level) => {
+        const key = `${level}/${variable}`
+        const meta = level === 0 ? arrayMetadata : null
+        loaders[key] = (chunkIndices) => callGet(key, chunkIndices, meta)
+      })
+
+      coordinateKeys.forEach((key) => {
+        const coordKey = `${levels[0]}/${key}`
+        loaders[coordKey] = (chunkIndices) => callGet(coordKey, chunkIndices)
+      })
       break
     default:
       throw new Error(
-        `Unexpected Zarr version: ${version}. Must be one of 'v1', 'v2'.`
+        `Unexpected Zarr version: ${version}. Must be one of 'v2', 'v3'.`
       )
   }
 
