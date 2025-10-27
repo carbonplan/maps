@@ -28,12 +28,9 @@ describe('Tile', () => {
     buffer = jest.fn()
     defaults = {
       key: '0,0,0',
-      loader: jest.fn().mockImplementation((chunk, cb) =>
-        cb(
-          null, // error
-          createMockChunk(chunk)
-        )
-      ),
+      loader: jest
+        .fn()
+        .mockImplementation((chunk) => Promise.resolve(createMockChunk(chunk))),
       shape: [10, 1, 1],
       chunks: [5, 1, 1],
       dimensions: ['year', 'y', 'x'],
@@ -148,14 +145,8 @@ describe('Tile', () => {
         ])
 
         expect(defaults.loader).toHaveBeenCalledTimes(2)
-        expect(defaults.loader).toHaveBeenCalledWith(
-          [0, 0, 0],
-          expect.anything()
-        )
-        expect(defaults.loader).toHaveBeenCalledWith(
-          [1, 0, 0],
-          expect.anything()
-        )
+        expect(defaults.loader).toHaveBeenCalledWith([0, 0, 0])
+        expect(defaults.loader).toHaveBeenCalledWith([1, 0, 0])
       })
 
       it('does not repeat loading for any chunks have been loaded', async () => {
@@ -267,15 +258,11 @@ describe('Tile', () => {
 
       beforeEach(() => {
         resolvers = []
-        const loader = jest.fn().mockImplementation((chunk, cb) =>
-          new Promise((resolve) => {
-            resolvers.push(resolve)
-          }).then(() => {
-            cb(
-              null, // error
-              createMockChunk(chunk)
-            )
-          })
+        const loader = jest.fn().mockImplementation(
+          (chunk) =>
+            new Promise((resolve) => {
+              resolvers.push(() => resolve(createMockChunk(chunk)))
+            })
         )
         tile = new Tile({ ...defaults, loader })
       })
@@ -441,12 +428,11 @@ describe('Tile', () => {
         const selector = {}
         const tile = new Tile({
           ...defaults,
-          loader: jest.fn().mockImplementation((chunk, cb) =>
-            cb(
-              null, // error
-              ndarray([1, 2, 3, 4], [4, 1, 1])
-            )
-          ),
+          loader: jest
+            .fn()
+            .mockImplementation((chunk) =>
+              Promise.resolve(ndarray([1, 2, 3, 4], [4, 1, 1]))
+            ),
           shape: [4, 1, 1],
           chunks: [4, 1, 1],
           dimensions: ['band', 'y', 'x'],
@@ -491,12 +477,11 @@ describe('Tile', () => {
         const selector = {}
         const tile = new Tile({
           ...defaults,
-          loader: jest.fn().mockImplementation((chunk, cb) =>
-            cb(
-              null, // error
-              ndarray([1, 2, 3, 4], [2, 2])
-            )
-          ),
+          loader: jest
+            .fn()
+            .mockImplementation((chunk) =>
+              Promise.resolve(ndarray([1, 2, 3, 4], [2, 2]))
+            ),
           shape: [2, 2],
           chunks: [2, 2],
           dimensions: ['y', 'x'],
