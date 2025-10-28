@@ -48,6 +48,7 @@ export const createTiles = (regl, opts) => {
     version = 'v2',
     projection,
     maxCachedTiles = 500,
+    metadataCache = {},
   }) {
     this.tiles = {}
     this.loaders = {}
@@ -113,7 +114,13 @@ export const createTiles = (regl, opts) => {
     })
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
-      initializeStore(source, version, variable, Object.keys(selector)).then(
+      initializeStore(
+        source,
+        version,
+        variable,
+        Object.keys(selector),
+        metadataCache
+      ).then(
         ({
           metadata,
           loaders,

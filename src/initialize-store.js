@@ -10,7 +10,13 @@ const wrapGet = (getFn) => {
     })
 }
 
-const initializeStore = async (source, version, variable, coordinateKeys) => {
+const initializeStore = async (
+  source,
+  version,
+  variable,
+  coordinateKeys,
+  metadataCache = {}
+) => {
   let metadata
   let loaders
   let dimensions
@@ -20,13 +26,20 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
   let dtype
   let levels, maxZoom, tileSize, crs
   const coordinates = {}
+  const cacheKey = `${source}-${version}`
+
   switch (version) {
     case 'v2':
       try {
-        // Fetch consolidated metadata directly
-        const zmetadata = await fetch(`${source}/.zmetadata`).then((res) =>
-          res.json()
-        )
+        let zmetadata
+        if (metadataCache[cacheKey]) {
+          zmetadata = metadataCache[cacheKey]
+        } else {
+          zmetadata = await fetch(`${source}/.zmetadata`).then((res) =>
+            res.json()
+          )
+          metadataCache[cacheKey] = zmetadata
+        }
         metadata = { metadata: zmetadata.metadata }
         const rootAttrs = zmetadata.metadata['.zattrs']
         ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
@@ -125,7 +138,12 @@ const initializeStore = async (source, version, variable, coordinateKeys) => {
 
       break
     case 'v3':
-      metadata = await fetch(`${source}/zarr.json`).then((res) => res.json())
+      if (metadataCache[cacheKey]) {
+        metadata = metadataCache[cacheKey]
+      } else {
+        metadata = await fetch(`${source}/zarr.json`).then((res) => res.json())
+        metadataCache[cacheKey] = metadata
+      }
       ;({ levels, maxZoom, tileSize, crs } = getPyramidMetadata(
         metadata.attributes.multiscales
       ))

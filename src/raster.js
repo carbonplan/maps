@@ -29,6 +29,7 @@ const Raster = (props) => {
   const tiles = useRef()
   const camera = useRef()
   const lastQueried = useRef()
+  const metadataCache = useRef({})
 
   camera.current = { center: center, zoom: zoom }
 
@@ -51,6 +52,7 @@ const Raster = (props) => {
       ...props,
       setLoading,
       clearLoading,
+      metadataCache: metadataCache.current,
       invalidate: () => {
         map.triggerRepaint()
       },
@@ -58,7 +60,24 @@ const Raster = (props) => {
         setRegionDataInvalidated(new Date().getTime())
       },
     })
-  }, [])
+
+    return () => {
+      if (tiles.current) {
+        tiles.current.active = {}
+        tiles.current.loaders = {}
+      }
+    }
+  }, [
+    props.source,
+    props.variable,
+    props.mode,
+    props.version,
+    props.projection,
+    props.frag,
+    props.fillValue,
+    props.order,
+    props.maxCachedTiles,
+  ])
 
   useEffect(() => {
     if (props.setLoading) {
