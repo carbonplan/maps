@@ -64,7 +64,7 @@ const Raster = (props) => {
     return () => {
       if (tiles.current) {
         tiles.current.active = {}
-        tiles.current.loaders = {}
+        tiles.current.loader = null
       }
     }
   }, [

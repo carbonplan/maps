@@ -2,12 +2,10 @@ import zarr from 'zarr-js'
 
 import { getPyramidMetadata } from './utils'
 
-// return promises for all for consistency
-const wrapGet = (getFn) => {
-  return (chunkIndices) =>
-    new Promise((resolve, reject) => {
-      getFn(chunkIndices, (err, out) => (err ? reject(err) : resolve(out)))
-    })
+const createLoader = ({ callGet, variable }) => {
+  return {
+    load: ({ level, chunk }) => callGet(`${level}/${variable}`, chunk),
+  }
 }
 
 const initializeStore = async (
@@ -18,13 +16,13 @@ const initializeStore = async (
   metadataCache = {}
 ) => {
   let metadata
-  let loaders
   let dimensions
   let shape
   let chunks
   let fill_value
   let dtype
   let levels, maxZoom, tileSize, crs
+  let loader
   const coordinates = {}
   const cacheKey = `${source}-${version}`
 
@@ -85,15 +83,9 @@ const initializeStore = async (
           })
         )
 
-        loaders = {}
-        levels.forEach((level) => {
-          const key = `${level}/${variable}`
-          loaders[key] = (chunkIndices) => callGet(key, chunkIndices)
-        })
-
-        coordinateKeys.forEach((key) => {
-          const coordKey = `${levels[0]}/${key}`
-          loaders[coordKey] = (chunkIndices) => callGet(coordKey, chunkIndices)
+        loader = createLoader({
+          callGet,
+          variable,
         })
       } catch (e) {
         // Fallback to openGroup
@@ -130,9 +122,15 @@ const initializeStore = async (
           })
         )
 
-        loaders = {}
-        Object.keys(rawLoaders).forEach((key) => {
-          loaders[key] = wrapGet(rawLoaders[key])
+        loader = createLoader({
+          callGet: (key, chunkIndices) =>
+            new Promise((resolve, reject) => {
+              rawLoaders[key](chunkIndices, (err, out) => {
+                if (err) return reject(err)
+                resolve(out)
+              })
+            }),
+          variable,
         })
       }
 
@@ -191,16 +189,16 @@ const initializeStore = async (
         })
       )
 
-      loaders = {}
-      levels.forEach((level) => {
-        const key = `${level}/${variable}`
-        const meta = level === 0 ? arrayMetadata : null
-        loaders[key] = (chunkIndices) => callGet(key, chunkIndices, meta)
-      })
+      const getChunk = (key, chunkIndices) => {
+        const meta = key.startsWith(`${levels[0]}/${variable}`)
+          ? arrayMetadata
+          : null
+        return callGet(key, chunkIndices, meta)
+      }
 
-      coordinateKeys.forEach((key) => {
-        const coordKey = `${levels[0]}/${key}`
-        loaders[coordKey] = (chunkIndices) => callGet(coordKey, chunkIndices)
+      loader = createLoader({
+        callGet: getChunk,
+        variable,
       })
       break
     default:
@@ -211,7 +209,7 @@ const initializeStore = async (
 
   return {
     metadata,
-    loaders,
+    loader,
     dimensions,
     shape,
     chunks,

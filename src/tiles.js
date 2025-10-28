@@ -51,7 +51,6 @@ export const createTiles = (regl, opts) => {
     metadataCache = {},
   }) {
     this.tiles = {}
-    this.loaders = {}
     this.active = {}
     this.display = display
     this.clim = clim
@@ -112,6 +111,8 @@ export const createTiles = (regl, opts) => {
         }
       }
     })
+    this.loader = null
+    this.availableLevels = new Set()
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
       initializeStore(
@@ -123,7 +124,7 @@ export const createTiles = (regl, opts) => {
       ).then(
         ({
           metadata,
-          loaders,
+          loader,
           dimensions,
           shape,
           chunks,
@@ -181,11 +182,8 @@ export const createTiles = (regl, opts) => {
           this.ndim = this.dimensions.length
 
           this.coordinates = coordinates
-
-          levels.forEach((z) => {
-            const loader = loaders[z + '/' + variable]
-            this.loaders[z] = loader
-          })
+          this.loader = loader
+          this.availableLevels = new Set(levels)
 
           resolve(true)
           this.clearLoading(loadingID)
@@ -329,12 +327,13 @@ export const createTiles = (regl, opts) => {
 
     this._initializeTile = (key, level) => {
       if (!this.tiles[key]) {
-        const loader = this.loaders[level]
-        if (!loader) return
+        if (!this.loader || !this.availableLevels.has(level)) return
         this._removeOldestTile()
+        const loadChunk = (chunk) => this.loader.load({ level, chunk })
+
         this.tiles[key] = new Tile({
           key,
-          loader,
+          loader: loadChunk,
           shape: this.shape,
           chunks: this.chunks,
           dimensions: this.dimensions,
@@ -388,7 +387,7 @@ export const createTiles = (regl, opts) => {
         Object.keys(this.active).map(
           (key) =>
             new Promise((resolve) => {
-              if (this.loaders[level]) {
+              if (this.loader && this.availableLevels.has(level)) {
                 const tileIndex = keyToTile(key)
                 const tile = this._initializeTile(key, level)
 
