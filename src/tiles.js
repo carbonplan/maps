@@ -22,13 +22,11 @@ import {
 } from './utils'
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
-import initializeStore from './initialize-store'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
 
   function Tiles({
-    source,
     colormap,
     clim,
     opacity,
@@ -45,10 +43,9 @@ export const createTiles = (regl, opts) => {
     invalidateRegion,
     setMetadata,
     order,
-    version = 'v2',
     projection,
     maxCachedTiles = 500,
-    metadataCache = {},
+    store,
   }) {
     this.tiles = {}
     this.active = {}
@@ -113,84 +110,81 @@ export const createTiles = (regl, opts) => {
     })
     this.loader = null
     this.availableLevels = new Set()
-    this.initialized = new Promise((resolve) => {
+    if (!store) {
+      throw new Error('Tiles requires a ZarrStore instance.')
+    }
+    this.store = store
+
+    this.initialized = (async () => {
       const loadingID = this.setLoading('metadata')
-      initializeStore(
-        source,
-        version,
-        variable,
-        Object.keys(selector),
-        metadataCache
-      ).then(
-        ({
-          metadata,
-          loader,
-          dimensions,
-          shape,
-          chunks,
-          fill_value,
-          dtype,
-          coordinates,
-          levels,
-          maxZoom,
-          tileSize,
-          crs,
-        }) => {
-          if (setMetadata) setMetadata(metadata)
-          this.maxZoom = maxZoom
-          this.level = zoomToLevel(this.zoom, maxZoom)
-          const position = getPositions(tileSize, mode)
-          this.position = regl.buffer(position)
-          this.size = tileSize
-          // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
-          this.projectionIndex = projection
-            ? ['mercator', 'equirectangular'].indexOf(projection)
-            : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
-          this.projection = ['mercator', 'equirectangular'][
-            this.projectionIndex
-          ]
 
-          if (!this.projection) {
-            this.projection = null
-            throw new Error(
-              projection
-                ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
-                : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
-            )
-          }
+      await this.store.initialized
+      const {
+        metadata,
+        loader,
+        dimensions,
+        shape,
+        chunks,
+        fill_value,
+        dtype,
+        coordinates,
+        levels,
+        maxZoom,
+        tileSize,
+        crs,
+      } = this.store.describe()
 
-          if (mode === 'grid' || mode === 'dotgrid') {
-            this.count = position.length
-          }
-          if (mode === 'texture') {
-            this.count = 6
-          }
+      if (setMetadata) setMetadata(metadata)
+      this.maxZoom = maxZoom
+      this.level = zoomToLevel(this.zoom, maxZoom)
+      const position = getPositions(tileSize, mode)
+      this.position = regl.buffer(position)
+      this.size = tileSize
+      // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
+      this.projectionIndex = projection
+        ? ['mercator', 'equirectangular'].indexOf(projection)
+        : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
+      this.projection = ['mercator', 'equirectangular'][this.projectionIndex]
 
-          this.dimensions = dimensions
-          this.shape = shape
-          this.chunks = chunks
-          this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
+      if (!this.projection) {
+        this.projection = null
+        throw new Error(
+          projection
+            ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
+            : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
+        )
+      }
 
-          if (mode === 'texture') {
-            const emptyTexture = ndarray(
-              new Float32Array(Array(1).fill(this.fillValue)),
-              [1, 1]
-            )
-            initialize = () => regl.texture(emptyTexture)
-          }
+      if (mode === 'grid' || mode === 'dotgrid') {
+        this.count = position.length
+      }
+      if (mode === 'texture') {
+        this.count = 6
+      }
 
-          this.ndim = this.dimensions.length
+      this.dimensions = dimensions
+      this.shape = shape
+      this.chunks = chunks
+      this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
 
-          this.coordinates = coordinates
-          this.loader = loader
-          this.availableLevels = new Set(levels)
+      if (mode === 'texture') {
+        const emptyTexture = ndarray(
+          new Float32Array(Array(1).fill(this.fillValue)),
+          [1, 1]
+        )
+        initialize = () => regl.texture(emptyTexture)
+      }
 
-          resolve(true)
-          this.clearLoading(loadingID)
-          this.invalidate()
-        }
-      )
-    })
+      this.ndim = this.dimensions.length
+
+      this.coordinates = coordinates
+      this.loader = loader
+      this.availableLevels = new Set(levels)
+
+      this.clearLoading(loadingID)
+      this.invalidate()
+      return true
+    })()
 
     this.drawTiles = regl({
       vert: vert(mode, this.bands),
