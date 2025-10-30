@@ -27,7 +27,12 @@ class ZarrStore {
     this.coordinates = {}
     this._getterCache = new Map()
 
-    this.initialized = this._initialize()
+    this._initialized = this._initialize()
+  }
+
+  async initialized() {
+    await this._initialized
+    return true
   }
 
   async _initialize() {

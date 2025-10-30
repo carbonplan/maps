@@ -117,7 +117,7 @@ export const createTiles = (regl, opts) => {
     this.initialized = (async () => {
       const loadingID = this.setLoading('metadata')
 
-      await this.store.initialized
+      await this.store.initialized()
       const {
         metadata,
         dimensions,
