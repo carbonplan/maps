@@ -46,32 +46,27 @@ class Tile {
 
   async loadChunks(chunks) {
     const updated = await Promise.all(
-      chunks.map(
-        (chunk) =>
-          new Promise((resolve) => {
-            const key = chunk.join('.')
-            if (this.chunkedData[key]) {
-              resolve(false)
-            } else {
-              this._loading[key] = true
-              this._ready[key] = new Promise((innerResolve) => {
-                this._loader(chunk)
-                  .then((data) => {
-                    this.chunkedData[key] = data
-                    this._loading[key] = false
-                    innerResolve(true)
-                    resolve(true)
-                  })
-                  .catch((err) => {
-                    console.error('Error loading chunk', key, err)
-                    this._loading[key] = false
-                    innerResolve(false)
-                    resolve(false)
-                  })
-              })
-            }
-          })
-      )
+      chunks.map(async (chunk) => {
+        const key = chunk.join('.')
+        if (this.chunkedData[key]) {
+          return false
+        } else {
+          this._loading[key] = true
+          this._ready[key] = this._loader(chunk)
+            .then((data) => {
+              this.chunkedData[key] = data
+              this._loading[key] = false
+              return true
+            })
+            .catch((err) => {
+              console.error('Error loading chunk', key, err)
+              this._loading[key] = false
+              return false
+            })
+
+          return this._ready[key]
+        }
+      })
     )
 
     return updated.some(Boolean)
