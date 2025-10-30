@@ -77,13 +77,6 @@ const Raster = (props) => {
         setRegionDataInvalidated(new Date().getTime())
       },
     })
-
-    return () => {
-      if (tiles.current) {
-        tiles.current.active = {}
-        tiles.current.loader = null
-      }
-    }
   }, [store])
 
   useEffect(() => {
