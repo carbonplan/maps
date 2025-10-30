@@ -25,8 +25,7 @@ class ZarrStore {
     this.tileSize = null
     this.crs = null
     this.coordinates = {}
-    this.loader = null
-    this._chunkHandles = new Map()
+    this._getterCache = new Map()
 
     this.initialized = this._initialize()
   }
@@ -40,11 +39,6 @@ class ZarrStore {
       throw new Error(
         `Unexpected Zarr version: ${this.version}. Must be one of 'v2', 'v3'.`
       )
-    }
-
-    this.loader = {
-      load: ({ level, chunk }) =>
-        this.getChunk(`${level}/${this.variable}`, chunk),
     }
 
     if (this.coordinateKeys.length) {
@@ -61,15 +55,13 @@ class ZarrStore {
   }
 
   cleanup() {
-    this._chunkHandles.clear()
-    this.loader = null
+    this._getterCache.clear()
     this.coordinates = {}
   }
 
   describe() {
     return {
       metadata: this.metadata,
-      loader: this.loader,
       dimensions: this.dimensions,
       shape: this.shape,
       chunks: this.chunks,
@@ -84,7 +76,7 @@ class ZarrStore {
   }
 
   async getChunk(key, chunkIndices) {
-    let handle = this._chunkHandles.get(key)
+    let handle = this._getterCache.get(key)
 
     if (!handle) {
       let meta = null
@@ -103,10 +95,10 @@ class ZarrStore {
           meta
         )
       }).catch((err) => {
-        this._chunkHandles.delete(key)
+        this._getterCache.delete(key)
         throw err
       })
-      this._chunkHandles.set(key, handle)
+      this._getterCache.set(key, handle)
     }
 
     const get = await handle

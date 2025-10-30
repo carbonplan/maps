@@ -108,7 +108,6 @@ export const createTiles = (regl, opts) => {
         }
       }
     })
-    this.loader = null
     this.availableLevels = new Set()
     if (!store) {
       throw new Error('Tiles requires a ZarrStore instance.')
@@ -121,7 +120,6 @@ export const createTiles = (regl, opts) => {
       await this.store.initialized
       const {
         metadata,
-        loader,
         dimensions,
         shape,
         chunks,
@@ -178,7 +176,6 @@ export const createTiles = (regl, opts) => {
       this.ndim = this.dimensions.length
 
       this.coordinates = coordinates
-      this.loader = loader
       this.availableLevels = new Set(levels)
 
       this.clearLoading(loadingID)
@@ -321,9 +318,10 @@ export const createTiles = (regl, opts) => {
 
     this._initializeTile = (key, level) => {
       if (!this.tiles[key]) {
-        if (!this.loader || !this.availableLevels.has(level)) return
+        if (!this.availableLevels.has(level)) return
         this._removeOldestTile()
-        const loadChunk = (chunk) => this.loader.load({ level, chunk })
+        const loadChunk = (chunk) =>
+          this.store.getChunk(`${level}/${this.variable}`, chunk)
 
         this.tiles[key] = new Tile({
           key,
@@ -381,7 +379,7 @@ export const createTiles = (regl, opts) => {
         Object.keys(this.active).map(
           (key) =>
             new Promise((resolve) => {
-              if (this.loader && this.availableLevels.has(level)) {
+              if (this.availableLevels.has(level)) {
                 const tileIndex = keyToTile(key)
                 const tile = this._initializeTile(key, level)
 
