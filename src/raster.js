@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useRegl } from './regl'
 import { useMap } from './map-provider'
 import { useControls } from './use-controls'
 import { createTiles } from './tiles'
 import { useRegion } from './region/context'
 import { useSetLoading } from './loading'
+import ZarrStore from './zarr-store'
 
 const Raster = (props) => {
   const {
@@ -32,6 +33,17 @@ const Raster = (props) => {
 
   camera.current = { center: center, zoom: zoom }
 
+  const store = useMemo(
+    () =>
+      new ZarrStore({
+        source: props.source,
+        version: props.version,
+        variable: props.variable,
+        coordinateKeys: Object.keys(selector),
+      }),
+    [props.source, props.version, props.variable]
+  )
+
   const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
@@ -47,10 +59,17 @@ const Raster = (props) => {
   }
 
   useEffect(() => {
+    return () => {
+      store.cleanup()
+    }
+  }, [store])
+
+  useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
       setLoading,
       clearLoading,
+      store,
       invalidate: () => {
         map.triggerRepaint()
       },
@@ -58,7 +77,7 @@ const Raster = (props) => {
         setRegionDataInvalidated(new Date().getTime())
       },
     })
-  }, [])
+  }, [store])
 
   useEffect(() => {
     if (props.setLoading) {

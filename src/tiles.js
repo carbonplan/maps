@@ -22,13 +22,11 @@ import {
 } from './utils'
 import { DEFAULT_FILL_VALUES } from './constants'
 import Tile from './tile'
-import initializeStore from './initialize-store'
 
 export const createTiles = (regl, opts) => {
   return new Tiles(opts)
 
   function Tiles({
-    source,
     colormap,
     clim,
     opacity,
@@ -45,12 +43,11 @@ export const createTiles = (regl, opts) => {
     invalidateRegion,
     setMetadata,
     order,
-    version = 'v2',
     projection,
     maxCachedTiles = 500,
+    store,
   }) {
     this.tiles = {}
-    this.loaders = {}
     this.active = {}
     this.display = display
     this.clim = clim
@@ -111,81 +108,80 @@ export const createTiles = (regl, opts) => {
         }
       }
     })
-    this.initialized = new Promise((resolve) => {
+    this.availableLevels = new Set()
+    if (!store) {
+      throw new Error('Tiles requires a ZarrStore instance.')
+    }
+    this.store = store
+
+    this.initialized = (async () => {
       const loadingID = this.setLoading('metadata')
-      initializeStore(source, version, variable, Object.keys(selector)).then(
-        ({
-          metadata,
-          loaders,
-          dimensions,
-          shape,
-          chunks,
-          fill_value,
-          dtype,
-          coordinates,
-          levels,
-          maxZoom,
-          tileSize,
-          crs,
-        }) => {
-          if (setMetadata) setMetadata(metadata)
-          this.maxZoom = maxZoom
-          this.level = zoomToLevel(this.zoom, maxZoom)
-          const position = getPositions(tileSize, mode)
-          this.position = regl.buffer(position)
-          this.size = tileSize
-          // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
-          this.projectionIndex = projection
-            ? ['mercator', 'equirectangular'].indexOf(projection)
-            : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
-          this.projection = ['mercator', 'equirectangular'][
-            this.projectionIndex
-          ]
 
-          if (!this.projection) {
-            this.projection = null
-            throw new Error(
-              projection
-                ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
-                : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
-            )
-          }
+      await this.store.initialized()
+      const {
+        metadata,
+        dimensions,
+        shape,
+        chunks,
+        fill_value,
+        dtype,
+        coordinates,
+        levels,
+        maxZoom,
+        tileSize,
+        crs,
+      } = this.store.describe()
 
-          if (mode === 'grid' || mode === 'dotgrid') {
-            this.count = position.length
-          }
-          if (mode === 'texture') {
-            this.count = 6
-          }
+      if (setMetadata) setMetadata(metadata)
+      this.maxZoom = maxZoom
+      this.level = zoomToLevel(this.zoom, maxZoom)
+      const position = getPositions(tileSize, mode)
+      this.position = regl.buffer(position)
+      this.size = tileSize
+      // Respect `projection` prop when provided, otherwise rely on `crs` value from metadata
+      this.projectionIndex = projection
+        ? ['mercator', 'equirectangular'].indexOf(projection)
+        : ['EPSG:3857', 'EPSG:4326'].indexOf(crs)
+      this.projection = ['mercator', 'equirectangular'][this.projectionIndex]
 
-          this.dimensions = dimensions
-          this.shape = shape
-          this.chunks = chunks
-          this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
+      if (!this.projection) {
+        this.projection = null
+        throw new Error(
+          projection
+            ? `Unexpected \`projection\` prop provided: '${projection}'. Must be one of 'mercator', 'equirectangular'.`
+            : `Unexpected \`crs\` found in metadata: '${crs}'. Must be one of 'EPSG:3857', 'EPSG:4326'.`
+        )
+      }
 
-          if (mode === 'texture') {
-            const emptyTexture = ndarray(
-              new Float32Array(Array(1).fill(this.fillValue)),
-              [1, 1]
-            )
-            initialize = () => regl.texture(emptyTexture)
-          }
+      if (mode === 'grid' || mode === 'dotgrid') {
+        this.count = position.length
+      }
+      if (mode === 'texture') {
+        this.count = 6
+      }
 
-          this.ndim = this.dimensions.length
+      this.dimensions = dimensions
+      this.shape = shape
+      this.chunks = chunks
+      this.fillValue = fillValue ?? fill_value ?? DEFAULT_FILL_VALUES[dtype]
 
-          this.coordinates = coordinates
+      if (mode === 'texture') {
+        const emptyTexture = ndarray(
+          new Float32Array(Array(1).fill(this.fillValue)),
+          [1, 1]
+        )
+        initialize = () => regl.texture(emptyTexture)
+      }
 
-          levels.forEach((z) => {
-            const loader = loaders[z + '/' + variable]
-            this.loaders[z] = loader
-          })
+      this.ndim = this.dimensions.length
 
-          resolve(true)
-          this.clearLoading(loadingID)
-          this.invalidate()
-        }
-      )
-    })
+      this.coordinates = coordinates
+      this.availableLevels = new Set(levels)
+
+      this.clearLoading(loadingID)
+      this.invalidate()
+      return true
+    })()
 
     this.drawTiles = regl({
       vert: vert(mode, this.bands),
@@ -322,12 +318,14 @@ export const createTiles = (regl, opts) => {
 
     this._initializeTile = (key, level) => {
       if (!this.tiles[key]) {
-        const loader = this.loaders[level]
-        if (!loader) return
+        if (!this.availableLevels.has(level)) return
         this._removeOldestTile()
+        const loadChunk = (chunk) =>
+          this.store.getChunk(`${level}/${this.variable}`, chunk)
+
         this.tiles[key] = new Tile({
           key,
-          loader,
+          loader: loadChunk,
           shape: this.shape,
           chunks: this.chunks,
           dimensions: this.dimensions,
@@ -381,7 +379,7 @@ export const createTiles = (regl, opts) => {
         Object.keys(this.active).map(
           (key) =>
             new Promise((resolve) => {
-              if (this.loaders[level]) {
+              if (this.availableLevels.has(level)) {
                 const tileIndex = keyToTile(key)
                 const tile = this._initializeTile(key, level)
 
