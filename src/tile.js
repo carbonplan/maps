@@ -46,7 +46,7 @@ class Tile {
 
   async loadChunks(chunks) {
     const updated = await Promise.all(
-      chunks.map(async (chunk) => {
+      chunks.map((chunk) => {
         const key = chunk.join('.')
         if (this.chunkedData[key]) {
           return false
